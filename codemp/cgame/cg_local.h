@@ -812,6 +812,9 @@ typedef struct cg_s {
 	// view rendering
 	refdef_t	refdef;
 
+	//OpenRP
+	OpenRP_t		OpenRP;
+
 	// zoom key
 	qboolean	zoomed;
 	int			zoomTime;

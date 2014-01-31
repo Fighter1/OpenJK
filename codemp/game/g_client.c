@@ -2126,8 +2126,10 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 				Q_StripColor( client->pers.netname_nocolor );
 			}
 			else
-			{				
-				trap->SendServerCommand( -1, va( "print \"%s"S_COLOR_WHITE" %s %s\n\"", oldname, G_GetStringEdString( "MP_SVGAME", "PLRENAME" ), client->pers.netname ) );
+			{
+				//OpenRP
+				if (openrp_showRenames.integer)
+					trap->SendServerCommand( -1, va( "print \"%s"S_COLOR_WHITE" %s %s\n\"", oldname, G_GetStringEdString( "MP_SVGAME", "PLRENAME" ), client->pers.netname ) );
 				G_LogPrintf( "ClientRename: %i [%s] (%s) \"%s^7\" -> \"%s^7\"\n", clientNum, ent->client->sess.IP, ent->client->pers.guid, oldname, ent->client->pers.netname );
 				client->pers.netnameTime = level.time + 5000;
 			}
@@ -2703,6 +2705,24 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	//first-time force power initialization
 	WP_InitForcePowers( ent );
 
+	//OpenRP - make login and character menus automatically pop up
+	if (!ent->client->sess.loggedIn || !ent->client->sess.characterSelected)
+	{
+		//Make them a spectator so they can set their powerups up without being bothered.
+		ent->client->sess.sessionTeam = TEAM_SPECTATOR;
+		ent->client->sess.spectatorState = SPECTATOR_FREE;
+		ent->client->sess.spectatorClient = 0;
+
+		ent->client->pers.teamState.state = TEAM_BEGIN;
+
+		if (!ent->client->sess.loggedIn)
+			trap->SendServerCommand(ent - g_entities, "accountui");
+		else
+			trap->SendServerCommand(ent - g_entities, "charui");
+
+		return;
+	}
+
 	//init saber ent
 	WP_SaberInitBladeData( ent );
 
@@ -2729,6 +2749,8 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 		if ( level.gametype != GT_DUEL || level.gametype == GT_POWERDUEL ) {
 			trap->SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " %s\n\"", client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLENTER")) );
 		}
+		//OpenRP
+		trap->SendServerCommand(ent - g_entities, va("print \"^2OpenRP Server: ^7%s\n^2OpenRP Website: ^7https://github.com/Fighter1/OpenRP\n^2Server's Website: ^7%s\n^2Type /info for a list of commands or /eminfo for a list of emotes.\n\"", OPENRP_SERVERVERSION, openrp_website.string));
 	}
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
@@ -3472,7 +3494,11 @@ void ClientSpawn(gentity_t *ent) {
 		{
 			if (client->ps.fd.forcePowerLevel[FP_SABER_OFFENSE])
 			{
-				client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_SABER );	//these are precached in g_items, ClearRegisteredItems()
+				if ( level.gametype == GT_FFA )
+					//OpenRP - Give the player melee along with their saber.
+					client->ps.stats[STAT_WEAPONS] |= (1 << WP_SABER) | (1 << WP_MELEE);	//these are precached in g_items, ClearRegisteredItems()
+				else
+					client->ps.stats[STAT_WEAPONS] |= (1 << WP_SABER);	//these are precached in g_items, ClearRegisteredItems()
 			}
 			else
 			{ //if you don't have saber attack rank then you don't get a saber
@@ -3484,7 +3510,10 @@ void ClientSpawn(gentity_t *ent) {
 		{
 			if (!wDisable || !(wDisable & (1 << WP_BRYAR_PISTOL)))
 			{
-				client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_BRYAR_PISTOL );
+				//OpenRP - Probably not really necessary with server.cfg settings' current values in the file,
+				//but just to be safe - make sure people don't get a pistol in FFA
+				if ( level. gametype != GT_FFA)
+					client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_BRYAR_PISTOL );
 			}
 			else if (level.gametype == GT_JEDIMASTER)
 			{
@@ -3500,7 +3529,16 @@ void ClientSpawn(gentity_t *ent) {
 
 		if (client->ps.stats[STAT_WEAPONS] & (1 << WP_SABER))
 		{
-			client->ps.weapon = WP_SABER;
+			if (level.gametype == GT_FFA)
+			{
+				//OpenRP - make active weapon melee, not saber if they have a saber and melee (which they should)
+				if (client->ps.stats[STAT_WEAPONS] & (1 << WP_MELEE))
+					client->ps.weapon = WP_MELEE;
+				else
+					client->ps.weapon = WP_SABER;
+			}
+			else
+				client->ps.weapon = WP_SABER;
 		}
 		else if (client->ps.stats[STAT_WEAPONS] & (1 << WP_BRYAR_PISTOL))
 		{
@@ -3777,6 +3815,29 @@ void ClientSpawn(gentity_t *ent) {
 			tent->s.clientNum = ent->s.clientNum;
 
 			trap->LinkEntity ((sharedEntity_t *)ent);
+
+			//OpenRP
+			if (ent->client->sess.isEmp)
+				ent->client->ps.eFlags |= EF_BODYPUSH; //Thanks to ClanMod for this
+
+			if (ent->client->sess.isMerc)
+			{
+				//Give them every item.
+				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] |= (1 << HI_BINOCULARS) | (1 << HI_SEEKER) | (1 << HI_CLOAK) | (1 << HI_EWEB) | (1 << HI_SENTRY_GUN);
+				//Take away saber and melee. We'll give it back in the next line along with the other weapons.
+				ent->client->ps.stats[STAT_WEAPONS] &= ~(1 << WP_SABER) & ~(1 << WP_MELEE);
+				//Give them every weapon.
+				ent->client->ps.stats[STAT_WEAPONS] |= (1 << WP_SABER) | (1 << WP_MELEE) | (1 << WP_BLASTER) | (1 << WP_DISRUPTOR) | (1 << WP_BOWCASTER)
+					| (1 << WP_REPEATER) | (1 << WP_DEMP2) | (1 << WP_FLECHETTE) | (1 << WP_ROCKET_LAUNCHER) | (1 << WP_THERMAL) | (1 << WP_DET_PACK)
+					| (1 << WP_BRYAR_OLD) | (1 << WP_CONCUSSION) | (1 << WP_TRIP_MINE) | (1 << WP_BRYAR_PISTOL);
+				{
+					for (i = 0; i < MAX_WEAPONS; i++)
+						//Give them max ammo
+						ent->client->ps.ammo[i] = 999;
+				}
+
+				ent->client->ps.weapon = WP_BLASTER; //Switch their active weapon to the E-11.
+			}
 		}
 	} else {
 		// move players to intermission
@@ -3939,6 +4000,11 @@ void ClientDisconnect( int clientNum ) {
 			ent->client->pers.connected = pCon;
 		}
 	}*/
+
+	//OpenRP - Log them out of their account if they're logged in
+	if (ent->client->sess.loggedIn)
+		Cmd_Logout_F(ent);
+
 
 	// stop any following clients
 	for ( i = 0 ; i < level.maxclients ; i++ ) {

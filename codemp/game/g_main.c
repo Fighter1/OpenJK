@@ -7,6 +7,9 @@
 #include "bg_saga.h"
 #include "b_local.h"
 
+//OpenRP
+#include "g_OpenRP.h"
+
 level_locals_t	level;
 
 int		eventClearTime = 0;
@@ -396,6 +399,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 			SP_info_jedimaster_start( ent );
 		}
 	}
+	//OpenRP - Initialize SQL
+	InitializeSQL();
 }
 
 

@@ -22,7 +22,7 @@ extern vec3_t gPainPoint;
 //==================================================================
 
 // the "gameversion" client command will print this plus compile date
-#define	GAMEVERSION	"OpenJK"
+#define	GAMEVERSION	"OpenRP"
 
 #define SECURITY_LOG "security.log"
 
@@ -429,6 +429,60 @@ typedef struct clientSession_s {
 
 	//JAC: Added
 	char		IP[NET_ADDRSTRMAXLEN];
+
+	//OpenRP stuff
+	qboolean    loggedIn;
+	int			accountID;
+	qboolean    characterSelected;
+	int			characterID;
+	int			modelScale;
+	//OpenRP admin system stuff
+	qboolean	isAdmin;
+	int adminLevel;
+	int warnings;
+	qboolean isSleeping;
+	qboolean isSilenced;
+	qboolean isProtected;
+	qboolean isInvisible;
+	qboolean allChat;
+	qboolean allChatComplete;
+	qboolean isAutoWalking;
+	qboolean chatCommandExecuted;
+	qboolean isDisguised;
+	int chatMode;
+	int radioFrequency;
+	qboolean radioOn;
+
+	char *entListNames[128][128];
+	int entListIDs[128];
+
+	qboolean canUseCheatCmds;
+
+	qboolean trainingSaber;
+	qboolean trainingSaberLocked;
+
+	qboolean fadeToBlack;
+	qboolean toBlackImmediately;
+
+	qboolean isHologram;
+
+	qboolean isEmote;
+
+	int skillPoints;
+
+	qboolean alarm;
+
+	int invitedFactionID; //FactionID of the faction the player was invited to
+
+	qboolean stayCrouched;
+
+	qboolean isMerc;
+	qboolean isEmp;
+	int SavedPowers;
+	int SavedPowersLevels[NUM_FORCE_POWERS];
+
+	qboolean stunMode;
+
 } clientSession_t;
 
 // playerstate mGameFlags
@@ -455,6 +509,13 @@ typedef struct clientPersistant_s {
 	int			enterTime;			// level.time the client entered the game
 	playerTeamState_t teamState;	// status in teamplay games
 	qboolean	teamInfo;			// send team overlay updates?
+
+	//OpenRP - teleport stuff (credit to ClanMod for this)
+	int	amtelemark1;
+	int	amtelemark2;
+	int	amtelemark3;
+	int	amtelemarkyaw;
+	qboolean	amtelemarkset;
 
 	//JAC: Added
 	int			connectTime;
@@ -1237,6 +1298,9 @@ void AddScore( gentity_t *ent, vec3_t origin, int score );
 void CalculateRanks( void );
 qboolean SpotWouldTelefrag( gentity_t *spot );
 
+//OpenRP
+void Cmd_Logout_F(gentity_t *ent);
+
 extern gentity_t *gJMSaberEnt;
 
 //
@@ -1263,6 +1327,15 @@ void DeathmatchScoreboardMessage (gentity_t *client);
 //
 // g_cmds.c
 //
+//OpenRP - Added prototype so it can be used in places other than g_cmds.c
+void G_Say(gentity_t *ent, gentity_t *target, int mode, const char *chatText);
+
+//OpenRP - Combined JAPP and OpenJK code (from above) for this command (Credits to both)
+int G_ClientNumberFromName2(const char *name);
+
+//OpenRP - credit to ClanMod for this function
+void Admin_Teleport(gentity_t *ent);
+
 
 //
 // g_pweapon.c

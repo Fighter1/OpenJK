@@ -14,6 +14,33 @@
 
 #define	MAX_ENTITIES_IN_SNAPSHOT	256
 
+//OpenRP
+typedef struct {
+	qboolean fadingInToBlack; //Fade in to black
+	qboolean fadingOutOfBlack; //Fade out of black
+	qboolean fadedToBlack; //Successfully faded to black
+	int fadeToBlackTime;
+	int fadeToBlackMSecondsPassed;
+	int fadeToBlackMSecondsPassedMin;
+	int fadeToBlackMSecondsPassedMax;
+
+	qboolean timer;
+	int timerSeconds; //Time for /amTimer
+	qboolean timerIsMyTeam; //Used for timer's text color
+
+	qboolean isHologram;
+
+	vec4_t fadeColor;
+
+	qboolean alarmActivated;
+	qboolean alarmFadingIn;
+	qboolean alarmFadingOut;
+	int alarmTime;
+	int alarmMSecondsPassed;
+	int alarmMSecondsPassedMin;
+	int alarmMSecondsPassedMax;
+} OpenRP_t;
+
 // snapshots are a view of the server at a given time
 
 // Snapshots are generated at regular time intervals by the server,

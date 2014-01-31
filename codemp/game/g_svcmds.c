@@ -5,6 +5,9 @@
 
 #include "g_local.h"
 
+//OpenRP
+#include "g_admin.h"
+
 /*
 ==============================================================================
 
@@ -183,7 +186,9 @@ qboolean G_FilterPacket (char *from)
 AddIP
 =================
 */
-static void AddIP( char *str )
+//OpenRP - removed static keyword
+//static void AddIP( char *str )
+void AddIP(char *str)
 {
 	int		i;
 
@@ -494,7 +499,9 @@ svcmd_t svcmds[] = {
 	{ "entitylist",					Svcmd_EntityList_f,					qfalse },
 	{ "forceteam",					Svcmd_ForceTeam_f,					qfalse },
 	{ "game_memory",				Svcmd_GameMem_f,					qfalse },
+	{ "giveadmin",					Cmd_SVGiveAdmin_F,					qfalse },
 	{ "listip",						Svcmd_ListIP_f,						qfalse },
+	{ "removeadmin",				Cmd_SVRemoveAdmin_F,				qfalse },
 	{ "removeip",					Svcmd_RemoveIP_f,					qfalse },
 	{ "say",						Svcmd_Say_f,						qtrue },
 	{ "toggleuserinfovalidation",	Svcmd_ToggleUserinfoValidation_f,	qfalse },
@@ -514,8 +521,12 @@ qboolean	ConsoleCommand( void ) {
 	trap->Argv( 0, cmd, sizeof( cmd ) );
 
 	command = (svcmd_t *)bsearch( cmd, svcmds, numsvcmds, sizeof( svcmds[0] ), svcmdcmp );
-	if ( !command )
+	if (!command)
+	{
+		//OpenRP - Print if command is unknown
+		trap->Print( "Unknown command: %s\n", cmd );
 		return qfalse;
+	}
 
 	if ( command->dedicated && !dedicated.integer )
 		return qfalse;

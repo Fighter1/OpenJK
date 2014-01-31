@@ -1680,7 +1680,8 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 	{//normal taunt always allowed
 		if ( level.gametype != GT_DUEL && level.gametype != GT_POWERDUEL )
 		{//no taunts unless in Duel
-			return;
+			//OpenRP - Allow taunts in duel - Thanks to Raz0r for the information on how to change this.
+			//return;
 		}
 	}
 
@@ -2161,14 +2162,17 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	//Check if we should have a fullbody push effect around the player
-	if (client->pushEffectTime > level.time)
+	//OpenRP - don't do this if the player is empowered
+	if (client->pushEffectTime > level.time && !client->sess.isEmp)
 	{
 		client->ps.eFlags |= EF_BODYPUSH;
 	}
 	else if (client->pushEffectTime)
 	{
 		client->pushEffectTime = 0;
-		client->ps.eFlags &= ~EF_BODYPUSH;
+		//OpenRP - don't do this if the player is empowered
+		if (!client->sess.isEmp)
+			client->ps.eFlags &= ~EF_BODYPUSH;
 	}
 
 	if (client->ps.stats[STAT_HOLDABLE_ITEMS] & (1 << HI_JETPACK))

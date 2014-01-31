@@ -18,6 +18,9 @@
 
 #define	GAME_VERSION		"basejka-1"
 
+#define OPENRP_CLIENTVERSION		"0.0.1 (Pre-alpha)"
+#define OPENRP_SERVERVERSION		"Pre-alpha Built: "__DATE__" "__TIME__
+
 #define DEFAULT_SABER			"Kyle"
 #define DEFAULT_SABER_STAFF		"dual_1"
 #define DEFAULT_SABER_MODEL		"models/weapons2/saber/saber_w.glm"

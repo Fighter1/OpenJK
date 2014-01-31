@@ -254,7 +254,8 @@ typedef int		clipHandle_t;
 #define	MAX_NAME_LENGTH		32		// max length of a client name
 #define MAX_NETNAME			36
 
-#define	MAX_SAY_TEXT	150
+//OpenRP - increased from 150 to 1024 - may need to be adjusted
+#define	MAX_SAY_TEXT	1024
 
 // paramters for command buffer stuffing
 typedef enum {
@@ -2261,6 +2262,17 @@ typedef enum {
 #define SAY_ALL		0
 #define SAY_TEAM	1
 #define SAY_TELL	2
+//OpenRP
+#define SAY_YELL	3
+#define SAY_WHISPER 4
+#define SAY_ME		5
+#define SAY_IT		6
+#define SAY_COMM	7
+#define SAY_FORCE	8
+#define SAY_ADMIN	9
+#define SAY_OOC		10
+#define SAY_LOOC	11
+#define SAY_REPORT	12
 
 #define QRAND_MAX 32768
 

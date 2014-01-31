@@ -11,6 +11,132 @@
 	#define XCVAR_DEF( name, defVal, update, flags, announce ) { & name , #name , defVal , update , flags , announce },
 #endif
 
+//Begin OpenRP cvars
+
+//OpenRP Stuff
+XCVAR_DEF(openrp_maxWarnings, "3", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin1Bitvalues, "4294967295", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin2Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin3Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin4Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin5Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin6Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin7Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin8Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin9Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_admin10Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_adminControl, "1", NULL, CVAR_ARCHIVE, qfalse)
+
+//Server's own website
+XCVAR_DEF(openrp_website, "", NULL, CVAR_ARCHIVE, qfalse)
+
+//Shop stuff
+//Thanks to Kavar for making the descriptions.
+XCVAR_DEF(openrp_e11BuyCost, "400", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_e11SellCost, "200", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_e11Level, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_e11Description, "A BlasTech E-11 rifle.  Despite its infamous inaccuracy, it remains a favorite amongst mercenaries and infantry alike due to its light weight and notable power.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_pistolBuyCost, "250", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_pistolSellCost, "125", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_pistolLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_pistolDescription, "A BlasTech DL-44 blaster pistol. Its accuracy, power, and ability to charge shots make it a favorite amongst smugglers, bounty hunters, and even military forces.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_disruptorBuyCost, "600", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_disruptorSellCost, "300", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_disruptorLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_disruptorDescription, "A Tenloss DXR-6 disruptor rifle. An outlaw weapon known for its ability to completely disintegrate its targets, which makes even a glancing blow a serious one. Fitted with a zoom scope and optimized for sniping and long range engagements. ", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_bowcasterBuyCost, "550", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_bowcasterSellCost, "275", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_bowcasterLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_bowcasterDescription, "A Wookiee bowcaster. Modified for use by all species, the bowcaster features impressive stopping power with the ability to fire single, spread, or ricochet shots.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_repeaterBuyCost, "800", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_repeaterSellCost, "400", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_repeaterLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_repeaterDescription, "An Imperial Heavy Repeater. Essentially a slugthrower which boasts an incredibly high rate of fire, as well as an attached concussion grenade launcher.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_demp2BuyCost, "700", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_demp2SellCost, "350", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_demp2Level, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_demp2Description, "A Destructive Electromagnetic Pulse 2 (DEMP2) ion carbine. Effective against electrical sources and organics alike, the DEMP2 features standard fire as well as a secondary fire mode which causes an explosion on impact and extends the shot's range.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_flechetteBuyCost, "850", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_flechetteSellCost, "425", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_flechetteLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_flechetteDescription, "A Golan Arms FC-1 flechette launcher. While suited for close range combat, the FC-1 also carries proximity grenades for any range.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_rocketBuyCost, "10000", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_rocketSellCost, "5000", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_rocketLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_rocketDescription, "A Merr-Sonn PLX-2M portable missile launcher. Features manual and lock-on firing modes.", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_concussionBuyCost, "8000", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_concussionSellCost, "4000", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_concussionLevel, "1", NULL, CVAR_ARCHIVE, qfalse)
+XCVAR_DEF(openrp_concussionDescription, "A Stouker concussion rifle, originally created by the Sissk. Able to fire concussive blasts as well as a secondary, more focused blast.", NULL, CVAR_ARCHIVE, qfalse)
+
+//[LF - BlackNames]
+//Toggles allowance of black names
+XCVAR_DEF(g_allowBlackNames, "1", NULL, CVAR_ARCHIVE, qtrue)
+//[/LF - BlackNames]
+
+//XCVAR_DEF( openrp_jetpackFuel,	"1",	NULL,			CVAR_ARCHIVE,	qfalse )
+//XCVAR_DEF( openrp_cloakFuel,		"1",	NULL,			CVAR_ARCHIVE,	qfalse )
+
+XCVAR_DEF(openrp_showRenames, "1", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(openrp_databasePath, "OpenRP/openrpdatabase.db", NULL, CVAR_ARCHIVE, qfalse)
+
+XCVAR_DEF(openrp_DistanceBasedChat, "1", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(openrp_forceSensitiveBuyGuns, "1", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_pistol_velocity, "1600", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_pistol_damage, "10", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_e11_velocity, "2300", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_e11_damage, "20", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_disruptor_damage, "30", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_disruptor_altdamage, "100", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_bowcaster_damage, "50", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_bowcaster_velocity, "1300", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_repeater_damage, "14", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_repeater_velocity, "1600", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_repeater_altdamage, "60", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_repeater_altsplashdamage, "60", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_repeater_altvelocity, "1100", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_demp2_damage, "35", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_demp2_velocity, "1800", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_demp2_altdamage, "8", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_flechette_damage, "12", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_flechette_velocity, "3500", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_flechette_altdamage, "60", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_fletchette_altsplashdamage, "60", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_rocket_velocity, "900", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_rocket_damage, "100", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_rocketsplash_damage, "100", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_concussion_velocity, "3000", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_concussion_damage, "75", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_concussion_altdamage, "25", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_stunbaton_damage, "20", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_stunbaton_altdamage, "20", NULL, CVAR_ARCHIVE, qtrue)
+
+XCVAR_DEF(g_meleeswing1_damage, "10", NULL, CVAR_ARCHIVE, qtrue)
+XCVAR_DEF(g_meleeswing2_damage, "12", NULL, CVAR_ARCHIVE, qtrue)
+
+//End OpenRP cvars
+
 XCVAR_DEF( bg_fighterAltControl,		"0",			NULL,				CVAR_SYSTEMINFO,								qtrue )
 XCVAR_DEF( capturelimit,				"8",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART,	qtrue )
 XCVAR_DEF( com_optvehtrace,				"0",			NULL,				CVAR_NONE,										qtrue )
@@ -59,7 +185,8 @@ XCVAR_DEF( g_debugAlloc,				"0",			NULL,				CVAR_NONE,										qfalse )
 #ifndef FINAL_BUILD
 XCVAR_DEF( g_debugDamage,				"0",			NULL,				CVAR_NONE,										qfalse )
 #endif
-XCVAR_DEF( g_debugMelee,				"0",			NULL,				CVAR_SERVERINFO,								qtrue )
+//OpenRP - changed g_debugMelee to 1 to allow for kicks, throws, etc. with melee
+XCVAR_DEF( g_debugMelee,				"1",			NULL,				CVAR_SERVERINFO,								qtrue )
 XCVAR_DEF( g_debugMove,					"0",			NULL,				CVAR_NONE,										qfalse )
 XCVAR_DEF( g_debugSaberLocks,			"0",			NULL,				CVAR_CHEAT,										qfalse )
 XCVAR_DEF( g_debugServerSkel,			"0",			NULL,				CVAR_CHEAT,										qfalse )
@@ -143,7 +270,8 @@ XCVAR_DEF( g_userinfoValidate,			"25165823",		NULL,				CVAR_ARCHIVE,									qfa
 XCVAR_DEF( g_useWhileThrowing,			"1",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( g_voteDelay,					"3000",			NULL,				CVAR_NONE,										qfalse )
 XCVAR_DEF( g_warmup,					"20",			NULL,				CVAR_ARCHIVE,									qtrue )
-XCVAR_DEF( g_weaponDisable,				"0",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH,		qtrue )
+//OpenRP -  //Note: It's recommended to keep this at its current value(changed from default of 0) because of OpenRP's shop system.
+XCVAR_DEF( g_weaponDisable,				"524275",			NULL,				CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_LATCH,		qtrue )
 XCVAR_DEF( g_weaponRespawn,				"5",			NULL,				CVAR_NONE,										qtrue )
 XCVAR_DEF( gamedate,					__DATE__,		NULL,				CVAR_ROM,										qfalse )
 XCVAR_DEF( gamename,					GAMEVERSION,	NULL,				CVAR_SERVERINFO|CVAR_ROM,						qfalse )

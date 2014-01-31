@@ -60,6 +60,14 @@ void G_WriteClientSessionData( gclient_t *client )
 	Q_strcat( s, sizeof( s ), va( "%i ", client->sess.siegeDesiredTeam ) );
 	Q_strcat( s, sizeof( s ), va( "%s ", siegeClass ) );
 	Q_strcat( s, sizeof( s ), va( "%s", IP ) );
+	//OpenRP - Account, character, skill point session stuff
+	Q_strcat(s, sizeof(s), va("%i", client->sess.skillPoints));
+	Q_strcat(s, sizeof(s), va("%i", client->sess.accountID));
+	Q_strcat(s, sizeof(s), va("%i", client->sess.loggedIn));
+	Q_strcat(s, sizeof(s), va("%i", client->sess.characterID));
+	Q_strcat(s, sizeof(s), va("%i", client->sess.characterSelected));
+	Q_strcat(s, sizeof(s), va("%i", client->sess.warnings));
+	Q_strcat(s, sizeof(s), va("%i", client->sess.modelScale));
 
 	var = va( "session%i", client - level.clients );
 
@@ -96,7 +104,15 @@ void G_ReadSessionData( gclient_t *client )
 		&client->sess.duelTeam,
 		&client->sess.siegeDesiredTeam,
 		client->sess.siegeClass,
-		client->sess.IP
+		client->sess.IP,
+		//OpenRP - Account, character, skill point session stuff
+		&client->sess.skillPoints,
+		&client->sess.accountID,
+		&client->sess.loggedIn,
+		&client->sess.characterID,
+		&client->sess.characterSelected,
+		&client->sess.warnings,
+		&client->sess.modelScale
 		);
 
 	client->sess.sessionTeam	= (team_t)tempSessionTeam;
@@ -220,6 +236,16 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 	AddTournamentQueue(client);
 
 	sess->siegeClass[0] = 0;
+
+	//OpenRP - initial session values
+	sess->skillPoints = 1;
+	sess->adminLevel = 11;
+	sess->radioOn = qtrue;
+	//OpenRP - Set their frequency to 0, which is an invalid one and will prevent them from talking on the radio until they change it to a different one.
+	//They will of course, be notified that they need to change their frequency upon attempting to use their radio.
+	//This will prevent everybody from initially being on the same channel.
+	sess->radioFrequency = 0;
+	sess->invitedFactionID = 0;
 
 	G_WriteClientSessionData( client );
 }

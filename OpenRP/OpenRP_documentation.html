@@ -1,0 +1,490 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OpenRP Documentation</title>
+<link href="stylesheet.css" rel="stylesheet" type="text/css">
+<!--[if lt IE 9]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+
+<body>
+
+<div class="container">
+  <header style="text-align:center; margin-top:0px; margin-bottom:0px; padding:0px;">
+  <a id="top"></a>
+    <a href="#"><img src="" alt="OpenRP Logo" name="Insert_logo" width="549" height="220" id="Insert_logo" style="background: #C6D580; display:block;" /></a>
+  </header>
+  <div class="sidebar1">
+    <nav>
+      <ul>
+        <li><a href="#account">Account Commands Section</a></li>
+        <li><a href="#admin">Admin Commands Section</a></li>
+        <li><a href="#character">Character Commands Section</a></li>
+		<li><a href="#chat">Chat Commands Section</a></li>
+        <li><a href="#general">General Commands Section</a></li>
+      </ul>
+    </nav>
+    <aside>
+      <p>Click the above links to navigate to certain sections of the documentation.</p>
+    </aside>
+  <!-- end .sidebar1 --></div>
+  <article class="content">
+    <h1>OpenRP Documentation</h1>
+    <section>
+    <h2>Introduction to OpenRP</h2>
+     <p>Hey there! Thanks a lot for downloading OpenRP! This intro is a basic guide into getting into OpenRP and using it. For more detailed information, check out the content below and use the sidebar links to the left to quickly navigate to a certain section! Note that commands are case <strong>insensitive</strong> so it doesn't matter whether you capitalize certain letters or not like they may be in the below lists.</p>
+     <p>To start OpenRP, run the <strong>play_OpenRP.bat</strong> file in your GameData folder.    </p>
+    </section>
+    <section>
+    </section>
+    <section>
+      <h2><a id="account">Account Commands</a></h2>
+	  <a href="#top">Back to the top of the page</a>
+	  <br />
+	  <br />
+      <p><strong>accountInfo</strong> - Display the account information of yourself or another player.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /acccountInfo - Display your own account info; /accountInfo &lt;username&gt; - Display the account info of another player</p>
+      </blockquote>
+	<p><strong>accountName - </strong>Displays the account name/username of another player who is current online by using their player name.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /accountName &lt;playerName&gt;</p>
+      </blockquote>
+	<p><strong>editAccount</strong> - Edit options/settings of your account.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /editAccount username &lt;newUsername&gt;; /editAccount password &lt;newPassword&gt;</p>
+      </blockquote>
+      <p><strong>login</strong> - Login to your account.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /login &lt;username&gt; &lt;password&gt;</p>
+      </blockquote>
+      <p><strong>logout</strong> - Logout of your account.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /logout</p>
+      </blockquote>
+      <p><strong>register</strong> - Register a new account.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /register &lt;username&gt; &lt;password&gt;        <br>
+    </p>
+      </blockquote>
+	</section>
+    <section>
+      <h2><a id="admin">Admin Commands</a></h2>
+	  <p><a href="#top">Back to the top of the page</a>
+	    <br />
+      </p>
+	  <p><strong>amAlarm</strong> - Currently unused or disabled.</p>
+	  <blockquote>
+	    <p><strong>	Usage:</strong></p>
+      </blockquote>
+	  <p><strong>amAllChat</strong> - Show all chat on the server despite distance.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amAllChat - Turn regular all chat on. You won't see your messages repeated with regular all chat on; /amAllChat complete - Turn all chat complete on. You will see your messages repeated in this mode</p>
+      </blockquote>
+	  <p><br>
+      <strong>amAnnounce</strong> - Announce/broadcast a message to the entire server or a specific player. The message is shown in the center of their screen. Use \n for new lines.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amAnnounce &lt;name/clientID&gt; &lt;message&gt;</p>
+      </blockquote>
+	  <p><strong>amAudio</strong> - Play a sound file that the entire server hears. Play a music file that plays as the map's music (thus it automatically repeats),or turn off the map's music.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amAudio &lt;filePath&gt; - Play a sound or music file. Sound files must be in the sound/ folder, music files must be in the music/ folder; /amAudio none - Turn off the map music</p>
+      </blockquote>
+	  <p><strong>amBan</strong> - Ban a player from the server permanently.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amBan &lt;name/clientID&gt;</p>
+	</blockquote>
+      <p><strong>amCheckStats</strong> - View the force powers/levels a player has.</p>
+	    <blockquote>
+	      <p><strong>Usage:</strong> /amCheckStats &lt;name/clientID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amCreateFaction</strong> - Create a faction. Thisautomatically makes yourself the leader of it. Only admins can use this command.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amCreateFaction &lt;factionName&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amDisguise</strong> - Disguise/undisguise your status as an admin to regular players in the admin list.</p>
+	  <blockquote>
+	    <p><strong>Usage: </strong>/amDisguise</p>
+      </blockquote>
+	  <p><br>
+      <strong>amEffect</strong> - Place an effect on the location you're standing on. Prints the effect ID so it can be easily removed later.</p>
+	  <blockquote>
+	    <p><strong>Usage: </strong>/amEffect &lt;effectName&gt;</p>
+      </blockquote>
+	  <p><strong>amEmp/emPower</strong> - Give yourself or another player every force power at level 3.</p>
+	  <blockquote>
+	    <p><strong> Usage:</strong> /amEmp (or /amEmpower) - Empower yourself; /amEmp &lt;name/clientID&gt; (or /amEmp) - Empower another player</p>
+      </blockquote>
+	  <p><strong>amFactionGenCredits</strong> - Generate credits that are generated in a faction's bank.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amFactionGenCredits &lt;factionID&gt; &lt;amount&gt;</p>
+      </blockquote>
+	  <p><strong>amForceTeam</strong> - Force someone to a different team like spectator.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amForceTeam &lt;name/clientID&gt; &lt;newTeam&gt; - Valid options for the new team are: spectator, spec, s, for the spectator team, and free, f, for the free team.</p>
+      </blockquote>
+	  <p><br>
+      <strong>amGenCredits - </strong>Generate credits for a specific character.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amGenCredits &lt;characterName&gt; &lt;amount&gt;</p>
+      </blockquote>
+       <p><strong>amGhost</strong> - Turn yourself invisible to all other players (does the same thing /amInvisible does).</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amGhost</p>
+      </blockquote>
+	  <p><strong>amGiveAdmin</strong> - Give  admin status to a player. Their admin status will remain even after logging out, but can be revoked with /amRemoveAdmin.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amGiveAdmin &lt;username&gt; &lt;adminLevel&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amGiveSkillPoints</strong> - Currently unused or disabled.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amGiveSkillPoints &lt;characterName&gt; &lt;amount&gt;</p>
+      </blockquote>
+	  <p><strong>amInvisible</strong> - Turn yourself invisible to all other players.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amInvisible</p>
+      </blockquote>
+	  <p><br>
+      <strong>amKick</strong> - Kick a player from the server.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amKick &lt;name/clientID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amListEnts</strong> - List the name of entities you have spawned along with their IDs.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amListEnts</p>
+      </blockquote>
+	  <p><br>
+      <strong>amListWarnings</strong> - List the amount of warnings each player has out of the amount of warnings required for a player to be automatically kicked from the server.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amListWarnings</p>
+      </blockquote>
+	  <p><br>
+      <strong>amLockSaberSetting - </strong>Lock a character's saber in training mode so it only does 1 damage. The lock will remain even when the player logs off. The training setting can be unlocked by using the command a second time on the character.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amLockSaberSetting &lt;characterName&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amMap</strong> - Change the server's map.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amMap &lt;mapName&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amMerc</strong> - Give a player every weapon with ammo.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amMerc - Merc yourself; /amMerc &lt;name/clientID&gt; - Merc another player</p>
+      </blockquote>
+	  <p><br>
+	  <strong>amOrigin</strong> - Prints your or another player's XYZ coordinates.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amOrigin - Prints your own coordinates; /amOrigin &lt;name/clientID&gt; - Prints another player's coordinates</p>
+      </blockquote>
+	  <p><strong>amRemoveAdmin</strong> - Remove a player's admin status.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amRemoveAdmin &lt;username&gt;</p>
+      </blockquote>
+	  <p><strong>amRemoveEnt</strong> - Remove an entity by using its ID, even if you didn't spawn it. Find an entity's ID by using /amListEnts.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amRemoveEnt &lt;entID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amRename</strong> - Change a player's display name to a new one.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amRename &lt;currentName/clientID&gt; &lt;newName&gt;</p>
+      </blockquote>
+	  <p><strong>amSetFaction</strong> - Set a character's faction if they're not currently in one, or remove them from their faction if they are currently in one.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amSetFaction &lt;characterName&gt; &lt;factionID&gt; - Set a player's faction if they're not currently in one; /amSetFaction &lt;characterName&gt; none - Remove a player from their faction if they're currently in one.</p>
+      </blockquote>
+	  <p><br>
+      <strong>amShakeScreen</strong> - Cause every player's screen to shake with a specified intensity for a specified amount of time in seconds.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amShakeScreen &lt;intensity&gt; &lt;length&gt; - With intensity, 1 is a low amount, higher values are high amounts. Length is in seconds</p>
+      </blockquote>
+	  <p><br>
+      <strong>amSilence</strong> - Silence a player so they cannot use chat.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amSilence &lt;name/clientID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amSleep</strong> - Put a player to sleep so they are unable to move.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amSleep &lt;name/ClientID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amSpawnEnt</strong> Spawn an entity from the entity list where you're looking.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amSpawnEnt &lt;entName&gt;</p>
+      </blockquote>
+	  <p><strong>amStatus</strong> - View a list of all players on the server along with their clientIDs and IP addresses.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amStatus</p>
+      </blockquote>
+	  <p><br>
+      <strong>amTele</strong> - Teleport one player to another, you to another player, to a location you marked, or to XYZ coordinates.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amTele - Teleport to a location you marked with /amTeleMark; /amTele &lt;name/clientID&gt; - Teleports you to the specified player; /amTele &lt;name/clientID&gt; &lt;name/clientID&gt; - Teleport the first player specified to the second; /amTele &lt;X&gt; &lt;Y&gt; &lt;Z&gt; - Teleport yourself to specific XYZ coordinates; /amTele &lt;name/clientID&gt; &lt;X&gt; &lt;Y&gt; &lt;Z&gt; - Teleport a player to specific XYZ coordinates</p>
+      </blockquote>
+	  <p><br>
+      <strong>amTeleMark</strong> - Marks your current XYZ coordinates so you can teleport to them with /amTele.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amTeleMark</p>
+      </blockquote>
+	  <p><br>
+      <strong>amTimer</strong> - Currently unused or disabled.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong></p>
+      </blockquote>
+	  <p><br>
+      <strong>amToBlack</strong> - Make all players screens either fade into blackness or immediately turn black. Fading in takes 10 seconds. Use the command a second time with the same parameter (fade/nofade) as you originally supplied to make players' screens normal again.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amToBlack fade - Make all players' screens fade into blackness over a period of 10 seconds; /amToBlack nofade - Make all players' screens immediately turn black</p>
+      </blockquote>
+	  <p><strong>amUnsilence</strong> - Unsilence a player who was silenced so they can chat again.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amUnsilence &lt;name/clientID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amUnsleep</strong> - Unsleep a player who was slept so they can move again.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amUnsleep &lt;name/clientID&gt;</p>
+      </blockquote>
+	  <p><strong>amWarn</strong> - Give a player a warning. After a certain amount of warnings (set in server.cfg, default is 3), the player is automatically kicked from the server.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amWarn &lt;name/clientID&gt;</p>
+      </blockquote>
+	  <p><br>
+      <strong>amWeather</strong> - Change the weather on the server. Specify &quot;none&quot; as the weather effect to clear the weather.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amWeather &lt;weatherEffect&gt;</p>
+      </blockquote>
+	  <p><strong>amWeatherPlus</strong> - Add additional weather effects so multiple weather effects can be used at the same time. Specify &quot;none&quot; as the weather effect to clear the weather.</p>
+	  <blockquote>
+	    <p><strong>Usage:</strong> /amWeatherPlus &lt;weatherEffect&gt;
+	    <br />
+	  </p>
+	  </blockquote>
+	</section>
+    <section>
+    </section>
+    <section>
+      <h2><a id="character">Character Commands<a/></h2>
+	  <a href="#top">Back to the top of the page</a>
+	  <br />
+	  <br />
+      <p><strong>bounty</strong> - View the bounty board, add bounties, and remove bounties if you're an admin</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /bounty - View the bounty board; /bounty add &lt;characterName&gt; &lt;reward&gt; &lt;0(dead)/1(alive)/2(dead or alive)&gt; - Add a character to the bounty board, along with a specified reward for the person who completes the bounty as well as a number indictating the target is wanted dead, alive, dead or alive; /bounty remove &lt;bountyID&gt; - If you're an admin, remove a certain bounty from the board. <em>Credits currently will need to be given manually to the bounty hunter who completes a bounty.</em></p>
+      </blockquote>
+      <p><strong>characterInfo</strong> - View information about one of your characters or another player's characters.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /characterInfo - View your own character info; /characterInfo &lt;characterName&gt; - View another character's info. It could be another one of your characters' info, or another player's character's.</p>
+      </blockquote>
+	<p><strong>character</strong> - Select a character of yours to use.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /character &lt;characterName&gt;</p>
+      </blockquote>
+      <p><strong>characterName</strong> - View the currently selected character of a player by providing their current display name.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /characterName &lt;displayName&gt;</p>
+      </blockquote>
+	<p><strong>checkInventory</strong> - Currently unused or disabled.</p>
+      <blockquote>
+        <p><strong>Usage:</strong></p>
+      </blockquote>
+	  <p><strong>createCharacter</strong> - Create a new character.</p>
+	  <blockquote>
+		<p><strong>Usage: </strong>/createCharacter &lt;name&gt; &lt;forceSensitive&gt; - Force sensitive can be yes or true, no or false. Character names cannot have spaces.</p>
+      </blockquote>
+	  <p><strong>editCharacter</strong> - Edit certain aspects/settings for your currently selected character.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/editCharacter name &lt;newCharacterName&gt; - Edit your character's name. Character names cannot have spaces; /editCharacter modelScale &lt;value&gt; - Value must from 65 - 140.</p>
+      </blockquote>
+	  <p><strong>faction</strong> - Join a faction that is not invite only.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/faction &lt;factionID&gt; - Use /listFactions to find the factionID.</p>
+      </blockquote>
+	  <p><strong>factionDeposit</strong> - Deposit some of your credits into your faction's bank.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionDeposit &lt;amount&gt;</p>
+      </blockquote>
+	  <p><strong>factionInfo</strong> - View information about your faction.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionInfo - View your faction's name, ID, leaders, bank balance, and your rank; /factionInfo roster - View all of the members of your faction along with their ranks.</p>
+      </blockquote>
+	  <p><strong>factionInvite</strong> - Invite a character to your faction if you are a leader of it.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionInvite &lt;characterName&gt;</p>
+      </blockquote>
+	  <!--Note to self - make listfactioninvites cmd, allow for  reception of multiple invites
+	  <p><strong>factionInviteAccept</strong> - Accept an invite to a faction that you received.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionInviteAccept &lt;inviteID&gt; - Use /listFactionInvites to find the inviteID.</p>
+      </blockquote>
+	  <p><strong>factionInviteDecline</strong> - Decline an invite to a faction that you received.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionInviteDecline &lt;inviteID&gt; - Use /listFactionInvites to find the inviteID.</p>
+      </blockquote>-->
+	  <p><strong>factionLeave</strong> - Leave your faction.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionLeave</p>
+      </blockquote>
+	  <p><strong>factionWithdraw</strong> - Withdraw credits from your faction bank. Only faction leaders can use this command.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/factionWithdraw &lt;amount&gt;</p>
+      </blockquote>
+	  <p><strong>force</strong> - Speak to another person using the force if your character is force sensitive.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/force &lt;name/clientID&gt; &lt;message&gt;</p>
+      </blockquote>
+	  <p><strong>frequency</strong> - Change your radio's frequency.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/radio &lt;frequency&gt; - Frequencies must be from 0 - 100</p>
+      </blockquote>
+	  <p><strong>giveCredits</strong> - Give some of your credits to another character.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/giveCredits &lt;characterName&gt; &lt;amount&gt;</p>
+      </blockquote>
+	  <p><strong>inventory</strong> - Check your inventory, equip weapons, and manipulate weapons.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/inventory - View a list of weapons in your inventory; /inventory use &lt;weaponName&gt; - Equip a weapon that is in your inventory</p>
+      </blockquote>
+	  <p><strong>listFactions</strong> - View a list of factions, along with their IDs.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/listFactions</p>
+      </blockquote>
+	  <p><strong>listCharacters</strong> - View a list of your characters on your account, along with their charIDs.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/listCharacters</p>
+      </blockquote>
+	  <p><strong>radio</strong> - Talk over your radio to others on the same frequency.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/radio - Turn on or off your radio; /radio &lt;message&gt; - Talk over your radio</p>
+      </blockquote>
+	  <p><strong>setFactionRank</strong> - Set a character's rank in their faction. This command can only be used by one of their faction's leaders or an admin.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/setFactionRank &lt;characterName&gt; &lt;rankName&gt;</p>
+      </blockquote>
+	  <p><strong>shop</strong> - View the shop and buy weapons.</p>
+      <blockquote>
+        <p><strong>Usage:</strong>/shop - View a list of weapons in the shop along with their cost and level requirement; /shop buy &lt;weaponName&gt; - Buy a certain weapon if you have enough credits; /shop examine &lt;weaponName&gt; - View a description of the weapon</p>
+      </blockquote>
+	  <!--note to self - make it so you can buy weaps of higher levels but not use them.-->
+    </section>
+        <section>
+      <h2><a id="chat">Chat Commands</a></h2>
+	  <a href="#top">Back to the top of the page</a>
+	  <br />
+	  <br />
+      <p><strong>admin</strong> - Only usable if you're an admin. Chat with other admins. Only admins can send and see this chat.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /admin &lt;text&gt;</p>
+      </blockquote>
+      <p><strong>it</strong> - Perform an environmental action. Example: <em>The tree fell.</em></p>
+      <blockquote>
+        <p><strong>Usage:</strong> /it &lt;text&gt;</p>
+         </blockquote>
+        <p><strong>looc</strong> - Local/nearby out of character chat.</p>
+      <blockquote>
+        <p>	<strong>Usage:</strong> /looc &lt;text&gt;</p>
+      </blockquote>
+      <p><strong>me</strong> - Have your character perform an action.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /me &lt;text&gt;</p>
+      </blockquote>
+      <p><strong>ooc</strong> - Serverwide out of character chat.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /ooc &lt;text&gt;</p>
+      </blockquote>
+      <p><br>
+        <strong>report</strong> - Report something to online admins. Only the reporter and the online admins will be able to see this.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /report &lt;text&gt;</p>
+      </blockquote>
+      <p><br>
+        <strong>whisper</strong> - Say something that can only be heard in a very small area</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /whisper &lt;text&gt;</p>
+      </blockquote>
+      <p><br>
+        <strong>yell</strong> - Say something that can be heard in a very large area</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /yell &lt;text&gt;        <br>
+    </p>
+      </blockquote>
+</section>
+    <section>
+      <h2><a id="general">General Commands<a/></h2>
+	  <a href="#top">Back to the top of the page</a>
+	  <br />
+	  <br />
+      <p><strong>amInfo</strong> - Currently unused or disabled.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /amInfo</p>
+      </blockquote>
+      <p><strong>autowalk</strong> - Automatically walk forward. You continue to walk forward even if you begin to chat.</p>
+      <blockquote>
+        <p><strong>Usage: </strong>/autowalk - Type the command a second time to stop autowalking.</p>
+      </blockquote>
+      <p><br>
+        <strong>emInfo</strong> - Currently unused or disabled.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /emInfo</p>
+      </blockquote>
+      <p><strong>hologram</strong> - Currently unused or disabled.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /hologram</p>
+      </blockquote>
+      <p><strong>info</strong> - Currently unused or disabled.</p>
+      <blockquote>
+        <p><strong>Usage: </strong>/info</p>
+      </blockquote>
+      <p><br>
+        <strong>listAdmins</strong> - Displays a list of admins who are currently not disguising the fact that they are admins along with their admin level. If you are an admin and use this command, you will see a list of all admins and their levels, even if they are disguised.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /listAdmins</p>
+      </blockquote>
+      <p><strong>roll</strong> - You roll a random number between 1 and 100 which is displayed in chat.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /roll</p>
+      </blockquote>
+      <p><br>
+        <strong>setTraining</strong> - Either sets your lightsaber into training mode so it only does 1 damage, or if an admin uses this on someone, it sets their saber to training mode.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /setTraining - Changes your own lightsaber's mode to training mode. (Use the command a second time to change it back to the normal mode); /setTraining &lt;playerName&gt; - If you're an admin, this changes the specified player's saber mode so it's set to training mode. (Use the command a second time to change it back to the normal mode)</p>
+      </blockquote>
+	  <p><br>
+        <strong>setStun</strong> - Sets your lightsaber to stun mode. It stuns the person who is hit. They are stunned for 10 seconds, are on the ground, and are unable to move for that duration of time.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /setStun TODO - Changes your own lightsaber's mode to training mode. (Use the command a second time to change it back to the normal mode); /setTraining &lt;playerName&gt; - If you're an admin, this changes the specified player's saber mode so it's set to training mode. (Use the command a second time to change it back to the normal mode)</p>
+      </blockquote>
+      <p><br>
+        <strong>toggleChat</strong> - Changes what type(mode) of chat team chat acts as. Your can either cycle through the various chat modes, or choose a specific mode.</p>
+      <blockquote>
+        <p><strong>Usage:</strong> /toggleChat - Everytime this is used, it cycles to the next chat mode. The order of the cycle is: OOC(the default mode), LOOC, Yell, Whisper, Me, It, Admin (only if you're an admin); /toggleChat &lt;mode&gt; - Sets your chat mode to a specific mode. Valid modes are: OOC(the default mode), LOOC, Yell, Whisper, Me, It, Admin (only if you're an admin). If you choose an invalid mode, the mode will automatically be set to OOC
+        <br>
+      </p>
+      </blockquote>
+</section>
+  <!-- end .content --></article>
+  <aside>
+    <h4>Need Help?</h4>
+    <p>If you find a bug in OpenRP, or still need assistance, do not hesitate to make a new issue on <a href="https://github.com/Fighter1/OpenRP">OpenRP's GitHub.</a></p>
+  </aside>
+  <footer style="text-align:center;">
+    <p>Thanks for reading!</p>
+    <address>
+      -The OpenRP Dev Team
+	  <br />
+	  <br />
+	  <a href="#top">Back to the top of the page</a>
+    </address>
+  </footer>
+  <!-- end .container --></div>
+</body>
+</html>

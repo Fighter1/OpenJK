@@ -10495,6 +10495,21 @@ void PmoveSingle (pmove_t *pmove) {
 
 	PM_CmdForSaberMoves(&pm->cmd);
 
+	//OpenRP
+	#ifdef _GAME
+		if (((gentity_t *)pm_entSelf)->client->sess.isAutoWalking)
+		{
+			pm->cmd.rightmove = 0;
+			pm->cmd.upmove = 0;
+			pm->cmd.forwardmove = 64;
+			pm->cmd.buttons |= BUTTON_WALKING;
+		}
+		/*
+		if( ( ( gentity_t * )pm_entSelf )->client->sess.stayCrouched == qtrue )
+		pm->ps->pm_flags |= PMF_DUCKED;
+		*/
+	#endif
+
 	BG_AdjustClientSpeed(pm->ps, &pm->cmd, pm->cmd.serverTime);
 
 	if ( pm->ps->stats[STAT_HEALTH] <= 0 ) {
@@ -10541,10 +10556,17 @@ void PmoveSingle (pmove_t *pmove) {
 	if ( pmove->cmd.buttons & BUTTON_TALK ) {
 		// keep the talk button set tho for when the cmd.serverTime > 66 msec
 		// and the same cmd is used multiple times in Pmove
-		pmove->cmd.buttons = BUTTON_TALK;
+
+		//OpenRP - Fix bug with autowalk animation
+		//pmove->cmd.buttons = BUTTON_TALK;
+		pmove->cmd.buttons |= BUTTON_TALK;
+
+		//OpenRP - Autowalk needs this commented out to work
+		/*
 		pmove->cmd.forwardmove = 0;
 		pmove->cmd.rightmove = 0;
 		pmove->cmd.upmove = 0;
+		*/
 	}
 
 	// clear all pmove local vars
