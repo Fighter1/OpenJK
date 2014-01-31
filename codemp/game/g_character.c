@@ -710,7 +710,7 @@ void Cmd_GiveCredits_F(gentity_t * ent)
 	//Thanks to Kannos'v Lightdust for this fix.
 	if (ent->client->sess.characterID == charID)
 	{
-		trap_SendServerCommand(ent - g_entities, "print \"^1Recipient cannot be you.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^1Recipient cannot be you.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -4423,7 +4423,7 @@ void Cmd_CharName_F(gentity_t * ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -4717,7 +4717,7 @@ void Cmd_ForceMessage_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));

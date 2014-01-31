@@ -91,7 +91,7 @@ void Cmd_amBan_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -156,7 +156,7 @@ void Cmd_amKick_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -210,7 +210,7 @@ void Cmd_amWarn_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -300,7 +300,7 @@ void Cmd_amTeleport_F(gentity_t *ent)
 	if (trap->Argc() == 2)
 	{
 		trap->Argv(1, arg1, sizeof(arg1));
-		clientid = G_ClientNumberFromName2(arg1);
+		clientid = G_ClientNumberFromName(arg1);
 		if (clientid == -1)
 		{
 			trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", arg1));
@@ -346,8 +346,8 @@ void Cmd_amTeleport_F(gentity_t *ent)
 	{
 		trap->Argv(1, arg1, sizeof(arg1));
 		trap->Argv(2, arg2, sizeof(arg2));
-		clientid = G_ClientNumberFromName2(arg1);
-		clientid2 = G_ClientNumberFromName2(arg2);
+		clientid = G_ClientNumberFromName(arg1);
+		clientid2 = G_ClientNumberFromName(arg2);
 
 		if (clientid == -1)
 		{
@@ -435,7 +435,7 @@ void Cmd_amTeleport_F(gentity_t *ent)
 	{
 		trap->Argv(1, arg1, sizeof(arg1));
 
-		clientid = G_ClientNumberFromName2(arg1);
+		clientid = G_ClientNumberFromName(arg1);
 		if (clientid == -1)
 		{
 			trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", arg1));
@@ -531,7 +531,7 @@ void Cmd_amAnnounce_F(gentity_t *ent)
 		return;
 	}
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -579,7 +579,7 @@ void Cmd_amSilence_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -638,7 +638,7 @@ void Cmd_amUnSilence_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -700,7 +700,7 @@ void Cmd_amSleep_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -787,7 +787,7 @@ void Cmd_amUnsleep_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -913,7 +913,7 @@ void Cmd_amForceTeam_F(gentity_t *ent)
 
 	trap->Argv(2, teamname, sizeof(teamname)); //The second command argument is the team's name.
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -1282,7 +1282,7 @@ void Cmd_amRename_F(gentity_t *ent)
 	}
 
 	trap->Argv(1, currentname, sizeof(currentname));
-	clientid = G_ClientNumberFromName2(currentname);
+	clientid = G_ClientNumberFromName(currentname);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", currentname));
@@ -2725,7 +2725,7 @@ void Cmd_amOrigin_F(gentity_t * ent)
 
 	trap->Argv(1, arg1, sizeof(arg1));
 
-	clientid = G_ClientNumberFromName2(arg1);
+	clientid = G_ClientNumberFromName(arg1);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", arg1));
@@ -3109,7 +3109,7 @@ void Cmd_CheckStats_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -3612,7 +3612,7 @@ void Cmd_Merc_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -3792,7 +3792,7 @@ void Cmd_Empower_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName2(cmdTarget);
+	clientid = G_ClientNumberFromName(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));

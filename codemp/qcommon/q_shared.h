@@ -45,7 +45,6 @@
 #define VALIDSTRING( a )	( ( a != NULL ) && ( a[0] != '\0' ) )
 #define VALIDENT( e )		( ( e != NULL ) && ( (e)->inuse ) )
 
-//JAC: Added
 #define ARRAY_LEN( x ) ( sizeof( x ) / sizeof( *(x) ) )
 #define STRING( a ) #a
 #define XSTRING( a ) STRING( a )
@@ -63,7 +62,7 @@
 */
 
 #ifndef FINAL_BUILD
-	//RAZFIXME: may want to enable timing and leak checking again. requires G2API changes.
+	// may want to enable timing and leak checking again. requires G2API changes.
 //	#define G2_PERFORMANCE_ANALYSIS
 //	#define _FULL_G2_LEAK_CHECKING
 //	extern int g_Ghoul2Allocations;
@@ -130,17 +129,11 @@ float FloatSwap( const float *f );
 // TYPE DEFINITIONS
 // ================================================================
 
-typedef unsigned char 		byte;
-typedef unsigned short		word;
-typedef unsigned long		ulong;
+typedef unsigned char byte;
+typedef unsigned short word;
+typedef unsigned long ulong;
 
 typedef enum qboolean_e { qfalse=0, qtrue } qboolean;
-
-typedef union {
-	float f;
-	int i;
-	unsigned int ui;
-} floatint_t;
 
 #ifndef min
 	#define min(x,y) ((x)<(y)?(x):(y))
@@ -149,22 +142,6 @@ typedef union {
 	#define max(x,y) ((x)>(y)?(x):(y))
 #endif
 
-typedef int		qhandle_t;
-typedef int		thandle_t; //rwwRMG - inserted
-typedef int		fxHandle_t;
-typedef int		sfxHandle_t;
-typedef int		fileHandle_t;
-typedef int		clipHandle_t;
-
-#define NULL_HANDLE		((qhandle_t) 0)
-#define NULL_SOUND		((sfxHandle_t) 0)
-#define NULL_FX				((fxHandle_t) 0)
-#define NULL_SFX			((sfxHandle_t) 0)
-#define NULL_FILE			((fileHandle_t) 0)
-#define NULL_CLIP			((clipHandle_t) 0)
-
-//Raz: can't think of a better place to put this atm,
-//		should probably be in the platform specific definitions
 #if defined (_MSC_VER) && (_MSC_VER >= 1600)
 
 	#include <stdint.h>
@@ -196,6 +173,31 @@ typedef int		clipHandle_t;
 	#define Q_vsnprintf vsnprintf
 
 #endif
+
+// 32 bit field aliasing
+typedef union byteAlias_u {
+	float f;
+	int32_t i;
+	uint32_t ui;
+	qboolean qb;
+	byte b[4];
+	char c[4];
+} byteAlias_t;
+
+typedef union fileBuffer_u {
+	void *v;
+	char *c;
+	byte *b;
+} fileBuffer_t;
+
+typedef int32_t qhandle_t, thandle_t, fxHandle_t, sfxHandle_t, fileHandle_t, clipHandle_t;
+
+#define NULL_HANDLE ((qhandle_t)0)
+#define NULL_SOUND ((sfxHandle_t)0)
+#define NULL_FX ((fxHandle_t)0)
+#define NULL_SFX ((sfxHandle_t)0)
+#define NULL_FILE ((fileHandle_t)0)
+#define NULL_CLIP ((clipHandle_t)0)
 
 #define PAD(base, alignment)	(((base)+(alignment)-1) & ~((alignment)-1))
 #define PADLEN(base, alignment)	(PAD((base), (alignment)) - (base))
@@ -238,7 +240,7 @@ typedef int		clipHandle_t;
 
 #define NET_ADDRSTRMAXLEN 48 // maximum length of an IPv6 address string including trailing '\0'
 
-//Raz: moved these from ui_local.h so we can access them everywhere
+// moved these from ui_local.h so we can access them everywhere
 #define MAX_ADDRESSLENGTH		256//64
 #define MAX_HOSTNAMELENGTH		256//22
 #define MAX_MAPNAMELENGTH		256//16
@@ -532,7 +534,7 @@ typedef struct sharedRagDollParams_s {
 	int startFrame;
 	int endFrame;
 
-	int collisionType; // 1 = from a fall, 0 from effectors, this will be going away soon, hence no enum 
+	int collisionType; // 1 = from a fall, 0 from effectors, this will be going away soon, hence no enum
 
 	qboolean CallRagDollBegin; // a return value, means that we are now begininng ragdoll and the NPC stuff needs to happen
 
@@ -808,7 +810,7 @@ extern	matrix3_t	axisDefault;
 static inline float Q_rsqrt( float number ) {
 		float x = 0.5f * number;
                 float y;
-#ifdef __GNUC__            
+#ifdef __GNUC__
                 asm("frsqrte %0,%1" : "=f" (y) : "f" (number));
 #else
 		y = __frsqrte( number );
@@ -816,10 +818,10 @@ static inline float Q_rsqrt( float number ) {
 		return y * (1.5f - (x * y * y));
 	}
 
-#ifdef __GNUC__            
+#ifdef __GNUC__
 static inline float Q_fabs(float x) {
     float abs_x;
-    
+
     asm("fabs %0,%1" : "=f" (abs_x) : "f" (x));
     return abs_x;
 }
@@ -850,7 +852,6 @@ void ByteToDir( int b, vec3_t dir );
 #define minimum( x, y ) ((x) < (y) ? (x) : (y))
 #define maximum( x, y ) ((x) > (y) ? (x) : (y))
 
-//JAC: Moved to q_math.c
 #define DEG2RAD( deg ) ( ((deg)*M_PI) / 180.0f )
 #define RAD2DEG( rad ) ( ((rad)*180.0f) / M_PI )
 
@@ -1144,61 +1145,54 @@ qboolean Info_NextPair( const char **s, char *key, char *value );
 
 CVARS (console variables)
 
-Many variables can be used for cheating purposes, so when
-cheats is zero, force all unspecified variables to their
-default values.
+Many variables can be used for cheating purposes, so when cheats is zero,
+	force all unspecified variables to their cefault values.
+
 ==========================================================
 */
 
-#define	CVAR_NONE			0x00000000
-#define	CVAR_ARCHIVE		0x00000001		// set to cause it to be saved to vars.rc
-											// used for system variables, not for player
-											// specific configurations
-#define	CVAR_USERINFO		0x00000002		// sent to server on connect or change
-#define	CVAR_SERVERINFO		0x00000004		// sent in response to front end requests
-#define	CVAR_SYSTEMINFO		0x00000008		// these cvars will be duplicated on all clients
-#define	CVAR_INIT			0x00000010		// don't allow change from console at all,
-											// but can be set from the command line
-#define	CVAR_LATCH			0x00000020		// will only change when C code next does
-											// a Cvar_Get(), so it can't be changed
-											// without proper initialization.  modified
-											// will be set, even though the value hasn't
-											// changed yet
-#define	CVAR_ROM			0x00000040		// display only, cannot be set by user at all (can be set by code)
-#define	CVAR_USER_CREATED	0x00000080		// created by a set command
-#define	CVAR_TEMP			0x00000100		// can be set even when cheats are disabled, but is not archived
-#define CVAR_CHEAT			0x00000200		// can not be changed if cheats are disabled
-#define CVAR_NORESTART		0x00000400		// do not clear when a cvar_restart is issued
-#define CVAR_INTERNAL		0x00000800		// cvar won't be displayed, ever (for passwords and such)
-#define	CVAR_PARENTAL		0x00001000		// lets cvar system know that parental stuff needs to be updated
-#define CVAR_SERVER_CREATED	0x2000			// cvar was created by a server the client connected to.
-#define CVAR_VM_CREATED		0x4000			// cvar was created exclusively in one of the VMs.
-#define CVAR_PROTECTED		0x8000			// prevent modifying this var from VMs or the server
+#define	CVAR_NONE			(0x00000000u)
+#define	CVAR_ARCHIVE		(0x00000001u)	// set to cause it to be saved to configuration file. used for system variables,
+											//	not for player specific configurations
+#define	CVAR_USERINFO		(0x00000002u)	// sent to server on connect or change
+#define	CVAR_SERVERINFO		(0x00000004u)	// sent in response to front end requests
+#define	CVAR_SYSTEMINFO		(0x00000008u)	// these cvars will be duplicated on all clients
+#define	CVAR_INIT			(0x00000010u)	// don't allow change from console at all, but can be set from the command line
+#define	CVAR_LATCH			(0x00000020u)	// will only change when C code next does a Cvar_Get(), so it can't be changed
+											//	without proper initialization. modified will be set, even though the value
+											//	hasn't changed yet
+#define	CVAR_ROM			(0x00000040u)	// display only, cannot be set by user at all (can be set by code)
+#define	CVAR_USER_CREATED	(0x00000080u)	// created by a set command
+#define	CVAR_TEMP			(0x00000100u)	// can be set even when cheats are disabled, but is not archived
+#define CVAR_CHEAT			(0x00000200u)	// can not be changed if cheats are disabled
+#define CVAR_NORESTART		(0x00000400u)	// do not clear when a cvar_restart is issued
+#define CVAR_INTERNAL		(0x00000800u)	// cvar won't be displayed, ever (for passwords and such)
+#define	CVAR_PARENTAL		(0x00001000u)	// lets cvar system know that parental stuff needs to be updated
+#define CVAR_SERVER_CREATED	(0x00002000u)	// cvar was created by a server the client connected to.
+#define CVAR_VM_CREATED		(0x00004000u)	// cvar was created exclusively in one of the VMs.
+#define CVAR_PROTECTED		(0x00008000u)	// prevent modifying this var from VMs or the server
 // These flags are only returned by the Cvar_Flags() function
-#define CVAR_MODIFIED		0x40000000		// Cvar was modified
-#define CVAR_NONEXISTENT	0x80000000		// Cvar doesn't exist.
+#define CVAR_MODIFIED		(0x40000000u)	// Cvar was modified
+#define CVAR_NONEXISTENT	(0x80000000u)	// Cvar doesn't exist.
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
-	char		*name;
-	char		*string;
-	char		*resetString;		// cvar_restart will reset to this value
-	char		*latchedString;		// for CVAR_LATCH vars
-	int			flags;
-	qboolean	modified;			// set each time the cvar is changed
-	int			modificationCount;	// incremented each time the cvar is changed
-	float		value;				// atof( string )
-	int			integer;			// atoi( string )
-	qboolean	validate;
-	qboolean	integral;
-	float		min;
-	float		max;
+	char			*name;
+	char			*string;
+	char			*resetString;		// cvar_restart will reset to this value
+	char			*latchedString;		// for CVAR_LATCH vars
+	uint32_t		flags;
+	qboolean		modified;			// set each time the cvar is changed
+	int				modificationCount;	// incremented each time the cvar is changed
+	float			value;				// atof( string )
+	int				integer;			// atoi( string )
+	qboolean		validate;
+	qboolean		integral;
+	float			min, max;
 
-	struct cvar_s *next;
-	struct cvar_s *prev;
-	struct cvar_s *hashNext;
-	struct cvar_s *hashPrev;
-	int			hashIndex;
+	struct cvar_s	*next, *prev;
+	struct cvar_s	*hashNext, *hashPrev;
+	int				hashIndex;
 } cvar_t;
 
 #define	MAX_CVAR_VALUE_STRING	256
@@ -1330,9 +1324,9 @@ typedef struct orientation_s {
 typedef enum {
 	CHAN_AUTO,	//## %s !!"W:\game\base\!!sound\*.wav;*.mp3" # Auto-picks an empty channel to play sound on
 	CHAN_LOCAL,	//## %s !!"W:\game\base\!!sound\*.wav;*.mp3" # menu sounds, etc
-	CHAN_WEAPON,//## %s !!"W:\game\base\!!sound\*.wav;*.mp3" 
+	CHAN_WEAPON,//## %s !!"W:\game\base\!!sound\*.wav;*.mp3"
 	CHAN_VOICE, //## %s !!"W:\game\base\!!sound\voice\*.wav;*.mp3" # Voice sounds cause mouth animation
-	CHAN_VOICE_ATTEN, //## %s !!"W:\game\base\!!sound\voice\*.wav;*.mp3" # Causes mouth animation but still use normal sound falloff 
+	CHAN_VOICE_ATTEN, //## %s !!"W:\game\base\!!sound\voice\*.wav;*.mp3" # Causes mouth animation but still use normal sound falloff
 	CHAN_ITEM,  //## %s !!"W:\game\base\!!sound\*.wav;*.mp3"
 	CHAN_BODY,	//## %s !!"W:\game\base\!!sound\*.wav;*.mp3"
 	CHAN_AMBIENT,//## %s !!"W:\game\base\!!sound\*.wav;*.mp3" # added for ambient sounds
@@ -1395,7 +1389,7 @@ typedef enum {
 // these are also in be_aas_def.h - argh (rjr)
 #define	MAX_MODELS			512		// these are sent over the net as -12 bits
 #define	MAX_SOUNDS			256		// so they cannot be blindly increased
-#define MAX_ICONS			64		// max registered icons you can have per map 
+#define MAX_ICONS			64		// max registered icons you can have per map
 #define MAX_FX				64		// max effects strings, I'm hoping that 64 will be plenty
 
 #define MAX_SUB_BSP			32 //rwwRMG - added
@@ -1834,7 +1828,7 @@ typedef struct siegePers_s
 										// walking will use different animations and
 										// won't generate footsteps
 #define	BUTTON_USE				32			// the ol' use key returns!
-#define BUTTON_FORCEGRIP		64			// 
+#define BUTTON_FORCEGRIP		64			//
 #define BUTTON_ALT_ATTACK		128
 
 #define	BUTTON_ANY				256			// any key whatsoever
@@ -1901,7 +1895,7 @@ typedef struct usercmd_s {
 	int				serverTime;
 	int				angles[3];
 	int 			buttons;
-	byte			weapon;           // weapon 
+	byte			weapon;           // weapon
 	byte			forcesel;
 	byte			invensel;
 	byte			generic_cmd;
@@ -2206,7 +2200,7 @@ typedef struct entityState_s {
 typedef enum {
 	CA_UNINITIALIZED,
 	CA_DISCONNECTED, 	// not talking to a server
-	CA_AUTHORIZING,		// not used any more, was checking cd key 
+	CA_AUTHORIZING,		// not used any more, was checking cd key
 	CA_CONNECTING,		// sending request packets to the server
 	CA_CHALLENGING,		// sending challenge packets to the server
 	CA_CONNECTED,		// netchan_t established, getting gamestate
@@ -2293,7 +2287,7 @@ typedef struct mdxaBone_s {
 
 typedef enum Eorientations
 {
-	ORIGIN = 0, 
+	ORIGIN = 0,
 	POSITIVE_X,
 	POSITIVE_Z,
 	POSITIVE_Y,
@@ -2343,7 +2337,7 @@ typedef struct SSkinGoreData_s
 	vec3_t			tint;					// unimplemented
 	float			impactStrength;			// unimplemented
 
-	int				shader; // shader handle 
+	int				shader; // shader handle
 
 	int				myIndex; // used internally
 

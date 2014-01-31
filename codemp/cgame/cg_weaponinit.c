@@ -77,7 +77,7 @@ void CG_RegisterWeapon( int weaponNum) {
 		weaponNum == WP_FLECHETTE ||
 		weaponNum == WP_REPEATER ||
 		weaponNum == WP_ROCKET_LAUNCHER ||
-		weaponNum == WP_CONCUSSION) //Raz: Concussion has a barrel model too, eezstreet pointed this out
+		weaponNum == WP_CONCUSSION)
 	{
 		strcpy( path, item->view_model );
 		COM_StripExtension( path, path, sizeof( path ) );
@@ -465,7 +465,7 @@ void CG_RegisterWeapon( int weaponNum) {
 
 		cgs.effects.rocketShotEffect			= trap->FX_RegisterEffect( "rocket/shot" );
 		cgs.effects.rocketExplosionEffect		= trap->FX_RegisterEffect( "rocket/explosion" );
-	
+
 		trap->R_RegisterShaderNoMip( "gfx/2d/wedge" );
 		trap->R_RegisterShaderNoMip( "gfx/2d/lock" );
 

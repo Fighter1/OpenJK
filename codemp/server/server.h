@@ -16,7 +16,7 @@
 typedef struct svEntity_s {
 	struct worldSector_s *worldSector;
 	struct svEntity_s *nextEntityInWorldSector;
-	
+
 	entityState_t	baseline;		// for delta compression of initial sighting
 	int			numClusters;		// if -1, use headnode instead
 	int			clusternums[MAX_ENT_CLUSTERS];
@@ -40,7 +40,6 @@ typedef struct server_s {
 	int				snapshotCounter;	// incremented for each snapshot built
 	int				timeResidual;		// <= 1000 / sv_frame->value
 	int				nextFrameTime;		// when time > nextFrameTime, process world
-	struct cmodel_s	*models[MAX_MODELS];
 	char			*configstrings[MAX_CONFIGSTRINGS];
 	svEntity_t		svEntities[MAX_GENTITIES];
 
@@ -99,6 +98,17 @@ typedef enum {
 } clientState_t;
 
 
+// struct to hold demo data for a single demo
+typedef struct {
+	char		demoName[MAX_QPATH];
+	qboolean	demorecording;
+	qboolean	demowaiting;	// don't record until a non-delta message is received
+	fileHandle_t	demofile;
+	qboolean	isBot;
+	int			botReliableAcknowledge; // for bots, need to maintain a separate reliableAcknowledge to record server messages into the demo file
+} demoInfo_t;
+
+
 typedef struct client_s {
 	clientState_t	state;
 	char			userinfo[MAX_INFO_STRING];		// name, etc
@@ -154,8 +164,9 @@ typedef struct client_s {
 	int				lastUserInfoCount; //allow a certain number of changes within a certain time period -rww
 
 	int				oldServerTime;
-	qboolean		csUpdated[MAX_CONFIGSTRINGS+1];	
+	qboolean		csUpdated[MAX_CONFIGSTRINGS];
 
+	demoInfo_t		demo;
 } client_t;
 
 //=============================================================================
@@ -192,7 +203,7 @@ typedef struct serverStatic_s {
 	int			snapFlagServerBit;			// ^= SNAPFLAG_SERVERCOUNT every SV_SpawnServer()
 
 	client_t	*clients;					// [sv_maxclients->integer];
-	int			numSnapshotEntities;		// sv_maxclients->integer*PACKET_BACKUP*MAX_PACKET_ENTITIES
+	int			numSnapshotEntities;		// sv_maxclients->integer*PACKET_BACKUP*MAX_SNAPSHOT_ENTITIES
 	int			nextSnapshotEntities;		// next snapshotEntities to use
 	entityState_t	*snapshotEntities;		// [numSnapshotEntities]
 	int			nextHeartbeatTime;
@@ -209,7 +220,7 @@ typedef struct serverStatic_s {
 extern	serverStatic_t	svs;				// persistant server info across maps
 extern	server_t		sv;					// cleared each map
 
-//RAZFIXME: dedi server probably can't have this..
+//FIXME: dedi server probably can't have this..
 extern	refexport_t		*re;					// interface to refresh .dll
 
 #define	MAX_MASTER_SERVERS	5
@@ -255,7 +266,6 @@ struct leakyBucket_s {
 
 	union {
 		byte	_4[4];
-		byte	_x[10];
 	} ipv;
 
 	int					lastTime;

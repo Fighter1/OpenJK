@@ -118,7 +118,7 @@ void UIVM_DrawConnectScreen( qboolean overlay ) {
 //
 
 static int FloatAsInt( float f ) {
-	floatint_t fi;
+	byteAlias_t fi;
 	fi.f = f;
 	return fi.i;
 }
@@ -129,7 +129,7 @@ static int CL_Milliseconds( void ) {
 	return Sys_Milliseconds();
 }
 
-static void CL_Cvar_Get( const char *var_name, const char *value, int flags ) {
+static void CL_Cvar_Get( const char *var_name, const char *value, uint32_t flags ) {
 	Cvar_Register( NULL, var_name, value, flags );
 }
 
@@ -177,7 +177,7 @@ static int GetConfigString(int index, char *buf, int size)
 	}
 
 	Q_strncpyz( buf, cl.gameState.stringData+offset, size);
- 
+
 	return qtrue;
 }
 
@@ -193,7 +193,7 @@ static void Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
 	}
 }
 
-static void Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) 
+static void Key_KeynumToStringBuf( int keynum, char *buf, int buflen )
 {
 	const char *psKeyName = Key_KeynumToString( keynum/*, qtrue */);
 
@@ -513,7 +513,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return Sys_Milliseconds();
 
 	case UI_CVAR_REGISTER:
-		Cvar_Register( (vmCvar_t *)VMA(1), (const char *)VMA(2), (const char *)VMA(3), args[4] ); 
+		Cvar_Register( (vmCvar_t *)VMA(1), (const char *)VMA(2), (const char *)VMA(3), args[4] );
 		return 0;
 
 	case UI_CVAR_UPDATE:
@@ -675,7 +675,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 	case UI_GETCLIENTSTATE:
 		CL_GetClientState( (uiClientState_t *)VMA(1) );
-		return 0;		
+		return 0;
 
 	case UI_GETGLCONFIG:
 		CL_GetGlconfig( (glconfig_t *)VMA(1) );
@@ -864,7 +864,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return re->G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case UI_G2_GETBOLT_NOREC_NOROT:
-		//RAZFIXME: cgame reconstructs bolt matrix, why is this different?
+		// cgame reconstructs bolt matrix, why is this different?
 		re->G2API_BoltMatrixReconstruction( qfalse );//gG2_GBMNoReconstruct = qtrue;
 		re->G2API_BoltMatrixSPMethod( qtrue );//gG2_GBMUseSPMethod = qtrue;
 		return re->G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
@@ -1188,7 +1188,7 @@ void CL_BindUI( void ) {
 			Com_Error( ERR_FATAL, "GetGameAPI failed on %s", dllName );
 		}
 		uie = ret;
-		
+
 		return;
 	}
 
