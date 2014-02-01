@@ -2346,7 +2346,8 @@ static CMiniHeap *GetG2VertSpaceServer( void ) {
 	return G2VertSpaceServer;
 }
 
-#define DEFAULT_RENDER_LIBRARY "rd-vanilla"
+//OpenRP - changed renderer name to avoid crashes, conflicts, and for potential future changes
+#define DEFAULT_RENDER_LIBRARY "rd-openrp"
 
 void CL_InitRef( void ) {
 	static refimport_t ri;
