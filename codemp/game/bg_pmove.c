@@ -10499,8 +10499,13 @@ void PmoveSingle (pmove_t *pmove) {
 	// set the talk balloon flag
 	if ( pm->cmd.buttons & BUTTON_TALK ) {
 		pm->ps->eFlags |= EF_TALK;
+		//OpenRP - Make player invurlnerable while chatting except in duels.
+		if (!pm->ps->duelInProgress)
+			pm->ps->eFlags |= EF_INVULNERABLE;
 	} else {
 		pm->ps->eFlags &= ~EF_TALK;
+		if (!pm->ps->duelInProgress)
+			pm->ps->eFlags &= ~EF_INVULNERABLE;
 	}
 
 	pm_cancelOutZoom = qfalse;

@@ -9917,7 +9917,9 @@ void CG_Player( centity_t *cent ) {
 
 	if (cent->currentState.eFlags & EF_INVULNERABLE)
 	{
-		CG_DrawPlayerSphere(cent, cent->lerpOrigin, 1.0f, cgs.media.invulnerabilityShader );
+		//OpenRP - Don't draw the bubble if the player is invulnerable as a result of chatting
+		if (!(cent->currentState.eFlags & EF_TALK))
+			CG_DrawPlayerSphere(cent, cent->lerpOrigin, 1.0f, cgs.media.invulnerabilityShader );
 	}
 stillDoSaber:
 	if ((cent->currentState.eFlags & EF_DEAD) && cent->currentState.weapon == WP_SABER)

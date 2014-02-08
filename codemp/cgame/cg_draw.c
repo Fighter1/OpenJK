@@ -7869,6 +7869,67 @@ static void CG_Draw2D( void ) {
 		cgYsalFadeVal = 0;
 	}
 
+	//OpenRP
+	//[OpenRP - Fade to black]
+	if (cg.OpenRP.fadingInToBlack)
+	{
+		if (((cg.time - cg.OpenRP.fadeToBlackTime) >= cg.OpenRP.fadeToBlackMSecondsPassedMin) &&
+			((cg.time - cg.OpenRP.fadeToBlackTime) <= cg.OpenRP.fadeToBlackMSecondsPassedMax) &&
+			(cg.OpenRP.fadeToBlackMSecondsPassed != cg.OpenRP.fadeToBlackMSecondsPassedMin))
+		{
+			cg.OpenRP.fadeToBlackMSecondsPassed = cg.OpenRP.fadeToBlackMSecondsPassedMin;
+			cg.OpenRP.fadeToBlackMSecondsPassedMin += 1000;
+			cg.OpenRP.fadeToBlackMSecondsPassedMax += 1000;
+			cg.OpenRP.fadeColor[3] += 0.2f;
+		}
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, cg.OpenRP.fadeColor);
+		CG_ChatBox_DrawStrings();
+
+		if (cg.OpenRP.fadeColor[3] == 1.0f)
+		{
+			cg.OpenRP.fadingInToBlack = qfalse;
+			cg.OpenRP.fadedToBlack = qtrue;
+		}
+		return;
+	}
+
+	else if (cg.OpenRP.fadingOutOfBlack)
+	{
+		cg.OpenRP.fadingOutOfBlack = qfalse;
+
+		if ( cg.OpenRP.fadedToBlack )
+		cg.OpenRP.fadedToBlack = qfalse;
+
+		if ( ( ( cg.time - cg.OpenRP.fadeToBlackTime ) >= cg.OpenRP.fadeToBlackMSecondsPassedMin ) &&
+		( ( cg.time - cg.OpenRP.fadeToBlackTime ) <= cg.OpenRP.fadeToBlackMSecondsPassedMax ) &&
+		( cg.OpenRP.fadeToBlackMSecondsPassed != cg.OpenRP.fadeToBlackMSecondsPassedMin ) )
+		{
+		cg.OpenRP.fadeToBlackMSecondsPassed = cg.OpenRP.fadeToBlackMSecondsPassedMin;
+		cg.OpenRP.fadeToBlackMSecondsPassedMin += 1000;
+		cg.OpenRP.fadeToBlackMSecondsPassedMax += 1000;
+
+		if ( cg.OpenRP.fadeToBlackMSecondsPassed == 10000 )
+		{
+		cg.OpenRP.fadingOutOfBlack = qfalse;
+		}
+		else
+		{
+		cg.OpenRP.fadeColor[3] -= 0.2f;
+		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, cg.OpenRP.fadeColor  );
+		CG_ChatBox_DrawStrings();
+		}
+		}
+		return;
+	}
+
+	if (cg.OpenRP.fadedToBlack)
+	{
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, colorTable[CT_BLACK]);
+		CG_ChatBox_DrawStrings();
+		return;
+	}
+	//[/OpenRP - Fade to black]
+
 	if ( !cg_draw2D.integer ) {
 		gCGHasFallVector = qfalse;
 		VectorClear( gCGFallVector );
