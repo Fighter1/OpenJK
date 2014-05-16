@@ -1,0 +1,1 @@
+start openrp.x86.exe +set fs_game OpenRP

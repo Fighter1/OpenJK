@@ -950,6 +950,19 @@ void UI_SetActiveMenu( uiMenuCommand_t menu ) {
 			Menus_CloseAll();
 			Menus_ActivateByName("ingame_siegeclass");
 			return;
+		//OpenRP
+		case UIMENU_ACCOUNT:
+			trap->Key_SetCatcher(KEYCATCH_UI);
+			UI_BuildPlayerList();
+			Menus_CloseAll();
+			Menus_ActivateByName("ingame_account");
+			UpdateForceUsed();
+			return;
+		case UIMENU_CHARACTER:
+			trap->Key_SetCatcher(KEYCATCH_UI);
+			Menus_CloseAll();
+			Menus_ActivateByName("ingame_character");
+			return;
 		}
 	}
 }

@@ -991,32 +991,32 @@ void StopFollowing( gentity_t *ent ) {
 Cmd_Team_f
 =================
 */
-void Cmd_Team_f( gentity_t *ent ) {
+void Cmd_Team_f(gentity_t *ent) {
 	int			oldTeam;
 	char		s[MAX_TOKEN_CHARS];
 
 	oldTeam = ent->client->sess.sessionTeam;
 
-	if ( trap->Argc() != 2 ) {
-		switch ( oldTeam ) {
+	if (trap->Argc() != 2) {
+		switch (oldTeam) {
 		case TEAM_BLUE:
-			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")) );
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTBLUETEAM")));
 			break;
 		case TEAM_RED:
-			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTREDTEAM")) );
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTREDTEAM")));
 			break;
 		case TEAM_FREE:
-			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTFREETEAM")) );
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTFREETEAM")));
 			break;
 		case TEAM_SPECTATOR:
-			trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTSPECTEAM")) );
+			trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "PRINTSPECTEAM")));
 			break;
 		}
 		return;
 	}
 
-	if ( ent->client->switchTeamTime > level.time ) {
-		trap->SendServerCommand( ent-g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOSWITCH")) );
+	if (ent->client->switchTeamTime > level.time) {
+		trap->SendServerCommand(ent - g_entities, va("print \"%s\n\"", G_GetStringEdString("MP_SVGAME", "NOSWITCH")));
 		return;
 	}
 
@@ -1026,10 +1026,10 @@ void Cmd_Team_f( gentity_t *ent ) {
 	}
 
 	// if they are playing a tournament game, count as a loss
-	if ( level.gametype == GT_DUEL
-		&& ent->client->sess.sessionTeam == TEAM_FREE ) {//in a tournament game
+	if (level.gametype == GT_DUEL
+		&& ent->client->sess.sessionTeam == TEAM_FREE) {//in a tournament game
 		//disallow changing teams
-		trap->SendServerCommand( ent-g_entities, "print \"Cannot switch teams in Duel\n\"" );
+		trap->SendServerCommand(ent - g_entities, "print \"Cannot switch teams in Duel\n\"");
 		return;
 		//FIXME: why should this be a loss???
 		//ent->client->sess.losses++;
@@ -1037,17 +1037,32 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	if (level.gametype == GT_POWERDUEL)
 	{ //don't let clients change teams manually at all in powerduel, it will be taken care of through automated stuff
-		trap->SendServerCommand( ent-g_entities, "print \"Cannot switch teams in Power Duel\n\"" );
+		trap->SendServerCommand(ent - g_entities, "print \"Cannot switch teams in Power Duel\n\"");
 		return;
 	}
 
-	trap->Argv( 1, s, sizeof( s ) );
+	trap->Argv(1, s, sizeof(s));
 
-	SetTeam( ent, s );
+	//OpenRP - make login and character menus automatically pop up
+	//OpenRPtodo - improve this
+	if (oldTeam = TEAM_SPECTATOR && level.gametype == GT_FFA)
+	{
+		if (!ent->client->sess.loggedIn)
+			trap->SendServerCommand(ent - g_entities, "accountui");
+		else if (!ent->client->sess.characterSelected)
+			trap->SendServerCommand(ent - g_entities, "charui");
 
-	// fix: update team switch time only if team change really happend
-	if (oldTeam != ent->client->sess.sessionTeam)
-		ent->client->switchTeamTime = level.time + 5000;
+		return;
+	}
+	SetTeam(ent, s);
+
+	//OpenRP - Don't have a time switch timer in FFA.
+	if (level.gametype != GT_FFA)
+	{
+		// fix: update team switch time only if team change really happend
+		if (oldTeam != ent->client->sess.sessionTeam)
+			ent->client->switchTeamTime = level.time + 5000;
+	}
 }
 
 /*

@@ -2691,24 +2691,6 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 	//first-time force power initialization
 	WP_InitForcePowers( ent );
 
-	//OpenRP - make login and character menus automatically pop up
-	if (!ent->client->sess.loggedIn || !ent->client->sess.characterSelected)
-	{
-		//Make them a spectator so they can set their powerups up without being bothered.
-		ent->client->sess.sessionTeam = TEAM_SPECTATOR;
-		ent->client->sess.spectatorState = SPECTATOR_FREE;
-		ent->client->sess.spectatorClient = 0;
-
-		ent->client->pers.teamState.state = TEAM_BEGIN;
-
-		if (!ent->client->sess.loggedIn)
-			trap->SendServerCommand(ent - g_entities, "accountui");
-		else
-			trap->SendServerCommand(ent - g_entities, "charui");
-
-		return;
-	}
-
 	//init saber ent
 	WP_SaberInitBladeData( ent );
 
