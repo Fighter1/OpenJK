@@ -191,8 +191,7 @@ endif()
 set(ReleaseDefines "FINAL_BUILD")
 
 # Add projects
-#OpenRP - Commented out to stop an error, as SPDir was removed, as it's not needed
-#add_subdirectory(${SPDir})
+add_subdirectory(${SPDir})
 if(BuildJK2SPGame)
 	add_subdirectory("${JK2SPDir}/game")
 endif(BuildJK2SPGame)
