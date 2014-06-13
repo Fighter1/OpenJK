@@ -344,17 +344,7 @@ respawn
 */
 void respawn( gentity_t *ent ) {
 
-	if (Q_stricmpn(level.mapname,"_holo",5)) {
-		gi.SendConsoleCommand("load *respawn\n");	// special case
-	}
-	else {//we're on the holodeck
-		int			flags;
-
-		// toggle the teleport bit so the client knows to not lerp
-		flags = ent->client->ps.eFlags;
-		ClientSpawn(ent, eNO/*qfalse*/);	// SavedGameJustLoaded_e
-		ent->client->ps.eFlags = flags ^ EF_TELEPORT_BIT;
-	}
+	gi.SendConsoleCommand("load *respawn\n");	// special case
 }
 
 
@@ -483,11 +473,6 @@ void ClientUserinfoChanged( int clientNum ) {
 				oldname[34]={0};
 
 	gi.GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
-
-	// check for malformed or illegal info strings
-	/*if ( !Info_Validate(userinfo) ) {
-		strcpy (userinfo, "\\name\\badinfo");
-	}*/
 
 	// set name
 	Q_strncpyz ( oldname, client->pers.netname, sizeof( oldname ) );

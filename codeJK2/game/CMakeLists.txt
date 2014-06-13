@@ -5,12 +5,14 @@ if(NOT InOpenJK)
 	message(FATAL_ERROR "Use the top-level cmake script!")
 endif(NOT InOpenJK)
 
+set(JK2SPGameDefines ${JK2SPGameDefines} "JK2_MODE")
+
 set(JK2SPGameIncludeDirectories "${JK2SPDir}/game")
 if(WIN32)
 	set(JK2SPGameLibraries "winmm")
 endif(WIN32)
 
-set(JK2SPGameFiles
+set(JK2SPGameGameFiles
 	"${JK2SPDir}/game/AI_Atst.cpp"
 	"${JK2SPDir}/game/AI_Default.cpp"
 	"${JK2SPDir}/game/AI_Droid.cpp"
@@ -174,7 +176,6 @@ set(JK2SPGameCGameFiles
 	"${JK2SPDir}/cgame/cg_event.cpp"
 	"${JK2SPDir}/cgame/cg_info.cpp"
 	"${JK2SPDir}/cgame/cg_lights.cpp"
-	"${JK2SPDir}/cgame/cg_lights.h"
 	"${JK2SPDir}/cgame/cg_local.h"
 	"${JK2SPDir}/cgame/cg_localents.cpp"
 	"${JK2SPDir}/cgame/cg_main.cpp"
@@ -229,6 +230,13 @@ set(JK2SPGameIcarusFiles
 source_group("icarus" FILES ${JK2SPGameIcarusFiles})
 set(JK2SPGameFiles ${JK2SPGameFiles} ${JK2SPGameIcarusFiles})
 
+set(JK2SPGameRuflFiles
+	"${SPDir}/Rufl/hstring.cpp"
+	"${SPDir}/Rufl/hstring.h"
+	)
+source_group("rufl" FILES ${JK2SPGameRuflFiles})
+set(JK2SPGameFiles ${JK2SPGameFiles} ${JK2SPGameRuflFiles})
+
 if(WIN32)
 	set(JK2SPGameWin32Files
 		"${JK2SPDir}/win32/game.rc")
@@ -246,14 +254,18 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${JK2SPGame} RUNTIME DESTINATION "OpenJK")
 else(WIN32)
-	install(TARGETS ${JK2SPGame} LIBRARY DESTINATION "OpenJK")
+	if(MakeApplicationBundles AND BuildJK2SPEngine)
+		install(TARGETS ${JK2SPGame} LIBRARY DESTINATION "${JK2SPEngine}.app/Contents/MacOS/OpenJK")
+	else(MakeApplicationBundles AND BuildJK2SPEngine)
+		install(TARGETS ${JK2SPGame} LIBRARY DESTINATION "OpenJK")
+	endif(MakeApplicationBundles AND BuildJK2SPEngine) 
 endif(WIN32)
 set_target_properties(${JK2SPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${JK2SPGameDefines};${ReleaseDefines}")
 set_target_properties(${JK2SPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${JK2SPGameDefines};${ReleaseDefines}")
 set_target_properties(${JK2SPGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${JK2SPGameDefines};${ReleaseDefines}")
 set_target_properties(${JK2SPGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${JK2SPGameDefines};${DebugDefines}")
 set_target_properties(${JK2SPGame} PROPERTIES INCLUDE_DIRECTORIES "${JK2SPGameIncludeDirectories}")
-set_target_properties(${JK2SPGame} PROPERTIES PROJECT_LABEL "JK2SP Game Library")
+set_target_properties(${JK2SPGame} PROPERTIES PROJECT_LABEL "JK2 SP Game Library")
 # no libraries used
 if(JK2SPGameLibraries)
 	target_link_libraries(${JK2SPGame} ${JK2SPGameLibraries})

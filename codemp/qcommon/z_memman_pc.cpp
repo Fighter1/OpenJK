@@ -1,8 +1,5 @@
 // Created 3/13/03 by Brian Osman (VV) - Split Zone/Hunk from common
 
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 #include "client/client.h" // hi i'm bad
 
 ////////////////////////////////////////////////
@@ -574,8 +571,10 @@ void Com_InitZoneMemory( void )
 {
 	memset(&TheZone, 0, sizeof(TheZone));
 	TheZone.Header.iMagic = ZONE_MAGIC;
+}
 
-//#ifdef _DEBUG
+void Com_InitZoneMemoryVars( void ) {
+	//#ifdef _DEBUG
 //	com_validateZone = Cvar_Get("com_validateZone", "1", 0);
 //#else
 	com_validateZone = Cvar_Get("com_validateZone", "0", 0);
@@ -588,7 +587,6 @@ void Com_InitZoneMemory( void )
 	Cmd_AddCommand("zone_memrecovertest", Z_MemRecoverTest_f);
 #endif
 }
-
 
 
 

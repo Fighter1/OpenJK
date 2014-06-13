@@ -1,6 +1,3 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // console.c
 
 #include "client.h"
@@ -15,6 +12,7 @@ console_t	con;
 
 cvar_t		*con_conspeed;
 cvar_t		*con_notifytime;
+cvar_t		*con_opacity; // background alpha multiplier
 cvar_t		*con_autoclear;
 
 #define	DEFAULT_CONSOLE_WIDTH	78
@@ -39,6 +37,16 @@ void Con_ToggleConsole_f (void) {
 
 	Con_ClearNotify ();
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_CONSOLE );
+}
+
+/*
+===================
+Con_ToggleMenu_f
+===================
+*/
+void Con_ToggleMenu_f( void ) {
+	CL_KeyEvent( A_ESCAPE, qtrue, Sys_Milliseconds() );
+	CL_KeyEvent( A_ESCAPE, qfalse, Sys_Milliseconds() );
 }
 
 /*
@@ -328,6 +336,9 @@ void Con_Init (void) {
 
 	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
 	con_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
+	Cvar_CheckRange (con_conspeed, 1.0f, 100.0f, qfalse);
+
+	con_opacity = Cvar_Get ("con_opacity", "1.0", CVAR_ARCHIVE);
 	con_autoclear = Cvar_Get ("con_autoclear", "1", CVAR_ARCHIVE);
 
 	Field_Clear( &g_consoleField );
@@ -338,6 +349,7 @@ void Con_Init (void) {
 	}
 
 	Cmd_AddCommand( "toggleconsole", Con_ToggleConsole_f );
+	Cmd_AddCommand( "togglemenu", Con_ToggleMenu_f );
 	Cmd_AddCommand( "messagemode", Con_MessageMode_f );
 	Cmd_AddCommand( "messagemode2", Con_MessageMode2_f );
 	Cmd_AddCommand( "messagemode3", Con_MessageMode3_f );
@@ -347,6 +359,22 @@ void Con_Init (void) {
 	Cmd_SetCommandCompletionFunc( "condump", Cmd_CompleteTxtName );
 }
 
+/*
+================
+Con_Shutdown
+================
+*/
+void Con_Shutdown(void)
+{
+	Cmd_RemoveCommand("toggleconsole");
+	Cmd_RemoveCommand("togglemenu");
+	Cmd_RemoveCommand("messagemode");
+	Cmd_RemoveCommand("messagemode2");
+	Cmd_RemoveCommand("messagemode3");
+	Cmd_RemoveCommand("messagemode4");
+	Cmd_RemoveCommand("clear");
+	Cmd_RemoveCommand("condump");
+}
 
 /*
 ===============
@@ -665,6 +693,17 @@ void Con_DrawSolidConsole( float frac ) {
 		y = 0;
 	}
 	else {
+		// draw the background at full opacity only if fullscreen
+		if (frac < 1.0f)
+		{
+			vec4_t con_color;
+			MAKERGBA(con_color, 1.0f, 1.0f, 1.0f, Com_Clamp(0.0f, 1.0f, con_opacity->value));
+			re->SetColor(con_color);
+		}
+		else
+		{
+			re->SetColor(NULL);
+		}
 		SCR_DrawPic( 0, 0, SCREEN_WIDTH, (float) y, cls.consoleShader );
 	}
 
@@ -676,7 +715,7 @@ void Con_DrawSolidConsole( float frac ) {
 	i = strlen( JK_VERSION );
 
 	for (x=0 ; x<i ; x++) {
-		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH,
+		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x + 1 ) * SMALLCHAR_WIDTH,
 			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), JK_VERSION[x] );
 	}
 

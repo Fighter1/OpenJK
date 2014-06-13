@@ -183,6 +183,24 @@ float	BigFloat (const float *l) {return _BigFloat(l);}
 float	LittleFloat (const float *l) {return _LittleFloat(l);}
 */
 
+void CopyShortSwap( void *dest, void *src )
+{
+	byte *to = (byte *)dest, *from = (byte *)src;
+
+	to[0] = from[1];
+	to[1] = from[0];
+}
+
+void CopyLongSwap( void *dest, void *src )
+{
+	byte *to = (byte *)dest, *from = (byte *)src;
+
+	to[0] = from[3];
+	to[1] = from[2];
+	to[2] = from[1];
+	to[3] = from[0];
+}
+
 short   ShortSwap (short l)
 {
 	byte    b1,b2;
@@ -216,7 +234,7 @@ int	LongNoSwap (int l)
 }
 
 float FloatSwap (const float *f) {
-	floatint_t out;
+	byteAlias_t out;
 
 	out.f = *f;
 	out.ui = LongSwap(out.ui);

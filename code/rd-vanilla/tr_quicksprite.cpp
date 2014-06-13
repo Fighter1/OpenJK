@@ -110,8 +110,12 @@ void CQuickSpriteSystem::Flush(void)
 	backEnd.pc.c_indexes += mNextVert;
 	backEnd.pc.c_totalIndexes += mNextVert;
 
+#ifdef JK2_MODE
+	if (mUseFog)
+#else
 	//only for software fog pass (global soft/volumetric) -rww
 	if (mUseFog && (r_drawfog->integer != 2 || mFogIndex != tr.world->globalFog))
+#endif
 	{
 		fog_t *fog = tr.world->fogs + mFogIndex;
 
@@ -208,7 +212,8 @@ void CQuickSpriteSystem::Add(float *pointdata, color4ub_t color, vec2_t fog)
 	}
 
 	curcoord = mVerts[mNextVert];
-	memcpy(curcoord, pointdata, sizeof(vec4_t));
+	// This is 16*sizeof(float) because, pointdata comes from a float[16]
+	memcpy(curcoord, pointdata, 16*sizeof(float));
 
 	// Set up color
 	curcolor = &mColors[mNextVert];

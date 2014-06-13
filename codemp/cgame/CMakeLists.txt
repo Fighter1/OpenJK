@@ -37,6 +37,7 @@ set(MPCGameFiles ${MPCGameFiles} ${MPCGameGameFiles})
 
 set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_consolecmds.c"
+	"${MPDir}/cgame/cg_cvar.c"
 	"${MPDir}/cgame/cg_draw.c"
 	"${MPDir}/cgame/cg_drawtools.c"
 	"${MPDir}/cgame/cg_effects.c"
@@ -71,7 +72,6 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/fx_heavyrepeater.c"
 	"${MPDir}/cgame/fx_rocketlauncher.c"
 	"${MPDir}/cgame/animtable.h"
-	"${MPDir}/cgame/cg_lights.h"
 	"${MPDir}/cgame/cg_local.h"
 	"${MPDir}/cgame/cg_public.h"
 	"${MPDir}/cgame/cg_xcvar.h"
@@ -123,7 +123,12 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${MPCGame} RUNTIME DESTINATION "OpenJK")
 else(WIN32)
-	install(TARGETS ${MPCGame} LIBRARY DESTINATION "OpenJK")
+	if(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPCGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/OpenJK")
+		install(TARGETS ${MPCGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/base")
+	else(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPCGame} LIBRARY DESTINATION "OpenJK")
+	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPCGameDefines};${ReleaseDefines}")
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPCGameDefines};${ReleaseDefines}")

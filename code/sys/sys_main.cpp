@@ -167,15 +167,11 @@ void *Sys_GetGameAPI (void *parms)
 #endif
 	const char	*fn;
 	
-	const char *gamename;
-	if(Cvar_VariableIntegerValue("com_jk2"))
-	{
-		gamename = "jk2game" ARCH_STRING DLL_EXT;
-	}
-	else
-	{
-		gamename = "jagame" ARCH_STRING DLL_EXT;
-	}
+#ifdef JK2_MODE
+	const char *gamename = "jospgame" ARCH_STRING DLL_EXT;
+#else
+	const char *gamename = "jagame" ARCH_STRING DLL_EXT;
+#endif
 	
 	if (game_library)
 		Com_Error (ERR_FATAL, "Sys_GetGameAPI without calling Sys_UnloadGame");
@@ -227,7 +223,7 @@ void *Sys_GetGameAPI (void *parms)
 	if (!game_library) {
 		Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 		
-		fn = FS_BuildOSPath( basepath, BASEGAME, gamename);
+		fn = FS_BuildOSPath( basepath, OPENJKGAME, gamename );
 		game_library = Sys_LoadLibrary( fn );
 	}
 	
@@ -235,7 +231,7 @@ void *Sys_GetGameAPI (void *parms)
 		if ( homepath[0] ) {
 			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 			
-			fn = FS_BuildOSPath( homepath, BASEGAME, gamename);
+			fn = FS_BuildOSPath( homepath, OPENJKGAME, gamename );
 			game_library = Sys_LoadLibrary( fn );
 		}
 	}
@@ -245,7 +241,7 @@ void *Sys_GetGameAPI (void *parms)
 		if( apppath[0] ) {
 			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 			
-			fn = FS_BuildOSPath( apppath, BASEGAME, gamename );
+			fn = FS_BuildOSPath( apppath, OPENJKGAME, gamename );
 			game_library = Sys_LoadLibrary( fn );
 		}
 	}
@@ -255,7 +251,7 @@ void *Sys_GetGameAPI (void *parms)
 		if( cdpath[0] ) {
 			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 			
-			fn = FS_BuildOSPath( cdpath, BASEGAME, gamename );
+			fn = FS_BuildOSPath( cdpath, OPENJKGAME, gamename );
 			game_library = Sys_LoadLibrary( fn );
 		}
 	}

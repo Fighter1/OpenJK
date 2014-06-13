@@ -214,6 +214,24 @@ float	BigFloat (const float *l) {return _BigFloat(l);}
 float	LittleFloat (const float *l) {return _LittleFloat(l);}
 */
 
+void CopyShortSwap( void *dest, void *src )
+{
+	byte *to = (byte *)dest, *from = (byte *)src;
+
+	to[0] = from[1];
+	to[1] = from[0];
+}
+
+void CopyLongSwap( void *dest, void *src )
+{
+	byte *to = (byte *)dest, *from = (byte *)src;
+
+	to[0] = from[3];
+	to[1] = from[2];
+	to[2] = from[1];
+	to[3] = from[0];
+}
+
 short   ShortSwap (short l)
 {
 	byte    b1,b2;
@@ -859,6 +877,24 @@ int Q_isprint( int c )
 	return ( 0 );
 }
 
+int Q_isprintext( int c )
+{
+	if ( c >= 0x20 && c <= 0x7E )
+		return (1);
+	if ( c >= 0x80 && c <= 0xFE )
+		return (1);
+	return (0);
+}
+
+int Q_isgraph( int c )
+{
+	if ( c >= 0x21 && c <= 0x7E )
+		return (1);
+	if ( c >= 0x80 && c <= 0xFE )
+		return (1);
+	return (0);
+}
+
 int Q_islower( int c )
 {
 	if (c >= 'a' && c <= 'z')
@@ -1099,6 +1135,7 @@ int Q_PrintStrlen( const char *string ) {
 }
 
 
+/* This function modifies INPUT (is mutable) */
 char *Q_CleanStr( char *string ) {
 	char*	d;
 	char*	s;
@@ -1125,6 +1162,8 @@ char *Q_CleanStr( char *string ) {
 Q_StripColor
 
 Strips coloured strings in-place using multiple passes: "fgs^^56fds" -> "fgs^6fds" -> "fgsfds"
+
+This function modifies INPUT (is mutable)
 
 (Also strips ^8 and ^9)
 ==================
@@ -1182,22 +1221,25 @@ void Q_strstrip( char *string, const char *strip, const char *repl )
 	char		*out=string, *p=string, c;
 	const char	*s=strip;
 	int			replaceLen = repl?strlen( repl ):0, offset=0;
+	qboolean	recordChar = qtrue;
 
 	while ( (c = *p++) != '\0' )
 	{
+		recordChar = qtrue;
 		for ( s=strip; *s; s++ )
 		{
 			offset = s-strip;
 			if ( c == *s )
 			{
 				if ( !repl || offset >= replaceLen )
-					c = *p++;
+					recordChar = qfalse;
 				else
 					c = repl[offset];
 				break;
 			}
 		}
-		*out++ = c;
+		if ( recordChar )
+			*out++ = c;
 	}
 	*out = '\0';
 }
@@ -1273,6 +1315,12 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
 		Com_Printf("Com_sprintf: Output length %d too short, require %d bytes.\n", size, len + 1);
 
 	return len;
+}
+
+int FloatAsInt( float f ) {
+	byteAlias_t fi;
+	fi.f = f;
+	return fi.i;
 }
 
 /*

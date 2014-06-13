@@ -322,28 +322,6 @@ void Team_CheckDroppedItem( gentity_t *dropped ) {
 
 /*
 ================
-Team_ForceGesture
-================
-*/
-void Team_ForceGesture(int team) {
-	int i;
-	gentity_t *ent;
-
-	for (i = 0; i < MAX_CLIENTS; i++) {
-		ent = &g_entities[i];
-		if (!ent->inuse)
-			continue;
-		if (!ent->client)
-			continue;
-		if (ent->client->sess.sessionTeam != team)
-			continue;
-		//
-		ent->flags |= FL_FORCE_GESTURE;
-	}
-}
-
-/*
-================
 Team_FragBonuses
 
 Calculate the bonuses for flag defense, flag carrier defense, etc.
@@ -831,8 +809,6 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	// Increase the team's score
 	AddTeamScore(ent->s.pos.trBase, other->client->sess.sessionTeam, 1);
-//	Team_ForceGesture(other->client->sess.sessionTeam);
-	//rww - don't really want to do this now. Mainly because performing a gesture disables your upper torso animations until it's done and you can't fire
 
 	other->client->pers.teamState.captures++;
 	other->client->rewardTime = level.time + REWARD_SPRITE_TIME;
@@ -981,32 +957,34 @@ Team_GetLocation
 Report a location for the player. Uses placed nearby target_location entities
 ============
 */
-gentity_t *Team_GetLocation(gentity_t *ent)
+locationData_t *Team_GetLocation(gentity_t *ent)
 {
-	gentity_t		*eloc, *best;
+	locationData_t	*loc, *best;
 	float			bestlen, len;
 	vec3_t			origin;
+	int				i;
 
 	best = NULL;
 	bestlen = 3*8192.0*8192.0;
 
 	VectorCopy( ent->r.currentOrigin, origin );
 
-	for (eloc = level.locationHead; eloc; eloc = eloc->nextTrain) {
-		len = ( origin[0] - eloc->r.currentOrigin[0] ) * ( origin[0] - eloc->r.currentOrigin[0] )
-			+ ( origin[1] - eloc->r.currentOrigin[1] ) * ( origin[1] - eloc->r.currentOrigin[1] )
-			+ ( origin[2] - eloc->r.currentOrigin[2] ) * ( origin[2] - eloc->r.currentOrigin[2] );
+	for ( i=0; i<level.locations.num; i++ ) {
+		loc = &level.locations.data[i];
+		len = ( origin[0] - loc->origin[0] ) * ( origin[0] - loc->origin[0] )
+			+ ( origin[1] - loc->origin[1] ) * ( origin[1] - loc->origin[1] )
+			+ ( origin[2] - loc->origin[2] ) * ( origin[2] - loc->origin[2] );
 
 		if ( len > bestlen ) {
 			continue;
 		}
 
-		if ( !trap->InPVS( origin, eloc->r.currentOrigin ) ) {
+		if ( !trap->InPVS( origin, loc->origin ) ) {
 			continue;
 		}
 
 		bestlen = len;
-		best = eloc;
+		best = loc;
 	}
 
 	return best;
@@ -1022,7 +1000,7 @@ Report a location for the player. Uses placed nearby target_location entities
 */
 qboolean Team_GetLocationMsg(gentity_t *ent, char *loc, int loclen)
 {
-	gentity_t *best;
+	locationData_t *best;
 
 	best = Team_GetLocation( ent );
 
@@ -1254,16 +1232,24 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 		player = g_entities + i;
 		if (player->inuse && player->client->sess.sessionTeam == team ) {
 
-			h = player->client->ps.stats[STAT_HEALTH];
-			a = player->client->ps.stats[STAT_ARMOR];
-			if (h < 0) h = 0;
-			if (a < 0) a = 0;
+			if ( player->client->tempSpectate >= level.time ) {
+				h = a = 0;
 
-			Com_sprintf (entry, sizeof(entry),
-				" %i %i %i %i %i %i",
-			//	level.sortedClients[i], player->client->pers.teamState.location, h, a,
-				i, player->client->pers.teamState.location, h, a,
-				player->client->ps.weapon, player->s.powerups);
+				Com_sprintf( entry, sizeof(entry),
+					" %i %i %i %i %i %i",
+					i, 0, h, a, 0, 0 );
+			}
+			else {
+				h = player->client->ps.stats[STAT_HEALTH];
+				a = player->client->ps.stats[STAT_ARMOR];
+				if ( h < 0 ) h = 0;
+				if ( a < 0 ) a = 0;
+
+				Com_sprintf( entry, sizeof(entry),
+					" %i %i %i %i %i %i",
+					i, player->client->pers.teamState.location, h, a,
+					player->client->ps.weapon, player->s.powerups );
+			}
 			j = strlen(entry);
 			if (stringlength + j >= sizeof(string))
 				break;
@@ -1278,7 +1264,8 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 
 void CheckTeamStatus(void) {
 	int i;
-	gentity_t *loc, *ent;
+	locationData_t *loc;
+	gentity_t *ent;
 
 	if (level.time - level.lastTeamLocationTime > TEAM_LOCATION_UPDATE_TIME) {
 
@@ -1299,7 +1286,7 @@ void CheckTeamStatus(void) {
 			if (ent->inuse && (ent->client->sess.sessionTeam == TEAM_RED ||	ent->client->sess.sessionTeam == TEAM_BLUE)) {
 				loc = Team_GetLocation( ent );
 				if (loc)
-					ent->client->pers.teamState.location = loc->health;
+					ent->client->pers.teamState.location = loc->cs_index;
 				else
 					ent->client->pers.teamState.location = 0;
 			}

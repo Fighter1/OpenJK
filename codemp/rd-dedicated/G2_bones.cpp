@@ -1,16 +1,10 @@
-// leave this as first line for PCH reasons...
-//
-
-
-
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
-
 #include "qcommon/matcomp.h"
 
 #include "ghoul2/G2.h"
-#include "G2_local.h"
+#include "ghoul2/G2_gore.h"
+#include "ghoul2/g2_local.h"
+
+#include "tr_local.h"
 
 //rww - RAGDOLL_BEGIN
 #ifndef __linux__
@@ -18,7 +12,6 @@
 #else
 #include <math.h>
 #endif
-#include "ghoul2/G2_gore.h"
 
 //#define RAG_TRACE_DEBUG_LINES
 
@@ -2456,6 +2449,7 @@ static void G2_RagDoll(CGhoul2Info_v &ghoul2V,int g2Index,CRagDollUpdateParams *
 #define _DEBUG_BONE_NAMES
 #endif
 
+#ifdef _DEBUG_BONE_NAMES
 static inline char *G2_Get_Bone_Name(CGhoul2Info *ghlInfo, boneInfo_v &blist, int boneNum)
 {
 	mdxaSkel_t			*skel;
@@ -2481,6 +2475,7 @@ static inline char *G2_Get_Bone_Name(CGhoul2Info *ghlInfo, boneInfo_v &blist, in
 	// didn't find it
 	return "BONE_NOT_FOUND";
 }
+#endif
 
 char *G2_GetBoneNameFromSkel(CGhoul2Info &ghoul2, int boneNum);
 

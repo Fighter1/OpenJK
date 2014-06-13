@@ -1,6 +1,6 @@
 // tr_main.c -- main control flow for each frame
 #include "tr_local.h"
-#include "G2_local.h"
+#include "ghoul2/g2_local.h"
 // Yeah, this might be kind of bad, but no linux version is planned so far :-) - AReis
 // Gee- thanks guys - jdrews, the linux porter...
 #ifdef _WIN32
@@ -19,8 +19,6 @@ static float	s_flipMatrix[16] = {
 };
 
 refimport_t	*ri = NULL;
-
-void R_AddTerrainSurfaces(void);
 
 // entities that will have procedurally generated surfaces will just
 // point at this for their sorting surface
@@ -1300,8 +1298,6 @@ void R_GenerateDrawSurfs( void ) {
 	R_AddWorldSurfaces ();
 
 	R_AddPolygonSurfaces();
-
-	R_AddTerrainSurfaces(); //rwwRMG - added
 
 	// set the projection matrix with the minimum zfar
 	// now that we have the world bounded

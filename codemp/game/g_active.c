@@ -35,7 +35,7 @@ void P_DamageFeedback( gentity_t *player ) {
 	vec3_t	angles;
 
 	client = player->client;
-	if ( client->ps.pm_type == PM_DEAD ) {
+	if ( client->ps.pm_type == PM_DEAD || client->tempSpectate >= level.time ) {
 		return;
 	}
 
@@ -75,7 +75,7 @@ void P_DamageFeedback( gentity_t *player ) {
 	}
 
 	// play an appropriate pain sound
-	if ( (level.time > player->pain_debounce_time) && !(player->flags & FL_GODMODE) && !(player->s.eFlags & EF_DEAD) ) {
+	if ( (level.time > player->pain_debounce_time) && !(player->flags & FL_GODMODE) && !(player->s.eFlags & EF_DEAD) && (player->client->tempSpectate < level.time)) {
 
 		// don't do more than two pain sounds a second
 		// nmckenzie: also don't make him loud and whiny if he's only getting nicked.
@@ -153,7 +153,7 @@ void P_WorldEffects( gentity_t *ent ) {
 		if ( ent->client->airOutTime < level.time) {
 			// drown!
 			ent->client->airOutTime += 1000;
-			if ( ent->health > 0 ) {
+			if ( ent->health > 0 && ent->client->tempSpectate < level.time ) {
 				// take more damage the longer underwater
 				ent->damage += 2;
 				if (ent->damage > 15)
@@ -185,7 +185,7 @@ void P_WorldEffects( gentity_t *ent ) {
 	//
 	if ( waterlevel && (ent->watertype & (CONTENTS_LAVA|CONTENTS_SLIME)) )
 	{
-		if ( ent->health > 0 && ent->pain_debounce_time <= level.time )
+		if ( ent->health > 0 && ent->client->tempSpectate < level.time && ent->pain_debounce_time <= level.time )
 		{
 		#ifdef BASE_COMPAT
 			if ( envirosuit )
@@ -1706,8 +1706,7 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].tauntAnim;
 			}
-			else if ( ent->client->saber[1].model
-					&& ent->client->saber[1].model[0]
+			else if ( ent->client->saber[1].model[0]
 					&& ent->client->saber[1].tauntAnim != -1 )
 			{
 				anim = ent->client->saber[1].tauntAnim;
@@ -1719,7 +1718,6 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 				case SS_FAST:
 				case SS_TAVION:
 					if ( ent->client->ps.saberHolstered == 1
-						&& ent->client->saber[1].model
 						&& ent->client->saber[1].model[0] )
 					{//turn off second saber
 						G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOff );
@@ -1738,7 +1736,6 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 					break;
 				case SS_DUAL:
 					if ( ent->client->ps.saberHolstered == 1
-						&& ent->client->saber[1].model
 						&& ent->client->saber[1].model[0] )
 					{//turn on second saber
 						G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOn );
@@ -1766,8 +1763,7 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].bowAnim;
 			}
-			else if ( ent->client->saber[1].model
-					&& ent->client->saber[1].model[0]
+			else if ( ent->client->saber[1].model[0]
 					&& ent->client->saber[1].bowAnim != -1 )
 			{
 				anim = ent->client->saber[1].bowAnim;
@@ -1777,7 +1773,6 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 				anim = BOTH_BOW;
 			}
 			if ( ent->client->ps.saberHolstered == 1
-				&& ent->client->saber[1].model
 				&& ent->client->saber[1].model[0] )
 			{//turn off second saber
 				G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOff );
@@ -1793,8 +1788,7 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].meditateAnim;
 			}
-			else if ( ent->client->saber[1].model
-					&& ent->client->saber[1].model[0]
+			else if ( ent->client->saber[1].model[0]
 					&& ent->client->saber[1].meditateAnim != -1 )
 			{
 				anim = ent->client->saber[1].meditateAnim;
@@ -1804,7 +1798,6 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 				anim = BOTH_MEDITATE;
 			}
 			if ( ent->client->ps.saberHolstered == 1
-				&& ent->client->saber[1].model
 				&& ent->client->saber[1].model[0] )
 			{//turn off second saber
 				G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOff );
@@ -1819,7 +1812,6 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			if ( ent->client->ps.weapon == WP_SABER )
 			{
 				if ( ent->client->ps.saberHolstered == 1
-					&& ent->client->saber[1].model
 					&& ent->client->saber[1].model[0] )
 				{//turn on second saber
 					G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOn );
@@ -1833,8 +1825,7 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 				{
 					anim = ent->client->saber[0].flourishAnim;
 				}
-				else if ( ent->client->saber[1].model
-					&& ent->client->saber[1].model[0]
+				else if ( ent->client->saber[1].model[0]
 					&& ent->client->saber[1].flourishAnim != -1 )
 				{
 					anim = ent->client->saber[1].flourishAnim;
@@ -1869,8 +1860,7 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 			{
 				anim = ent->client->saber[0].gloatAnim;
 			}
-			else if ( ent->client->saber[1].model
-					&& ent->client->saber[1].model[0]
+			else if ( ent->client->saber[1].model[0]
 					&& ent->client->saber[1].gloatAnim != -1 )
 			{
 				anim = ent->client->saber[1].gloatAnim;
@@ -1897,7 +1887,6 @@ void G_SetTauntAnim( gentity_t *ent, int taunt )
 					break;
 				case SS_DUAL:
 					if ( ent->client->ps.saberHolstered == 1
-						&& ent->client->saber[1].model
 						&& ent->client->saber[1].model[0] )
 					{//turn on second saber
 						G_Sound( ent, CHAN_WEAPON, ent->client->saber[1].soundOn );
@@ -2137,7 +2126,7 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	// spectators don't do much
-	if ( client->sess.sessionTeam == TEAM_SPECTATOR || client->tempSpectate > level.time ) {
+	if ( client->sess.sessionTeam == TEAM_SPECTATOR || client->tempSpectate >= level.time ) {
 		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD ) {
 			return;
 		}
@@ -3054,8 +3043,7 @@ void ClientThink_real( gentity_t *ent ) {
 						lockHits -= 1;
 					}
 					lockHits += ent->client->saber[0].lockBonus;
-					if ( ent->client->saber[1].model
-						&& ent->client->saber[1].model[0]
+					if ( ent->client->saber[1].model[0]
 						&& !ent->client->ps.saberHolstered )
 					{
 						lockHits += ent->client->saber[1].lockBonus;

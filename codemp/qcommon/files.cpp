@@ -5,15 +5,21 @@
  *
  *****************************************************************************/
 
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "qcommon/qcommon.h"
 
 #ifndef DEDICATED
 #ifndef FINAL_BUILD
 #include "client/client.h"
 #endif
 #endif
-#include "unzip.h"
+#include "minizip/unzip.h"
+
+// for rmdir
+#if defined (_MSC_VER)
+	#include <direct.h>
+#else
+	#include <unistd.h>
+#endif
 
 /*
 =============================================================================
@@ -241,7 +247,7 @@ static fileHandleData_t	fsh[MAX_FILE_HANDLES];
 
 // TTimo - https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=540
 // wether we did a reorder on the current search path when joining the server
-static qboolean fs_reordered;
+static qboolean fs_reordered = qfalse;
 
 // never load anything from pk3 files that are not present at the server when pure
 static int		fs_numServerPaks = 0;
@@ -590,11 +596,13 @@ void FS_CopyFile( char *fromOSPath, char *toOSPath ) {
 	fclose( f );
 
 	if( FS_CreatePath( toOSPath ) ) {
+		free ( buf );
 		return;
 	}
 
 	f = fopen( toOSPath, "wb" );
 	if ( !f ) {
+		free ( buf );
 		return;
 	}
 	if (fwrite( buf, 1, len, f ) != (unsigned)len)
@@ -630,6 +638,56 @@ void FS_HomeRemove( const char *homePath ) {
 
 	remove( FS_BuildOSPath( fs_homepath->string,
 			fs_gamedir, homePath ) );
+}
+
+/*
+===========
+FS_Rmdir
+
+Removes a directory, optionally deleting all files under it
+===========
+*/
+void FS_Rmdir( const char *osPath, qboolean recursive ) {
+	FS_CheckFilenameIsMutable( osPath, __func__ );
+
+	if ( recursive ) {
+		int numfiles;
+		int i;
+		char **filesToRemove = Sys_ListFiles( osPath, "", NULL, &numfiles, qfalse );
+		for ( i = 0; i < numfiles; i++ ) {
+			char fileOsPath[MAX_OSPATH];
+			Com_sprintf( fileOsPath, sizeof( fileOsPath ), "%s/%s", osPath, filesToRemove[i] );
+			FS_Remove( fileOsPath );
+		}
+		FS_FreeFileList( filesToRemove );
+
+		char **directoriesToRemove = Sys_ListFiles( osPath, "/", NULL, &numfiles, qfalse );
+		for ( i = 0; i < numfiles; i++ ) {
+			if ( !Q_stricmp( directoriesToRemove[i], "." ) || !Q_stricmp( directoriesToRemove[i], ".." ) ) {
+				continue;
+			}
+			char directoryOsPath[MAX_OSPATH];
+			Com_sprintf( directoryOsPath, sizeof( directoryOsPath ), "%s/%s", osPath, directoriesToRemove[i] );
+			FS_Rmdir( directoryOsPath, qtrue );
+		}
+		FS_FreeFileList( directoriesToRemove );
+	}
+
+	rmdir( osPath );
+}
+
+/*
+===========
+FS_HomeRmdir
+
+Removes a directory, optionally deleting all files under it
+===========
+*/
+void FS_HomeRmdir( const char *homePath, qboolean recursive ) {
+	FS_CheckFilenameIsMutable( homePath, __func__ );
+
+	FS_Rmdir( FS_BuildOSPath( fs_homepath->string,
+					fs_gamedir, homePath ), recursive );
 }
 
 /*
@@ -3902,7 +3960,7 @@ void	FS_Flush( fileHandle_t f ) {
 	fflush(fsh[f].handleFiles.file.o);
 }
 
-void FS_FilenameCompletion( const char *dir, const char *ext, qboolean stripExt, void(*callback)( const char *s ), qboolean allowNonPureFilesOnDisk ) {
+void FS_FilenameCompletion( const char *dir, const char *ext, qboolean stripExt, callbackFunc_t callback, qboolean allowNonPureFilesOnDisk ) {
 	int nfiles;
 	char **filenames, filename[MAX_STRING_CHARS];
 

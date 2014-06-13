@@ -1,10 +1,7 @@
 // common.c -- misc functions used in client and server
 
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
-#include "GenericParser2.h"
 #include "stringed_ingame.h"
+#include "qcommon/cm_public.h"
 #include "qcommon/game_version.h"
 #include "../server/NPCNav/navigator.h"
 
@@ -36,8 +33,6 @@ cvar_t	*com_optvehtrace;
 cvar_t	*com_G2Report;
 #endif
 
-cvar_t	*com_terrainPhysics; //rwwRMG - added
-
 cvar_t	*com_version;
 cvar_t	*com_buildScript;	// for automated data building scripts
 cvar_t	*com_bootlogo;
@@ -48,11 +43,7 @@ cvar_t	*com_unfocused;
 cvar_t	*com_minimized;
 cvar_t  *com_homepath;
 
-cvar_t	*com_RMG;
-
-#ifdef _DEBUG
-cvar_t	*vm_legacy;
-#endif
+cvar_t *com_affinity;
 
 // com_speeds times
 int		time_game;
@@ -1027,10 +1018,6 @@ static void Com_Crash_f( void ) {
 	* ( volatile int * ) 0 = 0x12345678;
 }
 
-#ifdef MEM_DEBUG
-	void SH_Register(void);
-#endif
-
 /*
 ==================
 Com_ExecuteCfg
@@ -1140,6 +1127,7 @@ Com_Init
 */
 void Com_Init( char *commandLine ) {
 	char	*s;
+	int		qport;
 
 	Com_Printf( "%s %s %s\n", JK_VERSION, PLATFORM_STRING, __DATE__ );
 
@@ -1151,6 +1139,7 @@ void Com_Init( char *commandLine ) {
 		// do this before anything else decides to push events
 		Com_InitPushEvent();
 
+		Com_InitZoneMemory();
 		Cvar_Init ();
 
 		navigator.Init();
@@ -1162,12 +1151,11 @@ void Com_Init( char *commandLine ) {
 	//	Swap_Init ();
 		Cbuf_Init ();
 
-		Com_InitZoneMemory();
-
-		Cmd_Init ();
-
 		// override anything from the config files with command line args
 		Com_StartupVariable( NULL );
+
+		Com_InitZoneMemoryVars();
+		Cmd_Init ();
 
 		// Seed the random number generator
 		Rand_Init(Sys_Milliseconds(true));
@@ -1183,6 +1171,19 @@ void Com_Init( char *commandLine ) {
 		FS_InitFilesystem ();
 
 		Com_InitJournaling();
+
+		// Add some commands here already so users can use them from config files
+		if ( com_developer && com_developer->integer ) {
+			Cmd_AddCommand ("error", Com_Error_f);
+			Cmd_AddCommand ("crash", Com_Crash_f );
+			Cmd_AddCommand ("freeze", Com_Freeze_f);
+		}
+		Cmd_AddCommand ("quit", Com_Quit_f );
+#ifndef FINAL_BUILD
+		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
+#endif
+		Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
+		Cmd_SetCommandCompletionFunc( "writeconfig", Cmd_CompleteCfgName );
 
 		Com_ExecuteCfg();
 
@@ -1221,8 +1222,6 @@ void Com_Init( char *commandLine ) {
 		com_fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);
 		com_showtrace = Cvar_Get ("com_showtrace", "0", CVAR_CHEAT);
 
-		com_terrainPhysics = Cvar_Get ("com_terrainPhysics", "1", CVAR_CHEAT);
-
 		com_dropsim = Cvar_Get ("com_dropsim", "0", CVAR_CHEAT);
 		com_viewlog = Cvar_Get( "viewlog", "0", 0 );
 		com_speeds = Cvar_Get ("com_speeds", "0", 0);
@@ -1244,32 +1243,9 @@ void Com_Init( char *commandLine ) {
 		com_G2Report = Cvar_Get("com_G2Report", "0", 0);
 #endif
 
-		com_RMG = Cvar_Get("RMG", "0", 0);
-
-		Cvar_Get ("RMG_seed", "0", 0);
-		Cvar_Get ("RMG_time", "day", 0);
-		Cvar_Get ("RMG_soundset", "", 0);
-
-		Cvar_Get ("RMG_textseed", "0", CVAR_SYSTEMINFO|CVAR_ARCHIVE);
-		Cvar_Get ("RMG_map", "small", CVAR_ARCHIVE|CVAR_SYSTEMINFO);
-		Cvar_Get ("RMG_timefile", "day", CVAR_ARCHIVE);
-		Cvar_Get ("RMG_terrain", "grassyhills", CVAR_ARCHIVE);
-
-		Cvar_Get ("RMG_sky", "", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_fog", "", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_weather", "", CVAR_SYSTEMINFO|CVAR_SERVERINFO|CVAR_CHEAT );
-		Cvar_Get ("RMG_instances", "colombia", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_miscents", "deciduous", 0);
-		Cvar_Get ("RMG_music", "music/dm_kam1", 0);
-		Cvar_Get ("RMG_mission", "ctf", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_course", "standard", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_distancecull", "5000", CVAR_CHEAT );
+		com_affinity = Cvar_Get( "com_affinity", "1", CVAR_ARCHIVE );
 
 		com_bootlogo = Cvar_Get( "com_bootlogo", "1", CVAR_ARCHIVE);
-
-#ifdef _DEBUG
-		vm_legacy = Cvar_Get( "vm_legacy", "0", 0 );
-#endif
 
 		if ( com_dedicated->integer ) {
 			if ( !com_viewlog->integer ) {
@@ -1277,22 +1253,20 @@ void Com_Init( char *commandLine ) {
 			}
 		}
 
-		if ( com_developer && com_developer->integer ) {
-			Cmd_AddCommand ("error", Com_Error_f);
-			Cmd_AddCommand ("crash", Com_Crash_f );
-			Cmd_AddCommand ("freeze", Com_Freeze_f);
-		}
-		Cmd_AddCommand ("quit", Com_Quit_f);
-		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
-		Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
-
 		s = va("%s %s %s", JK_VERSION_OLD, PLATFORM_STRING, __DATE__ );
 		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 
 		SE_Init();
 
 		Sys_Init();
-		Netchan_Init( Com_Milliseconds() & 0xffff );	// pick a port value that should be nice and random
+
+		Sys_SetProcessorAffinity();
+
+		// Pick a random port value
+		Com_RandomBytes( (byte*)&qport, sizeof(int) );
+		Netchan_Init( qport & 0xffff );	// pick a port value that should be nice and random
+
+		VM_Init();
 		SV_Init();
 
 		com_dedicated->modified = qfalse;
@@ -1327,10 +1301,6 @@ void Com_Init( char *commandLine ) {
 
 		// make sure single player is off by default
 		Cvar_Set("ui_singlePlayerActive", "0");
-
-#ifdef MEM_DEBUG
-		SH_Register();
-#endif
 
 		com_fullyInitialized = qtrue;
 		Com_Printf ("--- Common Initialization Complete ---\n");
@@ -1592,6 +1562,13 @@ void Com_Frame( void ) {
 
 			if ( com_speeds->integer ) {
 				timeAfter = Sys_Milliseconds ();
+			}
+		}
+		else
+		{
+			if ( com_speeds->integer )
+			{
+				timeBeforeEvents = timeBeforeClient = timeAfter = Sys_Milliseconds ();
 			}
 		}
 
@@ -1959,75 +1936,6 @@ void Field_AutoComplete( field_t *field ) {
 	completionField = field;
 
 	Field_CompleteCommand( completionField->buffer, qtrue, qtrue );
-}
-
-//rwwRMG: Inserted:
-/*
-============
-ParseTextFile
-============
-*/
-
-bool Com_ParseTextFile(const char *file, class CGenericParser2 &parser, bool cleanFirst)
-{
-	fileHandle_t	f;
-	int				length = 0;
-	char			*buf = 0, *bufParse = 0;
-
-	length = FS_FOpenFileByMode( file, &f, FS_READ );
-	if (!f || !length)
-	{
-		return false;
-	}
-
-	buf = new char [length + 1];
-	FS_Read( buf, length, f );
-	buf[length] = 0;
-
-	bufParse = buf;
-	parser.Parse(&bufParse, cleanFirst);
-	delete[] buf;
-
-	FS_FCloseFile( f );
-
-	return true;
-}
-
-void Com_ParseTextFileDestroy(class CGenericParser2 &parser)
-{
-	parser.Clean();
-}
-
-CGenericParser2 *Com_ParseTextFile(const char *file, bool cleanFirst, bool writeable)
-{
-	fileHandle_t	f;
-	int				length = 0;
-	char			*buf = 0, *bufParse = 0;
-	CGenericParser2 *parse;
-
-	length = FS_FOpenFileByMode( file, &f, FS_READ );
-	if (!f || !length)
-	{
-		return 0;
-	}
-
-	buf = new char [length + 1];
-	FS_Read( buf, length, f );
-	FS_FCloseFile( f );
-	buf[length] = 0;
-
-	bufParse = buf;
-
-	parse = new CGenericParser2;
-	if (!parse->Parse(&bufParse, cleanFirst, writeable))
-	{
-		delete parse;
-		parse = 0;
-	}
-
-	delete[] buf;
-
-	return parse;
 }
 
 /*

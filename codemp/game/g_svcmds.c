@@ -6,7 +6,7 @@
 #include "g_local.h"
 
 //OpenRP
-#include "g_admin.h"
+#include "OpenRP/g_admin.h"
 
 /*
 ==============================================================================

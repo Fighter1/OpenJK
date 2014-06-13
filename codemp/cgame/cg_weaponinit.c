@@ -28,8 +28,8 @@ void CG_RegisterWeapon( int weaponNum) {
 		return;
 	}
 
-	if ( cgs.wDisable & (1<<weaponNum) )
-		return;
+	//if ( cgs.wDisable & (1<<weaponNum) )
+	//	return;
 
 	memset( weaponInfo, 0, sizeof( *weaponInfo ) );
 	weaponInfo->registered = qtrue;
@@ -79,9 +79,9 @@ void CG_RegisterWeapon( int weaponNum) {
 		weaponNum == WP_ROCKET_LAUNCHER ||
 		weaponNum == WP_CONCUSSION)
 	{
-		strcpy( path, item->view_model );
+		Q_strncpyz( path, item->view_model, sizeof(path) );
 		COM_StripExtension( path, path, sizeof( path ) );
-		strcat( path, "_barrel.md3" );
+		Q_strcat( path, sizeof(path), "_barrel.md3" );
 		weaponInfo->barrelModel = trap->R_RegisterModel( path );
 	}
 	else if (weaponNum == WP_STUN_BATON)
@@ -97,9 +97,9 @@ void CG_RegisterWeapon( int weaponNum) {
 
 	if (weaponNum != WP_SABER)
 	{
-		strcpy( path, item->view_model );
+		Q_strncpyz( path, item->view_model, sizeof(path) );
 		COM_StripExtension( path, path, sizeof( path ) );
-		strcat( path, "_hand.md3" );
+		Q_strcat( path, sizeof(path), "_hand.md3" );
 		weaponInfo->handsModel = trap->R_RegisterModel( path );
 	}
 	else

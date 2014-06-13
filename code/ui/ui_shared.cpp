@@ -225,7 +225,6 @@ void PC_SourceError(int handle, char *format, ...)
 
 	va_start (argptr, format);
 	Q_vsnprintf (string, sizeof(string), format, argptr);
-	vsprintf (string, format, argptr);
 	va_end (argptr);
 
 	filename[0] = '\0';
@@ -3090,9 +3089,7 @@ qboolean ItemParse_asset_model_go( itemDef_t *item, const char *name )
 qboolean ItemParse_asset_model( itemDef_t *item ) 
 {
 	const char *temp;
-	modelDef_t *modelPtr;
 	Item_ValidateTypeData(item);
-	modelPtr = (modelDef_t*)item->typeData;
 
 	if (PC_ParseString(&temp)) 
 	{
@@ -4419,11 +4416,10 @@ qboolean ItemParse_cvarStrList( itemDef_t *item)
 			// The displayed text
 			multiPtr->cvarList[multiPtr->count] = "@MENUS_MYLANGUAGE";
 			// The cvar value that goes into se_language
-#ifndef __NO_JK2
-			// FIXME
-			if(com_jk2 && !com_jk2->integer)
+
+#ifndef JK2_MODE // FIXME
+				multiPtr->cvarStr[multiPtr->count] = SE_GetLanguageName(multiPtr->count);
 #endif
-			multiPtr->cvarStr[multiPtr->count] = SE_GetLanguageName( multiPtr->count );
 		}
 		return qtrue;
 	}
@@ -4594,9 +4590,9 @@ qboolean ItemParse_enableCvar( itemDef_t *item)
 ItemParse_disableCvar 
 ===============
 */
-qboolean ItemParse_disableCvar( itemDef_t *item ) 
+qboolean ItemParse_disableCvar( itemDef_t *item )
 {
-	if (PC_Script_Parse(&item->enableCvar)) 
+	if (PC_Script_Parse(&item->enableCvar))
 	{
 		item->cvarFlags = CVAR_DISABLE;
 		return qtrue;
@@ -4609,7 +4605,7 @@ qboolean ItemParse_disableCvar( itemDef_t *item )
 ItemParse_showCvar 
 ===============
 */
-qboolean ItemParse_showCvar( itemDef_t *item ) 
+qboolean ItemParse_showCvar( itemDef_t *item )
 {
 	if (PC_Script_Parse(&item->enableCvar)) 
 	{
@@ -4624,9 +4620,9 @@ qboolean ItemParse_showCvar( itemDef_t *item )
 ItemParse_hideCvar 
 ===============
 */
-qboolean ItemParse_hideCvar( itemDef_t *item) 
+qboolean ItemParse_hideCvar( itemDef_t *item )
 {
-	if (PC_Script_Parse(&item->enableCvar)) 
+	if (PC_Script_Parse(&item->enableCvar))
 	{
 		item->cvarFlags = CVAR_HIDE;
 		return qtrue;
@@ -4639,7 +4635,7 @@ qboolean ItemParse_hideCvar( itemDef_t *item)
 ItemParse_cvarsubstring
 ===============
 */
-qboolean ItemParse_cvarsubstring( itemDef_t *item) 
+qboolean ItemParse_cvarsubstring( itemDef_t *item )
 {
 	assert(item->cvarFlags);	//need something set first, then we or in our flag.
 	item->cvarFlags |= CVAR_SUBSTRING;
@@ -5250,22 +5246,13 @@ menuDef_t *Menus_ActivateByName(const char *p)
 		}
 	}
 
-
-	const int	com_demo = Cvar_VariableIntegerValue( "com_demo" );
 	if (!m)
 	{	// A hack so we don't have to load all three mission menus before we know what tier we're on
 		if (!Q_stricmp( p, "ingameMissionSelect1" ) )
 		{
-			if ( com_demo )
-			{
-				Menus_OpenByName("demo_MissionSelect");
-			}
-			else
-			{
-				UI_LoadMenus("ui/tier1.txt",qfalse);
-				Menus_CloseAll();
-				Menus_OpenByName("ingameMissionSelect1");
-			}
+			UI_LoadMenus("ui/tier1.txt",qfalse);
+			Menus_CloseAll();
+			Menus_OpenByName("ingameMissionSelect1");
 		}
 		else if (!Q_stricmp( p, "ingameMissionSelect2" ) )
 		{
@@ -5284,53 +5271,26 @@ menuDef_t *Menus_ActivateByName(const char *p)
 			Com_Printf(S_COLOR_YELLOW"WARNING: Menus_ActivateByName: Unable to find menu \"%s\"\n",p);
 		}
 	}
-	
-	if( !com_demo )
+
+	// First time, show force select instructions
+	if (!Q_stricmp( p, "ingameForceSelect" ) )
 	{
-		// First time, show force select instructions
-		if (!Q_stricmp( p, "ingameForceSelect" ) )
+		int	tier_storyinfo = Cvar_VariableIntegerValue( "tier_storyinfo" );
+
+		if (tier_storyinfo==1)
 		{
-			int	tier_storyinfo = Cvar_VariableIntegerValue( "tier_storyinfo" );
-
-			if (tier_storyinfo==1)
-			{
-				Menus_OpenByName("ingameForceHelp");
-			}
-		}
-
-		// First time, show weapons select instructions
-		if (!Q_stricmp( p, "ingameWpnSelect" ) )
-		{
-			int	tier_storyinfo = Cvar_VariableIntegerValue( "tier_storyinfo" );
-
-			if (tier_storyinfo==1)
-			{
-				Menus_OpenByName("ingameWpnSelectHelp");
-			}
+			Menus_OpenByName("ingameForceHelp");
 		}
 	}
-	else // demo
+
+	// First time, show weapons select instructions
+	if (!Q_stricmp( p, "ingameWpnSelect" ) )
 	{
-		// First time, show force select instructions
-		if (!Q_stricmp( p, "demo_ForceSelect" ) )
+		int	tier_storyinfo = Cvar_VariableIntegerValue( "tier_storyinfo" );
+
+		if (tier_storyinfo==1)
 		{
-			int	tier_storyinfo = Cvar_VariableIntegerValue( "tier_storyinfo" );
-
-			if (!tier_storyinfo)
-			{
-				Menus_OpenByName("ingameForceHelp");
-			}
-		}
-
-		// First time, show weapons select instructions
-		if (!Q_stricmp( p, "demo_WpnSelect" ) )
-		{
-			int	tier_storyinfo = Cvar_VariableIntegerValue( "tier_storyinfo" );
-
-			if (!tier_storyinfo)
-			{
-				Menus_OpenByName("ingameWpnSelectHelp");
-			}
+			Menus_OpenByName("ingameWpnSelectHelp");
 		}
 	}
 
@@ -5370,99 +5330,102 @@ void  Menus_Activate(menuDef_t *menu)
 
 }
 
-typedef struct {
-	const char	*command;
-	int		id;
-	int		defaultbind1;
-	int		defaultbind2;
-	int		bind1;
-	int		bind2;
-} bind_t;
-
-static bind_t g_bindings[] = 
-{
-	{"invuse",			A_ENTER,			-1,		-1,		-1},
-	{"force_throw",		A_F1,				-1,		-1,		-1},
-	{"force_pull",		A_F2,				-1,		-1,		-1},
-	{"force_speed",		A_F3,				-1,		-1,		-1},
-	{"force_distract",	A_F4,				-1,		-1,		-1},
-	{"force_heal",		A_F5,				-1,		-1,		-1},
-	{"+force_grip",		A_F6,				-1,		-1,		-1},
-	{"+force_lightning",A_F7,				-1,		-1,		-1},
-	//new powers
-	{"+force_drain",	-1,					-1,		-1,		-1},
-	{"force_rage",		-1,					-1,		-1,		-1},
-	{"force_protect",	-1,					-1,		-1,		-1},
-	{"force_absorb",	-1,					-1,		-1,		-1},
-	{"force_sight",		-1,					-1,		-1,		-1},
-
-	{"taunt",			-1,					-1,		-1,		-1},
-
-	{"+useforce",		'f',				-1,		-1,		-1},
-	{"forceprev",		'z',				-1,		-1,		-1},
-	{"forcenext",		'x',				-1,		-1,		-1},
-	{"use_bacta",		-1,					-1,		-1,		-1},
-	{"use_seeker",		-1,					-1,		-1,		-1},
-	{"use_sentry",		-1,					-1,		-1,		-1},
-	{"use_lightamp_goggles",-1,				-1,		-1,		-1},
-	{"use_electrobinoculars",-1,			-1,		-1,		-1},
-	{"invnext",			-1,					-1,		-1,		-1},
-	{"invprev",			-1,					-1,		-1,		-1},
-	{"invuse",			-1,					-1,		-1,		-1},
-	{"+speed", 			A_SHIFT,			-1,		-1,		-1},
-	{"+forward", 		A_CURSOR_UP,		-1,		-1,		-1},
-	{"+back", 			A_CURSOR_DOWN,		-1,		-1,		-1},
-	{"+moveleft", 		',',				-1,		-1,		-1},
-	{"+moveright",		'.',				-1,		-1,		-1},
-	{"+moveup",			'v',				-1,		-1,		-1},
-	{"+movedown",		'c',				-1,		-1,		-1},
-	{"+left", 			A_CURSOR_LEFT,		-1,		-1,		-1},
-	{"+right", 			A_CURSOR_RIGHT,		-1,		-1,		-1},
-	{"+strafe", 		-1,					-1,		-1,		-1},
-	{"+lookup", 		A_PAGE_DOWN,		-1,		-1,		-1},
-	{"+lookdown",		A_DELETE,			-1,		-1,		-1},
-	{"+mlook", 			 '/',				-1,		-1,		-1},
-	{"centerview",		A_END,				-1,		-1,		-1},
-	{"zoom", 			-1,					-1,		-1,		-1},
-	{"weapon 0",		-1,					-1,		-1,		-1},
-	{"weapon 1",		'1',				-1,		-1,		-1},
-	{"weapon 2",		'2',				-1,		-1,		-1},
-	{"weapon 3",		'3',				-1,		-1,		-1},
-	{"weapon 4",		'4',				-1,		-1,		-1},
-	{"weapon 5",		'5',				-1,		-1,		-1},
-	{"weapon 6",		'6',				-1,		-1,		-1},
-	{"weapon 7",		'7',				-1,		-1,		-1},
-	{"weapon 8",		'8',				-1,		-1,		-1},
-	{"weapon 9",		'9',				-1,		-1,		-1},
-	{"weapon 10",		'0',				-1,		-1,		-1},
-	{"weapon 11",		-1,					-1,		-1,		-1},
-	{"weapon 12",		-1,					-1,		-1,		-1},
-	{"weapon 13",		-1,					-1,		-1,		-1},
-	{"+attack", 		A_CTRL,				-1,		-1,		-1},
-	{"+altattack", 		A_ALT,				-1,		-1,		-1},
-	{"weapprev",		'[',				-1,		-1,		-1},
-	{"weapnext", 		']',				-1,		-1,		-1},
-	{"+use",			A_SPACE,			-1,		-1,		-1},
-	{"datapad",			A_TAB,				-1,		-1,		-1},
-	{"save quick",		A_F9,				-1,		-1,		-1},
-	{"load quick",		-1,					-1,		-1,		-1},
-	{"load auto",		-1,					-1,		-1,		-1},
-	{"cg_thirdperson !",'p',				-1,		-1,		-1},
-	{"exitview",		-1,					-1,		-1,		-1},
-	{"uimenu ingameloadmenu",	A_F10,		-1,		-1,		-1},
-	{"uimenu ingamesavemenu",	A_F11,		-1,		-1,		-1},
-	{"saberAttackCycle",-1,					-1,		-1,		-1},
+static const char *g_bindCommands[] = {
+	"+altattack",
+	"+attack",
+	"+back",
+#ifndef JK2_MODE
+	"+force_drain",
+#endif
+	"+force_grip",
+	"+force_lightning",
+	"+forward",
+	"+left",
+	"+lookdown",
+	"+lookup",
+	"+mlook",
+	"+movedown",
+	"+moveleft",
+	"+moveright",
+	"+moveup",
+	"+right",
+	"+speed",
+	"+strafe",
+	"+use",
+	"+useforce",
+	"centerview",
+	"cg_thirdperson !",
+	"datapad",
+	"exitview",
+#ifndef JK2_MODE
+	"force_absorb",
+#endif
+	"force_distract",
+	"force_heal",
+#ifndef JK2_MODE
+	"force_protect",
+#endif
+	"force_pull",
+#ifndef JK2_MODE
+	"force_rage",
+	"force_sight",
+#endif
+	"force_speed",
+	"force_throw",
+	"forcenext",
+	"forceprev",
+	"invnext",
+	"invprev",
+	"invuse",
+	"load auto",
+#ifdef JK2_MODE
+	"load quik",
+#else
+	"load quick",
+#endif
+	"saberAttackCycle",
+#ifdef JK2_MODE
+	"save quik*",
+#else
+	"save quick",
+#endif
+	"taunt",
+	"uimenu ingameloadmenu",
+	"uimenu ingamesavemenu",
+	"use_bacta",
+	"use_electrobinoculars",
+	"use_lightamp_goggles",
+	"use_seeker",
+	"use_sentry",
+	"weapnext",
+	"weapon 0",
+	"weapon 1",
+	"weapon 10",
+	"weapon 11",
+	"weapon 12",
+	"weapon 13",
+	"weapon 2",
+	"weapon 3",
+	"weapon 4",
+	"weapon 5",
+	"weapon 6",
+	"weapon 7",
+	"weapon 8",
+	"weapon 9",
+	"weapprev",
+	"zoom"
 };
 
+#define g_bindCount ARRAY_LEN(g_bindCommands)
 
-static const int g_bindCount = sizeof(g_bindings) / sizeof(bind_t);
+static int g_bindKeys[g_bindCount][2];
 
 /*
 =================
 Controls_GetKeyAssignment
 =================
 */
-static void Controls_GetKeyAssignment (const char *command, int *twokeys)
+static void Controls_GetKeyAssignment( const char *command, int *twokeys )
 {
 	int		count;
 	int		j;
@@ -5471,21 +5434,13 @@ static void Controls_GetKeyAssignment (const char *command, int *twokeys)
 	twokeys[0] = twokeys[1] = -1;
 	count = 0;
 
-	for ( j = 0; j < MAX_KEYS; j++ )
-	{
-		DC->getBindingBuf( j, b, 256 );
-		if ( *b == 0 ) 
-		{
-			continue;
-		}
-		if ( !Q_stricmp( b, command ) ) 
-		{
+	for ( j=0; j<MAX_KEYS; j++ ) {
+		DC->getBindingBuf( j, b, sizeof( b ) );
+		if ( *b && !Q_stricmp( b, command ) ) {
 			twokeys[count] = j;
 			count++;
-			if (count == 2) 
-			{
+			if ( count == 2 )
 				break;
-			}
 		}
 	}
 }
@@ -5497,17 +5452,11 @@ Controls_GetConfig
 */
 void Controls_GetConfig( void )
 {
-	int		i;
-	int		twokeys[2];
+	size_t	i;
 
 	// iterate each command, get its numeric binding
-	for (i=0; i < g_bindCount; i++)
-	{
- 		Controls_GetKeyAssignment(g_bindings[i].command, twokeys);
-
-		g_bindings[i].bind1 = twokeys[0];
-		g_bindings[i].bind2 = twokeys[1];
-	}
+	for ( i = 0; i < g_bindCount; i++ )
+		Controls_GetKeyAssignment( g_bindCommands[i], g_bindKeys[i] );
 }
 
 
@@ -6095,16 +6044,11 @@ bool HasStringLanguageChanged ( const itemDef_t *item )
 	}
 
 	int modificationCount;
-#ifndef __NO_JK2
-	if ( com_jk2 && com_jk2->integer )
-	{
-		modificationCount = sp_language->modificationCount;
-	}
-	else
+#ifdef JK2_MODE
+	modificationCount = sp_language->modificationCount;
+#else
+	modificationCount = se_language->modificationCount;
 #endif
-	{
-		modificationCount = se_language->modificationCount;
-	}
 
 	return item->asset != modificationCount;
 }
@@ -6163,17 +6107,13 @@ void Item_SetTextExtents(itemDef_t *item, int *width, int *height, const char *t
 		}
 
 		ToWindowCoords(&item->textRect.x, &item->textRect.y, &item->window);
-#ifndef __NO_JK2
-		if( com_jk2 && com_jk2->integer )
-		{
-			if(item->text && item->text[0]=='@')
-				item->asset = sp_language->modificationCount;
-		}
-		else
-#endif
+#ifdef JK2_MODE
+		if(item->text && item->text[0]=='@')
+			item->asset = sp_language->modificationCount;
+#else
 		if (item->text && item->text[0]=='@' )//string package
 			item->asset = se_language->modificationCount; //mark language
-
+#endif
 	}
 }
 
@@ -6329,22 +6269,15 @@ void Item_Text_Paint(itemDef_t *item)
 	{
 		textPtr = item->text;
 	}
-#ifndef __NO_JK2
-	if(com_jk2 && !com_jk2->integer)
+#ifdef JK2_MODE
+	if (*textPtr == '@')
 	{
-#endif
+		textPtr = JK2SP_GetStringTextString(&textPtr[1]);
+	}
+#else
 	if (*textPtr == '@')	// string reference
 	{
 		textPtr = SE_GetString( &textPtr[1] );
-	}
-#ifndef __NO_JK2
-	}
-	else
-	{
-		if(*textPtr == '@')
-		{
-			textPtr = JK2SP_GetStringTextString(&textPtr[1]);
-		}
 	}
 #endif
 
@@ -6424,8 +6357,6 @@ void Item_TextField_Paint(itemDef_t *item)
 	{
 		DC->getCVarString(item->cvar, buff, sizeof(buff));
 	} 
-
-	parent = (menuDef_t*)item->parent;
 
 	if (item->window.flags & WINDOW_HASFOCUS) 
 	{
@@ -6539,8 +6470,6 @@ void Item_ListBox_Paint(itemDef_t *item)
 	qhandle_t image;
 	qhandle_t optionalImage;
 	listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
-//JLF MPMOVED
-	int numlines;
 
 	// the listbox is horizontal or vertical and has a fixed size scroll bar going either direction
 	// elements are enumerated from the DC and either text or image handles are acquired from the DC as well
@@ -6641,9 +6570,6 @@ void Item_ListBox_Paint(itemDef_t *item)
 	}
 	else 
 	{
-//JLF MPMOVED
-		numlines = item->window.rect.h / listPtr->elementHeight;
-//JLFEND
 //JLF new variable (code idented with if)
 		if (!listPtr->scrollhidden)
 		{
@@ -6786,58 +6712,66 @@ void Item_ListBox_Paint(itemDef_t *item)
 	}
 }
 
-char g_nameBind1[32];
-char g_nameBind2[32];
+/*
+=================
+BindingIDFromName
+=================
+*/
+int BindingIDFromName( const char *name ) {
+	size_t i;
 
-typedef struct
-{
-	char*	name;
-	float	defaultvalue;
-	float	value;	
-} configcvar_t;
+	// iterate each command, set its default binding
+	for ( i = 0; i < g_bindCount; i++ ) {
+		if ( !Q_stricmp( name, g_bindCommands[i] ) )
+			return i;
+	}
+	return -1;
+}
 
-
+char g_nameBind[96];
 
 /*
 =================
 BindingFromName
 =================
 */
-void BindingFromName(const char *cvar) 
-{
-	int	i, b1, b2;
+void BindingFromName( const char *cvar ) {
+	size_t	i;
+	int		b1, b2;
+	char	sOR[32];
 
 	// iterate each command, set its default binding
-	for (i=0; i < g_bindCount; i++)
-	{
-		if (Q_stricmp(cvar, g_bindings[i].command) == 0) {
-			b1 = g_bindings[i].bind1;
-			if (b1 == -1) 
-			{
+	for ( i=0; i < g_bindCount; i++ ) {
+		if ( !Q_stricmp(cvar, g_bindCommands[i] ) ) {
+			b2 = g_bindKeys[i][1];
+			b1 = g_bindKeys[i][0];
+			if ( b1 == -1 )
 				break;
-			}
-			DC->keynumToStringBuf( b1, g_nameBind1, sizeof(g_nameBind1) );
-// do NOT do this or it corrupts asian text!!!					Q_strupr(g_nameBind1);
 
-			b2 = g_bindings[i].bind2;
-			if (b2 != -1)
-			{
-				DC->keynumToStringBuf( b2, g_nameBind2, sizeof(g_nameBind2) );
-// do NOT do this or it corrupts asian text!!!//				Q_strupr(g_nameBind2);
+			if ( b2 != -1 ) {
+				char keyname[2][32];
 
-#ifndef __NO_JK2
-				if(com_jk2 && com_jk2->integer)
-					strcat( g_nameBind1, va(" %s ", ui.SP_GetStringTextString("MENUS3_KEYBIND_OR" )) );
-				else
+				DC->keynumToStringBuf( b1, keyname[0], sizeof( keyname[0] ) );
+// do NOT do this or it corrupts asian text!!!					Q_strupr(keyname[0]);
+				DC->keynumToStringBuf( b2, keyname[1], sizeof( keyname[1] ) );
+// do NOT do this or it corrupts asian text!!!					Q_strupr(keyname[1]);
+
+#ifdef JK2_MODE
+				Q_strncpyz( sOR, ui.SP_GetStringTextString( "MENUS3_KEYBIND_OR" ), sizeof(sOR) );
+#else
+				Q_strncpyz( sOR, SE_GetString( "MENUS_KEYBIND_OR" ), sizeof(sOR) );
 #endif
-				strcat( g_nameBind1, va(" %s ",SE_GetString("MENUS_KEYBIND_OR" )) );
-				strcat( g_nameBind1, g_nameBind2 );
+
+				Com_sprintf( g_nameBind, sizeof( g_nameBind ), "%s %s %s", keyname[0], sOR, keyname[1] );
+			}
+			else {
+				DC->keynumToStringBuf( b1, g_nameBind, sizeof( g_nameBind ) );
+// do NOT do this or it corrupts asian text!!!					Q_strupr(g_nameBind);
 			}
 			return;
 		}
 	}
-
-	strcpy(g_nameBind1, "???");
+	Q_strncpyz( g_nameBind, "???", sizeof( g_nameBind ) );
 }
 
 /*
@@ -6891,25 +6825,25 @@ void Item_Bind_Paint(itemDef_t *item)
 
 		// If the text runs past the limit bring the scale down until it fits.
 		textScale = item->textscale;
-		textWidth = DC->textWidth(g_nameBind1,(float) textScale, uiInfo.uiDC.Assets.qhMediumFont);
+		textWidth = DC->textWidth(g_nameBind,(float) textScale, uiInfo.uiDC.Assets.qhMediumFont);
 
 		startingXPos = (item->textRect.x + item->textRect.w + 8);
 
 		while ((startingXPos + textWidth) >= SCREEN_WIDTH)
 		{
 			textScale -= .05f;
-			textWidth = DC->textWidth(g_nameBind1,(float) textScale, uiInfo.uiDC.Assets.qhMediumFont);
+			textWidth = DC->textWidth(g_nameBind,(float) textScale, uiInfo.uiDC.Assets.qhMediumFont);
 		}
 
 		// Try to adjust it's y placement if the scale has changed.
 		yAdj = 0;
 		if (textScale != item->textscale)
 		{
-			textHeight = DC->textHeight(g_nameBind1, item->textscale, uiInfo.uiDC.Assets.qhMediumFont);
-			yAdj = textHeight - DC->textHeight(g_nameBind1, textScale, uiInfo.uiDC.Assets.qhMediumFont);
+			textHeight = DC->textHeight(g_nameBind, item->textscale, uiInfo.uiDC.Assets.qhMediumFont);
+			yAdj = textHeight - DC->textHeight(g_nameBind, textScale, uiInfo.uiDC.Assets.qhMediumFont);
 		}
 
-		DC->drawText(startingXPos, item->textRect.y + yAdj, textScale, newColor, g_nameBind1, maxChars/*item->textRect.w*/, item->textStyle, item->font);
+		DC->drawText(startingXPos, item->textRect.y + yAdj, textScale, newColor, g_nameBind, maxChars/*item->textRect.w*/, item->textStyle, item->font);
 	} 
 	else 
 	{
@@ -7052,95 +6986,88 @@ void Item_Model_Paint(itemDef_t *item)
 	}
 
 	// Fuck all the logic --eez
-#ifndef __NO_JK2
-	if(com_jk2 && com_jk2->integer)
+#ifdef JK2_MODE
+	// setup the refdef
+	memset( &refdef, 0, sizeof( refdef ) );
+	refdef.rdflags = RDF_NOWORLDMODEL;
+	AxisClear( refdef.viewaxis );
+	x = item->window.rect.x+1;
+	y = item->window.rect.y+1;
+	w = item->window.rect.w-2;
+	h = item->window.rect.h-2;
+
+	refdef.x = x * DC->xscale;
+	refdef.y = y * DC->yscale;
+	refdef.width = w * DC->xscale;
+	refdef.height = h * DC->yscale;
+
+	DC->modelBounds( item->asset, mins, maxs );
+
+	origin[2] = -0.5 * ( mins[2] + maxs[2] );
+	origin[1] = 0.5 * ( mins[1] + maxs[1] );
+
+	// calculate distance so the model nearly fills the box
+	if (qtrue) 
 	{
-		// setup the refdef
-		memset( &refdef, 0, sizeof( refdef ) );
-		refdef.rdflags = RDF_NOWORLDMODEL;
-		AxisClear( refdef.viewaxis );
-		x = item->window.rect.x+1;
-		y = item->window.rect.y+1;
-		w = item->window.rect.w-2;
-		h = item->window.rect.h-2;
-
-		refdef.x = x * DC->xscale;
-		refdef.y = y * DC->yscale;
-		refdef.width = w * DC->xscale;
-		refdef.height = h * DC->yscale;
-
-		DC->modelBounds( item->asset, mins, maxs );
-
-		origin[2] = -0.5 * ( mins[2] + maxs[2] );
-		origin[1] = 0.5 * ( mins[1] + maxs[1] );
-
-		// calculate distance so the model nearly fills the box
-		if (qtrue) 
-		{
-			float len = 0.5 * ( maxs[2] - mins[2] );		
-			origin[0] = len / 0.268;	// len / tan( fov/2 )
-			//origin[0] = len / tan(w/2);
-		} 
-		else 
-		{
-			origin[0] = item->textscale;
-		}
-		// WTF..? --eez
-		//refdef.fov_x = (modelPtr->fov_x) ? modelPtr->fov_x : w;
-		//refdef.fov_y = (modelPtr->fov_y) ? modelPtr->fov_y : h;
-
-		refdef.fov_x = 45;
-		refdef.fov_y = 45;
-		
-		//refdef.fov_x = (int)((float)refdef.width / 640.0f * 90.0f);
-		//xx = refdef.width / tan( refdef.fov_x / 360 * M_PI );
-		//refdef.fov_y = atan2( refdef.height, xx );
-		//refdef.fov_y *= ( 360 / M_PI );
-
-		DC->clearScene();
-
-		refdef.time = DC->realTime;
-
-		// add the model
-
-		memset( &ent, 0, sizeof(ent) );
-
-		//adjust = 5.0 * sin( (float)uis.realtime / 500 );
-		//adjust = 360 % (int)((float)uis.realtime / 1000);
-		//VectorSet( angles, 0, 0, 1 );
-
-		// use item storage to track
-	/*
-		if (modelPtr->rotationSpeed) 
-		{
-			if (DC->realTime > item->window.nextTime) 
-			{
-				item->window.nextTime = DC->realTime + modelPtr->rotationSpeed;
-				modelPtr->angle = (int)(modelPtr->angle + 1) % 360;
-			}
-		}
-		VectorSet( angles, 0, modelPtr->angle, 0 );
-	*/
-		VectorSet( angles, 0, (float)(refdef.time/20.0f), 0);
-		
-		AnglesToAxis( angles, ent.axis );
-
-		ent.hModel = item->asset;
-		VectorCopy( origin, ent.origin );
-		VectorCopy( ent.origin, ent.oldorigin );
-
-		// Set up lighting
-		VectorCopy( refdef.vieworg, ent.lightingOrigin );
-		ent.renderfx = RF_LIGHTING_ORIGIN | RF_NOSHADOW;
-
-		DC->addRefEntityToScene( &ent );
-		DC->renderScene( &refdef );
+		float len = 0.5 * ( maxs[2] - mins[2] );		
+		origin[0] = len / 0.268;	// len / tan( fov/2 )
+		//origin[0] = len / tan(w/2);
+	} 
+	else 
+	{
+		origin[0] = item->textscale;
 	}
-	else
+	// WTF..? --eez
+	//refdef.fov_x = (modelPtr->fov_x) ? modelPtr->fov_x : w;
+	//refdef.fov_y = (modelPtr->fov_y) ? modelPtr->fov_y : h;
+
+	refdef.fov_x = 45;
+	refdef.fov_y = 45;
+		
+	//refdef.fov_x = (int)((float)refdef.width / 640.0f * 90.0f);
+	//xx = refdef.width / tan( refdef.fov_x / 360 * M_PI );
+	//refdef.fov_y = atan2( refdef.height, xx );
+	//refdef.fov_y *= ( 360 / M_PI );
+
+	DC->clearScene();
+
+	refdef.time = DC->realTime;
+
+	// add the model
+
+	memset( &ent, 0, sizeof(ent) );
+
+	//adjust = 5.0 * sin( (float)uis.realtime / 500 );
+	//adjust = 360 % (int)((float)uis.realtime / 1000);
+	//VectorSet( angles, 0, 0, 1 );
+
+	// use item storage to track
+/*
+	if (modelPtr->rotationSpeed) 
 	{
-#endif
+		if (DC->realTime > item->window.nextTime) 
+		{
+			item->window.nextTime = DC->realTime + modelPtr->rotationSpeed;
+			modelPtr->angle = (int)(modelPtr->angle + 1) % 360;
+		}
+	}
+	VectorSet( angles, 0, modelPtr->angle, 0 );
+*/
+	VectorSet( angles, 0, (float)(refdef.time/20.0f), 0);
+		
+	AnglesToAxis( angles, ent.axis );
 
+	ent.hModel = item->asset;
+	VectorCopy( origin, ent.origin );
+	VectorCopy( ent.origin, ent.oldorigin );
 
+	// Set up lighting
+	VectorCopy( refdef.vieworg, ent.lightingOrigin );
+	ent.renderfx = RF_LIGHTING_ORIGIN | RF_NOSHADOW;
+
+	DC->addRefEntityToScene( &ent );
+	DC->renderScene( &refdef );
+#else
 	// a moves datapad anim is playing
 	if (uiInfo.moveAnimTime && (uiInfo.moveAnimTime < uiInfo.uiDC.realTime))
 	{ 
@@ -7307,8 +7234,6 @@ void Item_Model_Paint(itemDef_t *item)
 
 	DC->addRefEntityToScene( &ent );
 	DC->renderScene( &refdef );
-#ifndef __NO_JK2
-	}
 #endif
 }
 
@@ -7331,7 +7256,6 @@ void Item_OwnerDraw_Paint(itemDef_t *item)
 	if (DC->ownerDrawItem) 
 	{
 		vec4_t color, lowLight;
-		menuDef_t *parent = (menuDef_t*)item->parent;
 		Fade(&item->window.flags, &item->window.foreColor[3], parent->fadeClamp, &item->window.nextTime, parent->fadeCycle, qtrue, parent->fadeAmount);
 		memcpy(&color, &item->window.foreColor, sizeof(color));
 		if (item->numColors > 0 && DC->getValue) 
@@ -7406,19 +7330,9 @@ void Item_YesNo_Paint(itemDef_t *item)
 		memcpy(&newColor, &item->window.foreColor, sizeof(vec4_t));
 	}
 
-#ifndef __NO_JK2
-	const char *psYes;
-	const char *psNo;
-	if( com_jk2 && com_jk2->integer )
-	{
-		psYes = ui.SP_GetStringTextString( "MENUS_YES" );
-		psNo = ui.SP_GetStringTextString( "MENUS_NO" );
-	}
-	else
-	{
-		psYes = SE_GetString( "MENUS_YES" );
-		psNo  = SE_GetString( "MENUS_NO" );
-	}
+#ifdef JK2_MODE
+	const char *psYes = ui.SP_GetStringTextString( "MENUS0_YES" );
+	const char *psNo = ui.SP_GetStringTextString( "MENUS0_NO" );
 #else
 	const char *psYes = SE_GetString( "MENUS_YES" );
 	const char *psNo  = SE_GetString( "MENUS_NO" );
@@ -7548,10 +7462,8 @@ int Item_TextScroll_OverLB ( itemDef_t *item, float x, float y )
 	rectDef_t		r;
 	textScrollDef_t *scrollPtr;
 	int				thumbstart;
-	int				count;
 
 	scrollPtr = (textScrollDef_t*)item->typeData;
-	count     = scrollPtr->iLineCount;
 
 	// Scroll bar isn't drawing so ignore this input 
 	if ((( scrollPtr->iLineCount * scrollPtr->lineHeight ) <= (item->window.rect.h - 2)) && (item->type == ITEM_TYPE_TEXTSCROLL))
@@ -7666,7 +7578,7 @@ float Item_Slider_ThumbPosition(itemDef_t *item)
 		x = item->window.rect.x;
 	}
 
-	if (editDef == NULL && item->cvar) 
+	if (!editDef || !item->cvar) 
 	{
 		return x;
 	}
@@ -7701,10 +7613,8 @@ Item_Slider_Paint
 void Item_Slider_Paint(itemDef_t *item) 
 {
 	vec4_t newColor, lowLight;
-	float x, y, value;
+	float x, y;
 	menuDef_t *parent = (menuDef_t*)item->parent;
-
-	value = (item->cvar) ? DC->getCVarValue(item->cvar) : 0;
 
 	if (item->window.flags & WINDOW_HASFOCUS) 
 	{
@@ -8925,12 +8835,8 @@ Item_ListBox_OverLB
 int Item_ListBox_OverLB(itemDef_t *item, float x, float y) 
 {
 	rectDef_t r;
-	listBoxDef_t *listPtr;
 	int thumbstart;
-	int count;
 
-	count = DC->feederCount(item->special);
-	listPtr = (listBoxDef_t*)item->typeData;
 	if (item->window.flags & WINDOW_HORIZONTAL) 
 	{
 		// check if on left arrow
@@ -9429,58 +9335,32 @@ qboolean Menus_AnyFullScreenVisible(void)
 
 /*
 =================
-BindingIDFromName
-=================
-*/
-int BindingIDFromName(const char *name) 
-{
-	int i;
-	for (i=0; i < g_bindCount; i++)
-	{
-		if (Q_stricmp(name, g_bindings[i].command) == 0) 
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-/*
-=================
 Controls_SetConfig
 =================
 */
-void Controls_SetConfig(qboolean restart)
+void Controls_SetConfig( void )
 {
-	int		i;
+	size_t	i;
 
 	// iterate each command, get its numeric binding
-	for (i=0; i < g_bindCount; i++)
-	{
-		if (g_bindings[i].bind1 != -1)
-		{	
-			DC->setBinding( g_bindings[i].bind1, g_bindings[i].command );
+	for ( i=0; i<g_bindCount; i++ ) {
+		if ( g_bindKeys[i][0] != -1 ) {
+			DC->setBinding( g_bindKeys[i][0], g_bindCommands[i] );
 
-			if (g_bindings[i].bind2 != -1)
-				DC->setBinding( g_bindings[i].bind2, g_bindings[i].command );
+			if ( g_bindKeys[i][1] != -1 )
+				DC->setBinding( g_bindKeys[i][1], g_bindCommands[i] );
 		}
 	}
+}
 
-	//if ( s_controls.invertmouse.curvalue )
-	//	DC->setCVar("m_pitch", va("%f),-fabs( DC->getCVarValue( "m_pitch" ) ) );
-	//else
-	//	trap_Cvar_SetValue( "m_pitch", fabs( trap_Cvar_VariableValue( "m_pitch" ) ) );
+void Controls_SetDefaults( void )
+{
+	size_t	i;
 
-	//trap_Cvar_SetValue( "m_filter", s_controls.smoothmouse.curvalue );
-	//trap_Cvar_SetValue( "cl_run", s_controls.alwaysrun.curvalue );
-	//trap_Cvar_SetValue( "cg_autoswitch", s_controls.autoswitch.curvalue );
-	//trap_Cvar_SetValue( "sensitivity", s_controls.sensitivity.curvalue );
-	//trap_Cvar_SetValue( "in_joystick", s_controls.joyenable.curvalue );
-	//trap_Cvar_SetValue( "joy_threshold", s_controls.joythreshold.curvalue );
-	//trap_Cvar_SetValue( "cl_freelook", s_controls.freelook.curvalue );
-//
-//	DC->executeText(EXEC_APPEND, "in_restart\n");
-// ^--this is bad, it shows the cursor during map load, if you need to, add it as an exec cmd to use_joy or something.
+	for ( i=0; i<g_bindCount; i++ ) {
+		g_bindKeys[i][0] = -1;
+		g_bindKeys[i][1] = -1;
+	}
 }
 
 void Item_Bind_Ungrey(itemDef_t *item)
@@ -9574,14 +9454,12 @@ qboolean Item_Bind_HandleKey(itemDef_t *item, int key, qboolean down)
 	
 			case A_BACKSPACE:
 				id = BindingIDFromName(item->cvar);
-				if (id != -1) 
+				if (id != -1)
 				{
-					DC->setBinding( g_bindings[id].bind1, "" );
-					DC->setBinding( g_bindings[id].bind2, "" );
-					g_bindings[id].bind1 = -1;
-					g_bindings[id].bind2 = -1;
+					g_bindKeys[id][0] = -1;
+					g_bindKeys[id][1] = -1;
 				}
-				Controls_SetConfig(qtrue);
+				Controls_SetConfig();
 				g_waitingForKey = qfalse;
 				g_bindItem = NULL;
 				Item_Bind_Ungrey(item);
@@ -9593,61 +9471,47 @@ qboolean Item_Bind_HandleKey(itemDef_t *item, int key, qboolean down)
 	}
 
 	// Is the same key being bound to something else?
-	if (key != -1)
-	{
+	if ( key != -1 ) {
+		size_t	b;
 
-		for (i=0; i < g_bindCount; i++)
+		for ( b=0; b<g_bindCount; b++ )
 		{
-			// The second binding matches the key
-			if (g_bindings[i].bind2 == key) 
-			{
-				g_bindings[i].bind2 = -1;	// NULL it out
-			}
+			if ( g_bindKeys[b][1] == key )
+				g_bindKeys[b][1] = -1;
 
-			if (g_bindings[i].bind1 == key)
-			{
-				g_bindings[i].bind1 = g_bindings[i].bind2;
-				g_bindings[i].bind2 = -1;
+			if ( g_bindKeys[b][0] == key ) {
+				g_bindKeys[b][0] = g_bindKeys[b][1];
+				g_bindKeys[b][1] = -1;
 			}
 		}
 	}
 
+	id = BindingIDFromName( item->cvar );
 
-	id = BindingIDFromName(item->cvar);
-
-	if (id != -1) 
-	{
-		if (key == -1) 
-		{
-			if( g_bindings[id].bind1 != -1 ) 
-			{
-				DC->setBinding( g_bindings[id].bind1, "" );
-				g_bindings[id].bind1 = -1;
+	if ( id != -1 ) {
+		if ( key == -1 ) {
+			if ( g_bindKeys[id][0] != -1 ) {
+				DC->setBinding( g_bindKeys[id][0], "" );
+				g_bindKeys[id][0] = -1;
 			}
-			if( g_bindings[id].bind2 != -1 ) 
-			{
-				DC->setBinding( g_bindings[id].bind2, "" );
-				g_bindings[id].bind2 = -1;
+			if ( g_bindKeys[id][1] != -1 ) {
+				DC->setBinding( g_bindKeys[id][1], "" );
+				g_bindKeys[id][1] = -1;
 			}
 		}
-		else if (g_bindings[id].bind1 == -1) 
-		{
-			g_bindings[id].bind1 = key;
+		else if ( g_bindKeys[id][0] == -1 )
+			g_bindKeys[id][0] = key;
+		else if ( g_bindKeys[id][0] != key && g_bindKeys[id][1] == -1 )
+			g_bindKeys[id][1] = key;
+		else {
+			DC->setBinding( g_bindKeys[id][0], "" );
+			DC->setBinding( g_bindKeys[id][1], "" );
+			g_bindKeys[id][0] = key;
+			g_bindKeys[id][1] = -1;
 		}
-		else if (g_bindings[id].bind1 != key && g_bindings[id].bind2 == -1) 
-		{
-			g_bindings[id].bind2 = key;
-		}
-		else 
-		{
-			DC->setBinding( g_bindings[id].bind1, "" );
-			DC->setBinding( g_bindings[id].bind2, "" );
-			g_bindings[id].bind1 = key;
-			g_bindings[id].bind2 = -1;
-		}						
 	}
 
-	Controls_SetConfig(qtrue);	
+	Controls_SetConfig();
 	g_waitingForKey = qfalse;
 	Item_Bind_Ungrey(item);
 

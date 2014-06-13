@@ -7,8 +7,6 @@
 // display context for new ui stuff
 displayContextDef_t cgDC;
 
-#include "cg_lights.h"
-
 extern int cgSiegeRoundState;
 extern int cgSiegeRoundTime;
 /*
@@ -436,89 +434,6 @@ int					cg_numpermanents = 0;
 
 weaponInfo_t		cg_weapons[MAX_WEAPONS];
 itemInfo_t			cg_items[MAX_ITEMS];
-
-
-static void CG_SVRunningChange( void ) {
-	cgs.localServer = sv_running.integer;
-}
-
-static void CG_ForceModelChange( void ) {
-	int i;
-
-	for ( i=0; i<MAX_CLIENTS; i++ ) {
-		const char *clientInfo = CG_ConfigString( CS_PLAYERS+i );
-
-		if ( !VALIDSTRING( clientInfo ) )
-			continue;
-
-		CG_NewClientInfo( i, qtrue );
-	}
-}
-
-static void CG_TeamOverlayChange( void ) {
-	// If team overlay is on, ask for updates from the server.  If its off,
-	// let the server know so we don't receive it
-	if ( cg_drawTeamOverlay.integer > 0 && cgs.gametype >= GT_SINGLE_PLAYER)
-		trap->Cvar_Set( "teamoverlay", "1" );
-	else
-		trap->Cvar_Set( "teamoverlay", "0" );
-}
-
-typedef struct cvarTable_s {
-	vmCvar_t	*vmCvar;
-	char		*cvarName;
-	char		*defaultString;
-	void		(*update)( void );
-	uint32_t	cvarFlags;
-} cvarTable_t;
-
-#define XCVAR_DECL
-	#include "cg_xcvar.h"
-#undef XCVAR_DECL
-
-static cvarTable_t cvarTable[] = {
-	#define XCVAR_LIST
-		#include "cg_xcvar.h"
-	#undef XCVAR_LIST
-};
-static const size_t cvarTableSize = ARRAY_LEN( cvarTable );
-
-/*
-=================
-CG_RegisterCvars
-=================
-*/
-void CG_RegisterCvars( void ) {
-	size_t		i;
-	cvarTable_t	*cv = NULL;
-
-	for ( i=0, cv=cvarTable; i<cvarTableSize; i++, cv++ ) {
-		trap->Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
-		if ( cv->update )
-			cv->update();
-	}
-}
-
-/*
-=================
-CG_UpdateCvars
-=================
-*/
-void CG_UpdateCvars( void ) {
-	size_t		i = 0;
-	cvarTable_t	*cv = NULL;
-
-	for ( i=0, cv=cvarTable; i<cvarTableSize; i++, cv++ ) {
-		if ( cv->vmCvar ) {
-			int modCount = cv->vmCvar->modificationCount;
-			trap->Cvar_Update( cv->vmCvar );
-			if ( cv->vmCvar->modificationCount != modCount ) {
-				if ( cv->update )
-					cv->update();
-			}
-		}
-	}
-}
 
 int CG_CrosshairPlayer( void ) {
 	if ( cg.time > (cg.crosshairClientTime + 1000) )
@@ -1200,8 +1115,6 @@ static void CG_RegisterGraphics( void ) {
 	int			i;
 	int			breakPoint;
 	char		items[MAX_ITEMS+1];
-	const char	*terrainInfo;
-	int			terrainID;
 
 	static char		*sb_nums[11] = {
 		"gfx/2d/numbers/zero",
@@ -1613,23 +1526,6 @@ Ghoul2 Insert Start
 			}
 			breakPoint++;
 		}
-	}
-
-//	CG_LoadingString( "Creating terrain" );
-	for(i = 0; i < MAX_TERRAINS; i++)
-	{
-		terrainInfo = CG_ConfigString( CS_TERRAINS + i );
-		if ( !terrainInfo[0] )
-		{
-			break;
-		}
-
-		terrainID = trap->CM_RegisterTerrain(terrainInfo);
-
-		trap->RMG_Init(terrainID, terrainInfo);
-
-		// Send off the terrainInfo to the renderer
-		trap->RE_InitRendererTerrain( terrainInfo );
 	}
 
 	/*
@@ -2294,27 +2190,25 @@ static int CG_OwnerDrawWidth(int ownerDraw, float scale) {
 	  case CG_BLUE_NAME:
 			return CG_Text_Width(DEFAULT_BLUETEAM_NAME/*cg_blueTeamName.string*/, scale, FONT_MEDIUM);
 			break;
-
-
 	}
 	return 0;
 }
 
 static int CG_PlayCinematic(const char *name, float x, float y, float w, float h) {
-  return trap->CIN_PlayCinematic(name, x, y, w, h, CIN_loop);
+	return trap->CIN_PlayCinematic(name, x, y, w, h, CIN_loop);
 }
 
 static void CG_StopCinematic(int handle) {
-  trap->CIN_StopCinematic(handle);
+	trap->CIN_StopCinematic(handle);
 }
 
 static void CG_DrawCinematic(int handle, float x, float y, float w, float h) {
-  trap->CIN_SetExtents(handle, x, y, w, h);
-  trap->CIN_DrawCinematic(handle);
+	trap->CIN_SetExtents(handle, x, y, w, h);
+	trap->CIN_DrawCinematic(handle);
 }
 
 static void CG_RunCinematicFrame(int handle) {
-  trap->CIN_RunCinematic(handle);
+	trap->CIN_RunCinematic(handle);
 }
 
 /*

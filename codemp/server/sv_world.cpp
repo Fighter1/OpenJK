@@ -1,10 +1,8 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // world.c -- world query functions
 
 #include "server.h"
 #include "ghoul2/ghoul2_shared.h"
+#include "qcommon/cm_public.h"
 
 /*
 ================
@@ -247,7 +245,6 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	if ( gEnt->r.bmodel && (angles[0] || angles[1] || angles[2]) ) {
 		// expand for rotation
 		float		max;
-		int			i;
 
 		max = RadiusFromBounds( gEnt->r.mins, gEnt->r.maxs );
 		for (i=0 ; i<3 ; i++) {
@@ -729,7 +726,7 @@ Ghoul2 Insert Start
 #ifndef FINAL_BUILD
 			if (sv_showghoultraces->integer)
 			{
-				Com_Printf( "Ghoul2 trace   lod=%1d   length=%6.0f   to %s\n",clip->useLod,VectorDistance(clip->start, clip->end),(*((CGhoul2Info_v *)touch->ghoul2))[0].mFileName);
+				Com_Printf( "Ghoul2 trace   lod=%1d   length=%6.0f   to %s\n",clip->useLod,VectorDistance(clip->start, clip->end), re->G2API_GetModelName (*(CGhoul2Info_v *)touch->ghoul2, 0));
 			}
 #endif
 
@@ -889,7 +886,7 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( hit );
 
-		c2 = CM_TransformedPointContents (p, clipHandle, hit->s.origin, hit->s.angles);
+		c2 = CM_TransformedPointContents (p, clipHandle, hit->r.currentOrigin, hit->r.currentAngles);
 
 		contents |= c2;
 	}

@@ -1,6 +1,3 @@
-//Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
-
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
@@ -944,6 +941,8 @@ CL_JoystickMove
 */
 extern cvar_t *in_joystick;
 void CL_JoystickMove( usercmd_t *cmd ) {
+	float	anglespeed;
+
 	if ( !in_joystick->integer )
 	{
 		return;
@@ -954,12 +953,13 @@ void CL_JoystickMove( usercmd_t *cmd ) {
 	{
 		if(abs(cl.joystickAxis[AXIS_FORWARD]) >= 30) cmd->forwardmove = cl.joystickAxis[AXIS_FORWARD];
 		if(abs(cl.joystickAxis[AXIS_SIDE]) >= 30) cmd->rightmove = cl.joystickAxis[AXIS_SIDE];
+		anglespeed = 0.001 * cls.frametime * cl_anglespeedkey->value;
+		cl.viewangles[YAW] -= (cl_yawspeed->value / 100.0f) * (cl.joystickAxis[AXIS_YAW]/1024.0f);
+		cl.viewangles[PITCH] += (cl_pitchspeed->value / 100.0f) * (cl.joystickAxis[AXIS_PITCH]/1024.0f);
 	}
 	else
 	{
 #endif
-	float	anglespeed;
-
 	if ( !(in_speed.active ^ cl_run->integer) ) {
 		cmd->buttons |= BUTTON_WALKING;
 	}
@@ -1025,10 +1025,7 @@ CL_MouseMove
 */
 void CL_MouseMove( usercmd_t *cmd ) {
 	float	mx, my;
-	float	accelSensitivity;
-	float	rate;
 	const float	speed = static_cast<float>(frame_msec);
-	const float pitch = cl_bUseFighterPitch?m_pitchVeh->value:m_pitch->value;
 
 	// allow mouse smoothing
 	if ( m_filter->integer ) {
@@ -1043,75 +1040,134 @@ void CL_MouseMove( usercmd_t *cmd ) {
 	cl.mouseDx[cl.mouseIndex] = 0;
 	cl.mouseDy[cl.mouseIndex] = 0;
 
-	rate = SQRTFAST( mx * mx + my * my ) / speed;
-	if ( cl_mYawOverride || cl_mPitchOverride )
-	{//FIXME: different people have different speed mouses,
-		if ( cl_mSensitivityOverride )
+	if ( mx == 0.0f && my == 0.0f )
+		return;
+
+	if ( cl_mouseAccel->value != 0.0f )
+	{
+		if ( cl_mouseAccelStyle->integer == 0 )
 		{
-			//this will fuck things up for them, need to clamp
-			//max input?
-			accelSensitivity = cl_mSensitivityOverride;
+			float accelSensitivity;
+			float rate;
+
+			rate = SQRTFAST( mx * mx + my * my ) / speed;
+
+			if ( cl_mYawOverride || cl_mPitchOverride )
+			{//FIXME: different people have different speed mouses,
+				if ( cl_mSensitivityOverride )
+				{
+					//this will fuck things up for them, need to clamp
+					//max input?
+					accelSensitivity = cl_mSensitivityOverride;
+				}
+				else
+				{
+					accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
+				}
+			}
+			else
+			{
+				accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
+			}
+			mx *= accelSensitivity;
+			my *= accelSensitivity;
+
+			if ( cl_showMouseRate->integer )
+				Com_Printf( "rate: %f, accelSensitivity: %f\n", rate, accelSensitivity );
 		}
 		else
 		{
-			accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
-			// scale by FOV
-			accelSensitivity *= cl.cgameSensitivity;
+			float rate[2];
+			float power[2];
+
+			// sensitivity remains pretty much unchanged at low speeds
+			// cl_mouseAccel is a power value to how the acceleration is shaped
+			// cl_mouseAccelOffset is the rate for which the acceleration will have doubled the non accelerated amplification
+			// NOTE: decouple the config cvars for independent acceleration setup along X and Y?
+
+			rate[0] = fabs( mx ) / speed;
+			rate[1] = fabs( my ) / speed;
+			power[0] = powf( rate[0] / cl_mouseAccelOffset->value, cl_mouseAccel->value );
+			power[1] = powf( rate[1] / cl_mouseAccelOffset->value, cl_mouseAccel->value );
+
+			if ( cl_mYawOverride || cl_mPitchOverride )
+			{//FIXME: different people have different speed mouses,
+				if ( cl_mSensitivityOverride )
+				{
+					//this will fuck things up for them, need to clamp
+					//max input?
+					mx = cl_mSensitivityOverride * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+					my = cl_mSensitivityOverride * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+				}
+				else
+				{
+					mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+					my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+				}
+			}
+			else
+			{
+				mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+				my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+			}
+
+			if ( cl_showMouseRate->integer )
+				Com_Printf( "ratex: %f, ratey: %f, powx: %f, powy: %f\n", rate[0], rate[1], power[0], power[1] );
 		}
 	}
 	else
 	{
-		accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
-		// scale by FOV
-		accelSensitivity *= cl.cgameSensitivity;
-	}
-
-	if ( rate && cl_showMouseRate->integer ) {
-		Com_Printf( "%f : %f\n", rate, accelSensitivity );
-	}
-
-	mx *= accelSensitivity;
-	my *= accelSensitivity;
-
-	if (!mx && !my) {
-		return;
-	}
-
-	// add mouse X/Y movement to cmd
-	if ( in_strafe.active ) {
-		cmd->rightmove = ClampChar( cmd->rightmove + m_side->value * mx );
-	} else {
-		if ( cl_mYawOverride )
-		{
-			cl.viewangles[YAW] -= cl_mYawOverride * mx;
+		if ( cl_mYawOverride || cl_mPitchOverride )
+		{//FIXME: different people have different speed mouses,
+			if ( cl_mSensitivityOverride )
+			{
+				//this will fuck things up for them, need to clamp
+				//max input?
+				mx *= cl_mSensitivityOverride;
+				my *= cl_mSensitivityOverride;
+			}
+			else
+			{
+				mx *= cl_sensitivity->value;
+				my *= cl_sensitivity->value;
+			}
 		}
 		else
 		{
-			cl.viewangles[YAW] -= m_yaw->value * mx;
+			mx *= cl_sensitivity->value;
+			my *= cl_sensitivity->value;
 		}
+	}
+
+	// ingame FOV
+	mx *= cl.cgameSensitivity;
+	my *= cl.cgameSensitivity;
+
+	// add mouse X/Y movement to cmd
+	if ( in_strafe.active )
+		cmd->rightmove = ClampChar( cmd->rightmove + m_side->value * mx );
+	else {
+		if ( cl_mYawOverride )
+			cl.viewangles[YAW] -= cl_mYawOverride * mx;
+		else
+			cl.viewangles[YAW] -= m_yaw->value * mx;
 	}
 
 	if ( (in_mlooking || cl_freelook->integer) && !in_strafe.active ) {
 		// VVFIXME - This is supposed to be a CVAR
 		const float cl_pitchSensitivity = 1.0f;
-		if ( cl_mPitchOverride )
-		{
+		const float pitch = cl_bUseFighterPitch ? m_pitchVeh->value : m_pitch->value;
+		if ( cl_mPitchOverride ) {
 			if ( pitch > 0 )
-			{
 				cl.viewangles[PITCH] += cl_mPitchOverride * my * cl_pitchSensitivity;
-			}
 			else
-			{
 				cl.viewangles[PITCH] -= cl_mPitchOverride * my * cl_pitchSensitivity;
-			}
 		}
 		else
-		{
 			cl.viewangles[PITCH] += pitch * my * cl_pitchSensitivity;
-		}
-	} else {
-		cmd->forwardmove = ClampChar( cmd->forwardmove - m_forward->value * my );
 	}
+	else
+		cmd->forwardmove = ClampChar( cmd->forwardmove - m_forward->value * my );
 }
 
 qboolean CL_NoUseableForce(void)
@@ -1696,4 +1752,126 @@ void CL_InitInput( void ) {
 
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0);
 	cl_debugMove = Cvar_Get ("cl_debugMove", "0", 0);
+}
+
+/*
+============
+CL_ShutdownInput
+============
+*/
+void CL_ShutdownInput(void)
+{
+	Cmd_RemoveCommand ("centerview");
+
+	Cmd_RemoveCommand ("+moveup");
+	Cmd_RemoveCommand ("-moveup");
+	Cmd_RemoveCommand ("+movedown");
+	Cmd_RemoveCommand ("-movedown");
+	Cmd_RemoveCommand ("+left");
+	Cmd_RemoveCommand ("-left");
+	Cmd_RemoveCommand ("+right");
+	Cmd_RemoveCommand ("-right");
+	Cmd_RemoveCommand ("+forward");
+	Cmd_RemoveCommand ("-forward");
+	Cmd_RemoveCommand ("+back");
+	Cmd_RemoveCommand ("-back");
+	Cmd_RemoveCommand ("+lookup");
+	Cmd_RemoveCommand ("-lookup");
+	Cmd_RemoveCommand ("+lookdown");
+	Cmd_RemoveCommand ("-lookdown");
+	Cmd_RemoveCommand ("+strafe");
+	Cmd_RemoveCommand ("-strafe");
+	Cmd_RemoveCommand ("+moveleft");
+	Cmd_RemoveCommand ("-moveleft");
+	Cmd_RemoveCommand ("+moveright");
+	Cmd_RemoveCommand ("-moveright");
+	Cmd_RemoveCommand ("+speed");
+	Cmd_RemoveCommand ("-speed");
+	Cmd_RemoveCommand ("+attack");
+	Cmd_RemoveCommand ("-attack");
+	Cmd_RemoveCommand ("+use");
+	Cmd_RemoveCommand ("-use");
+	Cmd_RemoveCommand ("+force_grip");//force grip
+	Cmd_RemoveCommand ("-force_grip");
+	Cmd_RemoveCommand ("+altattack");//altattack
+	Cmd_RemoveCommand ("-altattack");
+	Cmd_RemoveCommand ("+useforce");//active force power
+	Cmd_RemoveCommand ("-useforce");
+	Cmd_RemoveCommand ("+force_lightning");//active force power
+	Cmd_RemoveCommand ("-force_lightning");
+	Cmd_RemoveCommand ("+force_drain");//active force power
+	Cmd_RemoveCommand ("-force_drain");
+	//buttons
+	Cmd_RemoveCommand ("+button0");//attack
+	Cmd_RemoveCommand ("-button0");
+	Cmd_RemoveCommand ("+button1");//force jump
+	Cmd_RemoveCommand ("-button1");
+	Cmd_RemoveCommand ("+button2");//use holdable (not used - change to use jedi power?)
+	Cmd_RemoveCommand ("-button2");
+	Cmd_RemoveCommand ("+button3");//gesture
+	Cmd_RemoveCommand ("-button3");
+	Cmd_RemoveCommand ("+button4");//walking
+	Cmd_RemoveCommand ("-button4");
+	Cmd_RemoveCommand ("+button5");//use object
+	Cmd_RemoveCommand ("-button5");
+	Cmd_RemoveCommand ("+button6");//force grip
+	Cmd_RemoveCommand ("-button6");
+	Cmd_RemoveCommand ("+button7");//altattack
+	Cmd_RemoveCommand ("-button7");
+	Cmd_RemoveCommand ("+button8");
+	Cmd_RemoveCommand ("-button8");
+	Cmd_RemoveCommand ("+button9");//active force power
+	Cmd_RemoveCommand ("-button9");
+	Cmd_RemoveCommand ("+button10");//force lightning
+	Cmd_RemoveCommand ("-button10");
+	Cmd_RemoveCommand ("+button11");//force drain
+	Cmd_RemoveCommand ("-button11");
+	Cmd_RemoveCommand ("+button12");
+	Cmd_RemoveCommand ("-button12");
+	Cmd_RemoveCommand ("+button13");
+	Cmd_RemoveCommand ("-button13");
+	Cmd_RemoveCommand ("+button14");
+	Cmd_RemoveCommand ("-button14");
+	Cmd_RemoveCommand ("+button15");
+	Cmd_RemoveCommand ("-button15");
+	Cmd_RemoveCommand ("+mlook");
+	Cmd_RemoveCommand ("-mlook");
+
+	Cmd_RemoveCommand ("sv_saberswitch");
+	Cmd_RemoveCommand ("engage_duel");
+	Cmd_RemoveCommand ("force_heal");
+	Cmd_RemoveCommand ("force_speed");
+	Cmd_RemoveCommand ("force_pull");
+	Cmd_RemoveCommand ("force_distract");
+	Cmd_RemoveCommand ("force_rage");
+	Cmd_RemoveCommand ("force_protect");
+	Cmd_RemoveCommand ("force_absorb");
+	Cmd_RemoveCommand ("force_healother");
+	Cmd_RemoveCommand ("force_forcepowerother");
+	Cmd_RemoveCommand ("force_seeing");
+	Cmd_RemoveCommand ("use_seeker");
+	Cmd_RemoveCommand ("use_field");
+	Cmd_RemoveCommand ("use_bacta");
+	Cmd_RemoveCommand ("use_electrobinoculars");
+	Cmd_RemoveCommand ("zoom");
+	Cmd_RemoveCommand ("use_sentry");
+	Cmd_RemoveCommand ("use_jetpack");
+	Cmd_RemoveCommand ("use_bactabig");
+	Cmd_RemoveCommand ("use_healthdisp");
+	Cmd_RemoveCommand ("use_ammodisp");
+	Cmd_RemoveCommand ("use_eweb");
+	Cmd_RemoveCommand ("use_cloak");
+	Cmd_RemoveCommand ("taunt");
+	Cmd_RemoveCommand ("bow");
+	Cmd_RemoveCommand ("meditate");
+	Cmd_RemoveCommand ("flourish");
+	Cmd_RemoveCommand ("gloat");
+	Cmd_RemoveCommand ("saberAttackCycle");
+	Cmd_RemoveCommand ("force_throw");
+	Cmd_RemoveCommand ("useGivenForce");
+
+
+	Cmd_RemoveCommand("automap_button");
+	Cmd_RemoveCommand("automap_toggle");
+	Cmd_RemoveCommand("voicechat");
 }

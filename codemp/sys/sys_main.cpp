@@ -110,20 +110,8 @@ void Sys_In_Restart_f( void )
 #endif
 }
 
-/*
-=================
-Sys_Net_Restart_f
-
-Restart the network subsystem
-=================
-*/
-void Sys_Net_Restart_f( void ) {
-	NET_Restart();
-}
-
 void	Sys_Init (void) {
 	Cmd_AddCommand ("in_restart", Sys_In_Restart_f);
-	Cmd_AddCommand ("net_restart", Sys_Net_Restart_f);
 	Cvar_Set( "arch", OS_STRING " " ARCH_STRING );
 	Cvar_Set( "username", Sys_GetCurrentUser( ) );
 }
@@ -137,8 +125,8 @@ void Sys_Exit( int ex ) {
 #ifdef NDEBUG // regular behavior
     // We can't do this
     //  as long as GL DLL's keep installing with atexit...
-    //exit(ex);
-    _exit(ex);
+    exit(ex);
+    //_exit(ex);
 #else
     // Give me a backtrace on error exits.
     assert( ex == 0 );

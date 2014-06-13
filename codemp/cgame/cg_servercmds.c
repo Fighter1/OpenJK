@@ -6,7 +6,6 @@
 
 #include "cg_local.h"
 #include "ui/menudef.h"
-#include "cg_lights.h"
 #include "ghoul2/G2.h"
 #include "ui/ui_public.h"
 
@@ -106,7 +105,7 @@ and whenever the server updates any serverinfo flagged cvars
 ================
 */
 void CG_ParseServerinfo( void ) {
-	const char *info = NULL, *tinfo = NULL;
+	const char *info = NULL;
 	char *mapname;
 	int i, value;
 
@@ -167,6 +166,7 @@ void CG_ParseServerinfo( void ) {
 	trap->Cvar_Set ( "ui_about_mapname", mapname );
 
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
+	Com_sprintf( cgs.rawmapname, sizeof( cgs.rawmapname ), "maps/%s", mapname );
 //	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
 //	trap->Cvar_Set("g_redTeam", cgs.redTeam);
 //	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
@@ -186,32 +186,6 @@ void CG_ParseServerinfo( void ) {
 	//Set the siege teams based on what the server has for overrides.
 	trap->Cvar_Set("cg_siegeTeam1", Info_ValueForKey(info, "g_siegeTeam1"));
 	trap->Cvar_Set("cg_siegeTeam2", Info_ValueForKey(info, "g_siegeTeam2"));
-
-	tinfo = CG_ConfigString( CS_TERRAINS + 1 );
-	if ( !tinfo || !*tinfo )
-	{
-		cg.mInRMG = qfalse;
-	}
-	else
-	{
-		int weather = 0;
-
-		cg.mInRMG = qtrue;
-		trap->Cvar_Set("RMG", "1");
-
-		weather = atoi( Info_ValueForKey( info, "RMG_weather" ) );
-
-		trap->Cvar_Set("RMG_weather", va("%i", weather));
-
-		if (weather == 1 || weather == 2)
-		{
-			cg.mRMGWeather = qtrue;
-		}
-		else
-		{
-			cg.mRMGWeather = qfalse;
-		}
-	}
 
 	Q_strncpyz( cgs.voteString, CG_ConfigString( CS_VOTE_STRING ), sizeof( cgs.voteString ) );
 
@@ -433,6 +407,7 @@ static void CG_RegisterCustomSounds(clientInfo_t *ci, int setType, const char *p
 		break;
 	case 5:
 		iTableEntries = MAX_CUSTOM_SIEGE_SOUNDS;
+		break;
 	default:
 		assert(0);
 		return;
@@ -1313,8 +1288,10 @@ static void CG_SiegeClassSelect_f( void ) {
 }
 
 static void CG_SiegeProfileMenu_f( void ) {
-	trap->Cvar_Set( "ui_myteam", "3" );
-	trap->OpenUIMenu( UIMENU_PLAYERCONFIG ); //UIMENU_CLASSSEL
+	if ( !cg.demoPlayback ) {
+		trap->Cvar_Set( "ui_myteam", "3" );
+		trap->OpenUIMenu( UIMENU_PLAYERCONFIG ); //UIMENU_CLASSSEL
+	}
 }
 
 static void CG_NewForceRank_f( void ) {
@@ -1338,7 +1315,7 @@ static void CG_NewForceRank_f( void ) {
 
 	trap->Cvar_Set( "ui_myteam", va( "%i", setTeam ) );
 
-	if ( !( trap->Key_GetCatcher() & KEYCATCH_UI ) && doMenu )
+	if ( !( trap->Key_GetCatcher() & KEYCATCH_UI ) && doMenu && !cg.demoPlayback )
 		trap->OpenUIMenu( UIMENU_PLAYERCONFIG );
 }
 
@@ -1636,6 +1613,11 @@ static void CG_ServerCommand( void ) {
 	const char		*cmd = CG_Argv( 0 );
 	serverCommand_t	*command = NULL;
 
+	if (!cmd[0]) {
+		// server claimed the command
+		return;
+	}
+
 	//OpenRP
 	if (!strcmp(cmd, "accountui"))
 	{
@@ -1742,7 +1724,6 @@ static void CG_ServerCommand( void ) {
 			trap->S_ClearLoopingSounds();
 			cg.OpenRP.alarmActivated = qfalse;
 		}
-
 		return;
 	}
 

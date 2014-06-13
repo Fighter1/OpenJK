@@ -91,6 +91,13 @@ set(MPGameGameFiles
 	"${MPDir}/game/NPC_spawn.c"
 	"${MPDir}/game/NPC_stats.c"
 	"${MPDir}/game/NPC_utils.c"
+	"${MPDir}/game/OpenRP/g_account.c"
+	"${MPDir}/game/OpenRP/g_admin.c"
+	"${MPDir}/game/OpenRP/g_character.c"
+	"${MPDir}/game/OpenRP/g_datapad.c"
+	"${MPDir}/game/OpenRP/g_emote.c"
+	"${MPDir}/game/OpenRP/g_OpenRP.c"
+	"${MPDir}/game/OpenRP/sqlite3.c"
 	"${MPDir}/game/SpeederNPC.c"
 	"${MPDir}/game/tri_coll_test.c"
 	"${MPDir}/game/w_force.c"
@@ -116,6 +123,15 @@ set(MPGameGameFiles
 	"${MPDir}/game/inv.h"
 	"${MPDir}/game/match.h"
 	"${MPDir}/game/npc_headers.h"
+	"${MPDir}/game/OpenRP/g_account.h"
+	"${MPDir}/game/OpenRP/g_admin.h"
+	"${MPDir}/game/OpenRP/g_character.h"
+	"${MPDir}/game/OpenRP/g_datapad.h"
+	"${MPDir}/game/OpenRP/g_emote.h"
+	"${MPDir}/game/OpenRP/g_OpenRP.h"
+	"${MPDir}/game/OpenRP/OpenRP.h"
+	"${MPDir}/game/OpenRP/sqlite3.h"
+	"${MPDir}/game/OpenRP/sqlite3ext.h"
 	"${MPDir}/game/say.h"
 	"${MPDir}/game/surfaceflags.h"
 	"${MPDir}/game/teams.h"
@@ -191,7 +207,12 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${MPGame} RUNTIME DESTINATION "OpenJK")
 else(WIN32)
-	install(TARGETS ${MPGame} LIBRARY DESTINATION "OpenJK")
+	if(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/OpenJK")
+		install(TARGETS ${MPGame} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/base")
+	else(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPGame} LIBRARY DESTINATION "OpenJK")
+	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPGameDefines};${ReleaseDefines}")
 set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPGameDefines};${ReleaseDefines}")

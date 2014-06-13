@@ -16,7 +16,7 @@ This file is part of Jedi Knight 2.
 */
 // Copyright 2001-2013 Raven Software
 
-#ifndef __NO_JK2
+#ifdef JK2_MODE
 // this include must remain at the top of every CPP file
 #include "../server/server.h"
 #include "q_shared.h"
@@ -132,7 +132,9 @@ public:
 	const char		*GetName(void) const { return(name.c_str()); }
 
 	virtual bool	UnderstandToken(char *&Data, int &Size, int token, char *data );
+#if 0
 	virtual bool	Load(char *FileName );
+#endif
 	virtual bool	Load(char *Data, int &Size );
 };
 
@@ -840,7 +842,7 @@ bool cStringPackage::UnderstandToken(char *&Data, int &Size, int token, char *da
 }
 
 
-
+#if 0
 bool cStringPackage::Load(char *FileName )
 {
 	FILE	*FH;
@@ -863,10 +865,11 @@ bool cStringPackage::Load(char *FileName )
 
 	Load(buffer, Size );
 
-	delete buffer;
+	delete[] buffer;
 
 	return true;
 }
+#endif
 
 bool cStringPackage::Load(char *Data, int &Size )
 {
@@ -929,7 +932,7 @@ int cStringPackageSingle::FindStringID(const char *ReferenceLookup)
 		return -1;
 	}
 
-	if (strncmp(ReferenceLookup, Reference, size))
+	if (Q_stricmpn(ReferenceLookup, Reference, size))
 	{
 		return -1;
 	}
