@@ -1562,6 +1562,109 @@ static void CG_ClientLevelShot_f( void ) {
 	cg.levelShot = qtrue;
 }
 
+//OpenRP
+static void CG_AccountUI_f(void)
+{
+	trap->OpenUIMenu(UIMENU_ACCOUNT);
+	return;
+}
+static void CG_LoggedIn_f(void)
+{
+	trap->Cvar_Set("ui_account_loggedIn", "true");
+	return;
+}
+static void CG_LoggedOut_f(void)
+{
+	trap->Cvar_Set("ui_account_loggedIn", "false");
+	return;
+}
+static void CG_LoginFailed_f(void)
+{
+	trap->Cvar_Set("ui_account_loginFailed", "true");
+	return;
+}
+static void CG_CharUI_f(void)
+{
+	trap->OpenUIMenu(UIMENU_CHARACTER);
+	return;
+}
+//[OpenRP - Fade to black]
+static void CG_FadeToBlack_f(void)
+{
+	if (!cg.OpenRP.fadingInToBlack && !cg.OpenRP.fadingOutOfBlack && !cg.OpenRP.fadedToBlack)
+	{
+		cg.OpenRP.fadeToBlackTime = cg.time;
+		cg.OpenRP.fadeToBlackMSecondsPassedMin = 1000;
+		cg.OpenRP.fadeToBlackMSecondsPassedMax = 2000;
+		cg.OpenRP.fadeToBlackMSecondsPassed = 0;
+		cg.OpenRP.fadingInToBlack = qtrue;
+		cg.OpenRP.fadeColor[0] = cg.OpenRP.fadeColor[1] = cg.OpenRP.fadeColor[2] = cg.OpenRP.fadeColor[3] = 0;
+	}
+	else if (!cg.OpenRP.fadingInToBlack && !cg.OpenRP.fadingOutOfBlack && cg.OpenRP.fadedToBlack)
+	{
+		cg.OpenRP.fadeToBlackTime = cg.time;
+		cg.OpenRP.fadeToBlackMSecondsPassedMin = 1000;
+		cg.OpenRP.fadeToBlackMSecondsPassedMax = 2000;
+		cg.OpenRP.fadeToBlackMSecondsPassed = 0;
+		cg.OpenRP.fadingOutOfBlack = qtrue;
+
+	}
+	return;
+}
+static void CG_ToBlackImmediately_f(void)
+{
+	if (!cg.OpenRP.fadedToBlack)
+		cg.OpenRP.fadedToBlack = qtrue;
+	else
+		cg.OpenRP.fadedToBlack = qfalse;
+	return;
+}
+//[/OpenRP - Fade to black]
+//[OpenRP - Timer]
+static void CG_Timer_f(void)
+{
+	if (!cg.OpenRP.timer)
+	{
+		cg.OpenRP.timer = qtrue;
+		cg.OpenRP.timerSeconds = atoi(CG_Argv(1));
+		cg.OpenRP.timerIsMyTeam = (qboolean)atoi(CG_Argv(2));
+	}
+	return;
+}
+//[/OpenRP - Timer]
+//[OpenRP - Holograms]
+static void CG_Hologram_f(void)
+{
+	if (!cg.OpenRP.isHologram)
+		cg.OpenRP.isHologram = qtrue;
+	else
+		cg.OpenRP.isHologram = qfalse;
+	return;
+}
+//[/OpenRP - Holograms]
+//[OpenRP - Local Sounds]
+static void CG_LocalSound_f(void)
+{
+	trap->S_StartLocalSound(trap->S_RegisterSound(va("%s", CG_Argv(1))), CHAN_LOCAL_SOUND);
+	return;
+}
+//[/OpenRP - Local Sounds]
+static void CG_Alarm_f(void)
+{
+	if (!cg.OpenRP.alarmActivated)
+	{
+		//trap->S_AddLoopingSound( cg.predictedPlayerState.clientNum, cg_entities[cg.predictedPlayerState.clientNum].lerpOrigin, vec3_origin, 
+		//trap->S_RegisterSound( "sound/OpenRP/alert.mp3" ) );
+		cg.OpenRP.alarmActivated = qtrue;
+	}
+	else
+	{
+		trap->S_ClearLoopingSounds();
+		cg.OpenRP.alarmActivated = qfalse;
+	}
+	return;
+}
+
 typedef struct serverCommand_s {
 	const char	*cmd;
 	void		(*func)(void);
@@ -1573,17 +1676,27 @@ int svcmdcmp( const void *a, const void *b ) {
 
 /* This array MUST be sorted correctly by alphabetical name field */
 static serverCommand_t	commands[] = {
+	//Added OpenRP cmds
+	{ "accountui",			CG_AccountUI_f },
+	{ "alarm",				 CG_Alarm_f },
+	{ "charui",				CG_CharUI_f },
 	{ "chat",				CG_Chat_f },
 	{ "clientLevelShot",	CG_ClientLevelShot_f },
 	{ "cp",					CG_CenterPrint_f },
 	{ "cps",				CG_CenterPrintSE_f },
 	{ "cs",					CG_ConfigStringModified },
+	{ "fadeToBlack",		CG_FadeToBlack_f },
+	{ "hologram",			CG_Hologram_f },
 	{ "ircg",				CG_RestoreClientGhoul_f },
 	{ "kg2",				CG_KillGhoul2_f },
 	{ "kls",				CG_KillLoopSounds_f },
 	{ "lchat",				CG_Chat_f },
 	// loaddeferred can be both a servercmd and a consolecmd
 	{ "loaddefered",		CG_LoadDeferredPlayers }, // FIXME: spelled wrong, but not changing for demo
+	{ "localSound",			CG_LocalSound_f },
+	{ "loggedIn",			CG_LoggedIn_f },
+	{ "loggedOut",			CG_LoggedOut_f },
+	{ "loginFailed",		CG_LoginFailed_f },
 	{ "ltchat",				CG_Chat_f },
 	{ "map_restart",		CG_MapRestart },
 	{ "nfr",				CG_NewForceRank_f },
@@ -1596,7 +1709,9 @@ static serverCommand_t	commands[] = {
 	{ "spc",				CG_SiegeProfileMenu_f },
 	{ "sxd",				CG_ParseSiegeExtendedData },
 	{ "tchat",				CG_Chat_f },
+	{ "timer",				CG_Timer_f },
 	{ "tinfo",				CG_ParseTeamInfo },
+	{ "toBlackImmediately", CG_ToBlackImmediately_f },
 };
 
 static const size_t numCommands = ARRAY_LEN( commands );
@@ -1615,115 +1730,6 @@ static void CG_ServerCommand( void ) {
 
 	if (!cmd[0]) {
 		// server claimed the command
-		return;
-	}
-
-	//OpenRP
-	if (!strcmp(cmd, "accountui"))
-	{
-		trap->OpenUIMenu(UIMENU_ACCOUNT);
-		return;
-	}
-	if (!strcmp(cmd, "loggedIn"))
-	{
-		trap->Cvar_Set("ui_account_loggedIn", "true");
-		return;
-	}
-	if (!strcmp(cmd, "loggedOut"))
-	{
-		trap->Cvar_Set("ui_account_loggedIn", "false");
-		return;
-	}
-	if (!strcmp(cmd, "loginFailed"))
-	{
-		trap->Cvar_Set("ui_account_loginFailed", "true");
-		return;
-	}
-	if (!strcmp(cmd, "charui"))
-	{
-		trap->OpenUIMenu(UIMENU_CHARACTER);
-		return;
-	}
-
-	//[OpenRP - Fade to black]
-	if (!Q_stricmp(cmd, "fadeToBlack"))
-	{
-		if (!cg.OpenRP.fadingInToBlack && !cg.OpenRP.fadingOutOfBlack && !cg.OpenRP.fadedToBlack)
-		{
-			cg.OpenRP.fadeToBlackTime = cg.time;
-			cg.OpenRP.fadeToBlackMSecondsPassedMin = 1000;
-			cg.OpenRP.fadeToBlackMSecondsPassedMax = 2000;
-			cg.OpenRP.fadeToBlackMSecondsPassed = 0;
-			cg.OpenRP.fadingInToBlack = qtrue;
-			cg.OpenRP.fadeColor[0] = cg.OpenRP.fadeColor[1] = cg.OpenRP.fadeColor[2] = cg.OpenRP.fadeColor[3] = 0;
-		}
-		else if (!cg.OpenRP.fadingInToBlack && !cg.OpenRP.fadingOutOfBlack && cg.OpenRP.fadedToBlack)
-		{
-			cg.OpenRP.fadeToBlackTime = cg.time;
-			cg.OpenRP.fadeToBlackMSecondsPassedMin = 1000;
-			cg.OpenRP.fadeToBlackMSecondsPassedMax = 2000;
-			cg.OpenRP.fadeToBlackMSecondsPassed = 0;
-			cg.OpenRP.fadingOutOfBlack = qtrue;
-
-		}
-		return;
-	}
-	if (!Q_stricmp(cmd, "toBlackImmediately"))
-	{
-		if (!cg.OpenRP.fadedToBlack)
-			cg.OpenRP.fadedToBlack = qtrue;
-		else
-			cg.OpenRP.fadedToBlack = qfalse;
-		return;
-	}
-	//[/OpenRP - Fade to black]
-
-	//[OpenRP - Timer]
-	if (!Q_stricmp(cmd, "timer"))
-	{
-		if (!cg.OpenRP.timer)
-		{
-			cg.OpenRP.timer = qtrue;
-			cg.OpenRP.timerSeconds = atoi(CG_Argv(1));
-			cg.OpenRP.timerIsMyTeam = (qboolean)atoi(CG_Argv(2));
-		}
-		return;
-	}
-	//[/OpenRP - Timer]
-
-	//[OpenRP - Holograms]
-	if (!Q_stricmp(cmd, "hologram"))
-	{
-		if (!cg.OpenRP.isHologram)
-			cg.OpenRP.isHologram = qtrue;
-		else
-			cg.OpenRP.isHologram = qfalse;
-		return;
-	}
-	//[/OpenRP - Holograms]
-
-	//[OpenRP - Local Sounds]
-	if (!Q_stricmp(cmd, "localSound"))
-	{
-		trap->S_StartLocalSound(trap->S_RegisterSound(va("%s", CG_Argv(1))), CHAN_LOCAL_SOUND);
-		return;
-	}
-	///[/OpenRP - Local Sounds]
-
-	//OpenRP - Alarm
-	if (!Q_stricmp(cmd, "alarm"))
-	{
-		if (!cg.OpenRP.alarmActivated)
-		{
-			//trap->S_AddLoopingSound( cg.predictedPlayerState.clientNum, cg_entities[cg.predictedPlayerState.clientNum].lerpOrigin, vec3_origin, 
-			//trap->S_RegisterSound( "sound/OpenRP/alert.mp3" ) );
-			cg.OpenRP.alarmActivated = qtrue;
-		}
-		else
-		{
-			trap->S_ClearLoopingSounds();
-			cg.OpenRP.alarmActivated = qfalse;
-		}
 		return;
 	}
 

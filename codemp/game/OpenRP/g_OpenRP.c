@@ -8,7 +8,9 @@ void InitializeSQL(void)
 {
 	sqlite3 *db;
 	char *zErrMsg = 0;
+	sqlite3_stmt *stmt;
 	int rc;
+	qboolean columnFound = qfalse;
 
 	//The database is not connected. Please do so.
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
@@ -21,11 +23,9 @@ void InitializeSQL(void)
 	}
 
 	//Create Bounty Table
-	trap->Print("Initializing Bounty Table.\n");
+	trap->Print("Initializing Bounty table.\n");
 
-	//rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS Bounties(BountyID INTEGER PRIMARY KEY, Wanted INTEGER, BountyCreator TEXT, BountyName TEXT, Reward INTEGER)", 0, 0, &zErrMsg);
-	rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS Bounties(BountyID INTEGER, Wanted INTEGER, BountyCreator TEXT, BountyName TEXT, Reward INTEGER, PRIMARY KEY(BountyID))", 0, 0, &zErrMsg);
-
+	rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS 'Bounties' (BountyID INTEGER PRIMARY KEY, Wanted INTEGER, BountyCreator TEXT, BountyName TEXT, Reward INTEGER)", 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -35,52 +35,151 @@ void InitializeSQL(void)
 	}
 
 	//Create columns (for backwards compatibility with older databases)
+	trap->Print("Initializing BountyID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Bounties')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "BountyID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Bounties ADD BountyID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
 
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Bounties WHERE COLUMN_NAME='BountyID' ) ) THEN ALTER TABLE Bounties ADD BountyID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
+	trap->Print("Initializing Wanted column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Bounties')", -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
 		sqlite3_close(db);
 		return;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Bounties WHERE COLUMN_NAME='Wanted' ) ) THEN ALTER TABLE Bounties ADD Wanted INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Wanted"))
+			columnFound = qtrue;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Bounties WHERE COLUMN_NAME='BountyCreator' ) ) THEN ALTER TABLE Bounties ADD BountyCreator TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	if (!columnFound)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		rc = sqlite3_exec(db, "ALTER TABLE Bounties ADD Wanted INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Bounties WHERE COLUMN_NAME='BountyName' ) ) THEN ALTER TABLE Bounties ADD BountyName TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Bounties WHERE COLUMN_NAME='Reward' ) ) THEN ALTER TABLE Bounties ADD Reward INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
+	if (columnFound)
+		columnFound = qfalse;
 
-	trap->Print("Done.\n");
+	trap->Print("Initializing BountyCreator column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Bounties')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "BountyCreator"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Bounties ADD BountyCreator TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing BountyName column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Bounties')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "BountyName"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Bounties ADD BountyName TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Reward column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Bounties')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Reward"))
+			columnFound = qtrue;
+		
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Bounties ADD Reward INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Done with Bounty table.\n");
 
 	//Create Account Table
-	trap->Print("Initializing Account Table.\n");
+	trap->Print("Initializing Account table.\n");
 
 	rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS Users(LoggedIn INTEGER, Admin INTEGER, ClientID INTEGER, AdminLevel INTEGER, Password TEXT, Username TEXT, AccountID INTEGER PRIMARY KEY)", 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
@@ -92,64 +191,203 @@ void InitializeSQL(void)
 	}
 
 	//Create columns (for backwards compatibility with older databases)
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='LoggedIn' ) ) THEN ALTER TABLE Users ADD LoggedIn INTEGER", 0, 0, &zErrMsg);
+	trap->Print("Initializing LoggedIn column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
 		sqlite3_close(db);
 		return;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='Admin' ) ) THEN ALTER TABLE Users ADD Admin INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "LoggedIn"))
+			columnFound = qtrue;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='ClientID' ) ) THEN ALTER TABLE Users ADD ClientID INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	if (!columnFound)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD LoggedIn INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='AdminLevel' ) ) THEN ALTER TABLE Users ADD AdminLevel INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='Password' ) ) THEN ALTER TABLE Users ADD Password TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='Username' ) ) THEN ALTER TABLE Users ADD Username TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Users WHERE COLUMN_NAME='AccountID' ) ) THEN ALTER TABLE Users ADD AccountID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
+	if (columnFound)
+		columnFound = qfalse;
 
-	trap->Print("Done.\n");
+	trap->Print("Initializing Admin column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Admin"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD Admin INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing ClientID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "ClientID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD ClientID INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing AdminLevel column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "AdminLevel"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD AdminLevel INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Password column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Password"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD Password TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Username column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Username"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD Username TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing AccountID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Users')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "AccountID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Users ADD AccountID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Done with Account table.\n");
 
 	//Create Faction Table
 	trap->Print("Initializing Faction Table.\n");
@@ -164,35 +402,94 @@ void InitializeSQL(void)
 	}
 
 	//Create columns (for backwards compatibility with older databases)
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Factions WHERE COLUMN_NAME='FactionID' ) ) THEN ALTER TABLE Factions ADD FactionID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
+	trap->Print("Initializing FactionID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Factions')", -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
 		sqlite3_close(db);
 		return;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Factions WHERE COLUMN_NAME='Name' ) ) THEN ALTER TABLE Factions ADD Name TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "FactionID"))
+			columnFound = qtrue;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Factions WHERE COLUMN_NAME='Bank' ) ) THEN ALTER TABLE Factions ADD Bank INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	if (!columnFound)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		rc = sqlite3_exec(db, "ALTER TABLE Factions ADD FactionID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
 	}
+	if (columnFound)
+		columnFound = qfalse;
 
-	trap->Print("Done.\n");
+	trap->Print("Initializing Name column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Factions')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Name"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Factions ADD Name TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Bank column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Factions')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Bank"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Factions ADD Bank INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Done with Faction table.\n");
 
 	//Create Item Table
-	trap->Print("Initializing Item Table.\n");
+	trap->Print("Initializing Items Table.\n");
 
 	rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS Items(Concussion INTEGER, Rocket INTEGER, Flechette INTEGER, Demp2 INTEGER, Repeater INTEGER, Bowcaster INTEGER, Disruptor INTEGER, E11 INTEGER, CharID INTEGER, Pistol INTEGER)", 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
@@ -204,88 +501,287 @@ void InitializeSQL(void)
 	}
 
 	//Create columns (for backwards compatibility with older databases)
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Concussion' ) ) THEN ALTER TABLE Items ADD Concussion INTEGER", 0, 0, &zErrMsg);
+	trap->Print("Initializing Concussion column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
 		sqlite3_close(db);
 		return;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Rocket' ) ) THEN ALTER TABLE Items ADD Rocket INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Concussion"))
+			columnFound = qtrue;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Flechette' ) ) THEN ALTER TABLE Items ADD Flechette INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	if (!columnFound)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Concussion INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Demp2' ) ) THEN ALTER TABLE Items ADD Demp2 INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Repeater' ) ) THEN ALTER TABLE Items ADD Repeater INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Bowcaster' ) ) THEN ALTER TABLE Items ADD Bowcaster INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Disruptor' ) ) THEN ALTER TABLE Items ADD Disruptor INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='E11' ) ) THEN ALTER TABLE Items ADD E11 INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='CharID' ) ) THEN ALTER TABLE Items ADD CharID INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Items WHERE COLUMN_NAME='Pistol' ) ) THEN ALTER TABLE Items ADD Pistol INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
+	if (columnFound)
+		columnFound = qfalse;
 
-	trap->Print("Done.\n");
+	trap->Print("Initializing Rocket column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Rocket"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Rocket INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Flechette column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Flechette"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Flechette INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Demp2 column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Demp2"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Demp2 INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Repeater column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Repeater"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Repeater INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Bowcaster column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Bowcaster"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Bowcaster INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Disruptor column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Disruptor"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Disruptor INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing E11 column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "E11"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD E11 INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing CharID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "CharID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD CharID INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Pistol column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Items')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Pistol"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Items ADD Pistol INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Done with Items table.\n");
 
 	//Create Character Table
 	trap->Print("Initializing Character Table.\n");
@@ -300,152 +796,511 @@ void InitializeSQL(void)
 	}
 
 	//Create columns (for backwards compatibility with older databases)
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='TrainingSaberLocked' ) ) THEN ALTER TABLE Characters ADD TrainingSaberLocked INTEGER", 0, 0, &zErrMsg);
+	trap->Print("Initializing TrainingSaberLocked column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
 		sqlite3_close(db);
 		return;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='CheckInventory' ) ) THEN ALTER TABLE Characters ADD CheckInventory INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "TrainingSaberLocked"))
+			columnFound = qtrue;
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='SkillBuild' ) ) THEN ALTER TABLE Characters ADD SkillBuild TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
+	if (!columnFound)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD TrainingSaberLocked INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
 	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='ModelScale' ) ) THEN ALTER TABLE Characters ADD ModelScale INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='Model' ) ) THEN ALTER TABLE Characters ADD Model TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='FactionRank' ) ) THEN ALTER TABLE Characters ADD FactionRank TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='FeatBuild' ) ) THEN ALTER TABLE Characters ADD FeatBuild INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='ForceBuild' ) ) THEN ALTER TABLE Characters ADD ForceBuild INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='SkillPoints' ) ) THEN ALTER TABLE Characters ADD SkillPoints INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='AccountID' ) ) THEN ALTER TABLE Characters ADD AccountID INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='Experience' ) ) THEN ALTER TABLE Characters ADD Experience INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='FactionID' ) ) THEN ALTER TABLE Characters ADD FactionID INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='CharID' ) ) THEN ALTER TABLE Characters ADD CharID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='Name' ) ) THEN ALTER TABLE Characters ADD Name TEXT", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='Credits' ) ) THEN ALTER TABLE Characters ADD Credits INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='ForceSensitive' ) ) THEN ALTER TABLE Characters ADD ForceSensitive INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='Level' ) ) THEN ALTER TABLE Characters ADD Level INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
-	rc = sqlite3_exec(db, "IF NOT EXISTS( (SELECT * FROM Characters WHERE COLUMN_NAME='Flags' ) ) THEN ALTER TABLE CHARACTERS ADD Flags INTEGER", 0, 0, &zErrMsg);
-	if (rc != SQLITE_OK)
-	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-		sqlite3_close(db);
-		return;
-	}
+	if (columnFound)
+		columnFound = qfalse;
 
-	trap->Print("Done.\n");
+	trap->Print("Initializing CheckInventory column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "CheckInventory"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD CheckInventory INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing SkillBuild column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "SkillBuild"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD SkillBuild TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing ModelScale column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "ModelScale"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD ModelScale INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Model column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Model"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD Model TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing FactionRank column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "FactionRank"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD FactionRank TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing FeatBuild column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "FeatBuild"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD FeatBuild INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing ForceBuild column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "ForceBuild"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD ForceBuild INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing SkillPoints column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "SkillPoints"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD SkillPoints INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing AccountID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "AccountID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD AccountID INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Experience column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Experience"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD Experience INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing FactionID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "FactionID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD FactionID INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing CharID column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "CharID"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD CharID INTEGER PRIMARY KEY", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Name column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Name"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD Name TEXT", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Credits column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Credits"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD Credits INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing ForceSensitive column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "ForceSensitive"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD ForceSensitive INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Level column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Level"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD Level INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Initializing Flags column.\n");
+	rc = sqlite3_prepare_v2(db, "PRAGMA table_info('Characters')", -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		if (!Q_stricmp(sqlite3_column_text(stmt, 1), "Flags"))
+			columnFound = qtrue;
+	}
+	if (!columnFound)
+	{
+		rc = sqlite3_exec(db, "ALTER TABLE Characters ADD Flags INTEGER", 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	if (columnFound)
+		columnFound = qfalse;
+
+	trap->Print("Done with Character table.\n");
 
 	trap->Print("All tables have been initialized.\n");
 }
