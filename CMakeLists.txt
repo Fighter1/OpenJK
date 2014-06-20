@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 2.8.8)
 set(InOpenJK TRUE)
 
 # Project name
-set(ProjectName "OpenJK" CACHE STRING "Project Name")
+#OpenRP
+set(ProjectName "OpenRP" CACHE STRING "Project Name")
 project(${ProjectName})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -81,8 +82,9 @@ message("Git revision is ${GIT_SHA1}")
 set(SPEngine "openjk_sp.${Architecture}")
 set(SPGame "jagame${Architecture}")
 set(SPRDVanillaRenderer "rdsp-vanilla_${Architecture}")
-set(MPEngine "openjk.${Architecture}")
-set(MPVanillaRenderer "rd-vanilla_${Architecture}")
+#OpenRP
+set(MPEngine "openrp.${Architecture}")
+set(MPVanillaRenderer "rd-openrp_${Architecture}")
 set(MPDed "openjkded.${Architecture}")
 set(MPGame "jampgame${Architecture}")
 set(MPCGame "cgame${Architecture}")

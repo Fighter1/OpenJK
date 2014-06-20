@@ -7031,6 +7031,110 @@ static void UI_RunMenuScript(char **args)
 		{
 			UI_ClampMaxPlayers();
 		}
+		//OpenRP - Credit to Scooper for login and register code
+		else if (Q_stricmp(name, "login") == 0)
+		{
+			char username[256] = { 0 };
+			char password[256] = { 0 };
+
+			trap->Cvar_VariableStringBuffer("ui_account_username", username, sizeof(username));
+			trap->Cvar_VariableStringBuffer("ui_account_password", password, sizeof(password));
+
+			trap->Cvar_Set("ui_account_loginFailed", "false");
+
+			trap->Cmd_ExecuteText(EXEC_APPEND, va("login %s %s\n", username, password));
+
+			trap->Cvar_Set("ui_account_username", "");
+			trap->Cvar_Set("ui_account_password", "");
+		}
+		else if (Q_stricmp(name, "register") == 0)
+		{
+			char username[256] = { 0 };
+			char password[256] = { 0 };
+
+			trap->Cvar_VariableStringBuffer("ui_account_username", username, sizeof(username));
+			trap->Cvar_VariableStringBuffer("ui_account_password", password, sizeof(password));
+
+			trap->Cmd_ExecuteText(EXEC_APPEND, va("register %s %s\n", username, password));
+
+			trap->Cvar_Set("ui_account_username", "");
+			trap->Cvar_Set("ui_account_password", "");
+		}
+		else if (Q_stricmp(name, "createCharacter") == 0)
+		{
+			char name[256] = { 0 };
+			char forceSensitiveTemp[256] = { 0 };
+
+			trap->Cvar_VariableStringBuffer("ui_character_name", name, sizeof(name));
+			trap->Cvar_VariableStringBuffer("ui_character_forceSensitive", forceSensitiveTemp, sizeof(forceSensitiveTemp));
+
+			if (atoi(forceSensitiveTemp) == 1)
+			{
+				trap->Cmd_ExecuteText(EXEC_APPEND, va("createcharacter %s yes\n", name));
+			}
+			else
+			{
+				trap->Cmd_ExecuteText(EXEC_APPEND, va("createcharacter %s no\n", name));
+			}
+
+			trap->Cvar_Set("ui_character_name", "");
+			trap->Cvar_Set("ui_character_forceSensitive", "");
+		}
+		else if (Q_stricmp(name, "selectCharacter") == 0)
+		{
+			char name[256] = { 0 };
+
+			trap->Cvar_VariableStringBuffer("ui_character_name", name, sizeof(name));
+			trap->Cmd_ExecuteText(EXEC_APPEND, va("character %s\n", name));
+
+			trap->Cvar_Set("ui_character_name", "");
+		}
+		else if (Q_stricmp(name, "editCharacter") == 0)
+		{
+			char charName[256] = { 0 };
+			char modelscaleTemp[256] = { 0 };
+
+			trap->Cvar_VariableStringBuffer("ui_editCharacter_name", charName, sizeof(charName));
+			trap->Cvar_VariableStringBuffer("ui_editCharacter_modelscale", modelscaleTemp, sizeof(modelscaleTemp));
+
+			if ((charName[0] != '\0'))
+			{
+				trap->Cmd_ExecuteText(EXEC_APPEND, va("editcharacter name %s\n", charName));
+			}
+
+			if (atoi(modelscaleTemp) != 0)
+			{
+				trap->Cmd_ExecuteText(EXEC_APPEND, va("editcharacter modelscale %i\n", atoi(modelscaleTemp)));
+			}
+
+			trap->Cvar_Set("ui_editCharacter_name", "");
+			trap->Cvar_Set("ui_editCharacter_modelscale", "");
+		}
+		else if (Q_stricmp(name, "editAccount") == 0)
+		{
+			char username[256] = { 0 };
+			char password[256] = { 0 };
+
+			trap->Cvar_VariableStringBuffer("ui_editAccount_username", username, sizeof(username));
+			trap->Cvar_VariableStringBuffer("ui_editAccount_password", password, sizeof(password));
+
+			if ((username[0] != '\0'))
+			{
+				trap->Cmd_ExecuteText(EXEC_APPEND, va("editaccount username %s\n", username));
+			}
+
+			if ((password[0] != '\0'))
+			{
+				trap->Cmd_ExecuteText(EXEC_APPEND, va("editaccount password %s\n", password));
+			}
+
+			trap->Cvar_Set("ui_editAccount_username", "");
+			trap->Cvar_Set("ui_editAccount_password", "");
+		}
+		else if (Q_stricmp(name, "logout") == 0)
+		{
+			trap->Cmd_ExecuteText(EXEC_APPEND, "logout\n");
+		}
 		else
 		{
 			Com_Printf("unknown UI script %s\n", name);
