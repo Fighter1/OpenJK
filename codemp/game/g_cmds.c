@@ -1050,11 +1050,15 @@ void Cmd_Team_f(gentity_t *ent) {
 	if (oldTeam = TEAM_SPECTATOR && level.gametype == GT_FFA)
 	{
 		if (!ent->client->sess.loggedIn)
+		{
 			trap->SendServerCommand(ent - g_entities, "accountui");
+			return;
+		}
 		else if (!ent->client->sess.characterSelected)
+		{
 			trap->SendServerCommand(ent - g_entities, "charui");
-
-		return;
+			return;
+		}
 	}
 	SetTeam(ent, s);
 
