@@ -135,6 +135,7 @@ void Cmd_Login_F(gentity_t * ent)
 	trap->Argv(1, username, sizeof(username));
 	trap->Argv(2, password, sizeof(password));
 
+	Q_StripColor(username);
 	Q_strlwr(username);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
@@ -364,7 +365,7 @@ void Cmd_Register_F(gentity_t * ent)
 	char *zErrMsg = 0;
 	int rc;
 	sqlite3_stmt *stmt;
-	char username[256] = { 0 }, usernameCleaned[256] = { 0 }, password[256] = { 0 }, comparisonName[256] = { 0 };
+	char username[256] = { 0 }, password[256] = { 0 }, comparisonName[256] = { 0 };
 	int accountID = 0, i = 0;
 
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
@@ -386,9 +387,7 @@ void Cmd_Register_F(gentity_t * ent)
 	trap->Argv(1, username, sizeof(username));
 	trap->Argv(2, password, sizeof(password));
 
-	Q_strncpyz(username, usernameCleaned, sizeof(username));
-	Q_StripColor(usernameCleaned);
-
+	Q_StripColor(username);
 	Q_strlwr(username);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
@@ -716,8 +715,9 @@ void Cmd_EditAccount_F(gentity_t * ent)
 {
 	sqlite3 *db;
 	char *zErrMsg = 0;
+	sqlite3_stmt *stmt;
 	int rc;
-	char parameter[9] = { 0 }, change[256] = { 0 }, changeCleaned[256] = { 0 }, comparisonName[256] = { 0 };
+	char parameter[9] = { 0 }, change[256] = { 0 }, comparisonName[256] = { 0 };
 
 	if (!ent->client->sess.loggedIn)
 	{
@@ -746,18 +746,29 @@ void Cmd_EditAccount_F(gentity_t * ent)
 
 	if (!Q_stricmp(parameter, "username"))
 	{
-		Q_strncpyz(change, changeCleaned, sizeof(change));
-		Q_StripColor(changeCleaned);
-
+		Q_StripColor(change);
 		Q_strlwr(change);
 
-		rc = sqlite3_exec(db, va("SELECT Username FROM Users WHERE Username='%s'", change), 0, (void*)comparisonName, &zErrMsg);
+		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", change), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
-			trap->Print("SQL error: %s\n", zErrMsg);
-			sqlite3_free(zErrMsg);
+			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+			sqlite3_finalize(stmt);
 			sqlite3_close(db);
 			return;
+		}
+		rc = sqlite3_step(stmt);
+		if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+		{
+			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+			sqlite3_finalize(stmt);
+			sqlite3_close(db);
+			return;
+		}
+		if (rc == SQLITE_ROW)
+		{
+			Q_strncpyz(comparisonName, (const char *)sqlite3_column_text(stmt, 0), sizeof(comparisonName));
+			sqlite3_finalize(stmt);
 		}
 
 		if (comparisonName[0] != '\0')

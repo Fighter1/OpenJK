@@ -517,6 +517,8 @@
 			textscale			0.8
 			forecolor			1 .682 0 1
 			visible			1
+			cvarTest		"ui_account_loggedin"
+			showCvar		{ "false" }
 			action
 			{
 				play 			"sound/interface/button1.wav"

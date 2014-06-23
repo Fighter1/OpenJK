@@ -1353,6 +1353,7 @@ void Cmd_GiveAdmin_F(gentity_t *ent)
 
 	trap->Argv(1, username, sizeof(username));
 	//Check if this username exists
+	Q_StripColor(username);
 	Q_strlwr(username);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
@@ -1475,6 +1476,7 @@ void Cmd_SVGiveAdmin_F(void)
 
 	trap->Argv(1, username, sizeof(username));
 	//Check if this username exists
+	Q_StripColor(username);
 	Q_strlwr(username);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
@@ -1575,6 +1577,7 @@ void Cmd_RemoveAdmin_F(gentity_t * ent)
 
 	trap->Argv(1, username, sizeof(username));
 
+	Q_StripColor(username);
 	Q_strlwr(username);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
@@ -1633,6 +1636,7 @@ void Cmd_SVRemoveAdmin_F(void)
 {
 	sqlite3 *db;
 	char *zErrMsg = 0;
+	sqlite3_stmt *stmt;
 	int rc;
 	char username[256] = { 0 };
 	int valid = 0;
@@ -1655,15 +1659,29 @@ void Cmd_SVRemoveAdmin_F(void)
 
 	trap->Argv(1, username, sizeof(username));
 
+	Q_StripColor(username);
 	Q_strlwr(username);
 
-	rc = sqlite3_exec(db, va("SELECT AccountID FROM Users WHERE Username='%s'", username), 0, 0, &zErrMsg);
+	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
-		trap->Print("SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
 		sqlite3_close(db);
 		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		valid = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
 	}
 
 	if (!valid)
@@ -1749,6 +1767,7 @@ void Cmd_GiveSkillPoints_F(gentity_t * ent)
 	trap->Argv(2, temp, sizeof(temp));
 	changedSkillPoints = atoi(temp);
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -1973,6 +1992,7 @@ void Cmd_GenerateCredits_F(gentity_t * ent)
 	trap->Argv(2, temp, sizeof(temp));
 	changedCredits = atoi(temp);
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -2162,6 +2182,7 @@ void Cmd_CreateFaction_F(gentity_t * ent)
 
 	trap->Argv(1, factionName, sizeof(factionName));
 
+	Q_StripColor(factionName);
 	Q_strlwr(factionName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Factions WHERE Name='%s'", factionName), -1, &stmt, NULL);
@@ -2282,6 +2303,7 @@ void Cmd_SetFaction_F(gentity_t * ent)
 	trap->Argv(2, factionIDTemp, sizeof(factionIDTemp));
 	factionID = atoi(factionIDTemp);
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -3280,6 +3302,7 @@ void Cmd_LockSaberSetting_F(gentity_t *ent)
 
 	trap->Argv(1, charName, sizeof(charName));
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -3464,81 +3487,135 @@ void Cmd_AddFlag_F( gentity_t * ent )
 {
 	sqlite3 *db;
 	char *zErrMsg = 0;
+	sqlite3_stmt *stmt;
 	int rc;
 	char charName[256] = { 0 }, flag[64] = { 0 };
 	int charID = 0, accountID = 0, clientID = 33, loggedIn = 0, i = 0;
 
 	//The database is not connected. Please do so.
 	rc = sqlite3_open( (const char*)openrp_databasePath.string, &db );
-	if( rc )
+	if(rc)
 	{
-	trap->Print( "Can't open database: %s\n", sqlite3_errmsg( db ) );
-	trap->SendServerCommand( ent-g_entities, "print \"^1The server's database is not connected.\n\"" );
-	sqlite3_close( db );
-	return;
+		trap->Print( "Can't open database: %s\n", sqlite3_errmsg( db ) );
+		trap->SendServerCommand( ent-g_entities, "print \"^1The server's database is not connected.\n\"" );
+		sqlite3_close( db );
+		return;
 	}
 
 	if ( !G_CheckAdmin( ent, ADMIN_FLAGS ) )
 	{
-	trap->SendServerCommand(ent-g_entities, va("print \"^1You are not allowed to use this command.\n\""));
-	sqlite3_close( db );
-	return;
+		trap->SendServerCommand(ent-g_entities, va("print \"^1You are not allowed to use this command.\n\""));
+		sqlite3_close( db );
+		return;
 	}
 
 	if ( trap->Argc() < 2 )
 	{
-	trap->SendServerCommand( ent-g_entities, "print \"^2Command Usage: /amaddflag <characterName> <flag>\n\"" );
-	sqlite3_close( db );
-	return;
+		trap->SendServerCommand( ent-g_entities, "print \"^2Command Usage: /amaddflag <characterName> <flag>\n\"" );
+		sqlite3_close( db );
+		return;
 	}
 
 	trap->Argv( 1, charName, sizeof( charName ) );
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
-	rc = sqlite3_exec( db, va(  "SELECT CharID FROM Characters WHERE Name='%s'", charName ), callback, (void*)charID, &zErrMsg );
-	if( rc != SQLITE_OK )
+	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
 	{
-	trap->Print( "SQL error: %s\n", zErrMsg );
-	sqlite3_free( zErrMsg );
-	sqlite3_close( db );
-	return;
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		charID = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
 	}
 
 	if( !charID )
 	{
-	trap->SendServerCommand( ent-g_entities, va( "print \"^1Character %s does not exist.\n\"", charName ) );
-	trap->SendServerCommand( ent-g_entities, va( "cp \"^1Character %s does not exist.\n\"", charName ) );
-	sqlite3_close( db );
-	return;
+		trap->SendServerCommand( ent-g_entities, va( "print \"^1Character %s does not exist.\n\"", charName ) );
+		trap->SendServerCommand( ent-g_entities, va( "cp \"^1Character %s does not exist.\n\"", charName ) );
+		sqlite3_close( db );
+		return;
 	}
 
-	rc = sqlite3_exec( db, va( "SELECT AccountID FROM Characters WHERE CharID='%i'", charID ), callback, (void*)accountID, &zErrMsg );
-	if( rc != SQLITE_OK )
+	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Characters WHERE CharID='%i'", charID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
 	{
-	trap->Print( "SQL error: %s\n", zErrMsg );
-	sqlite3_free( zErrMsg );
-	sqlite3_close( db );
-	return;
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		accountID = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
 	}
 
 	//ClientID so we can send them messages
-	rc = sqlite3_exec( db, va( "SELECT ClientID FROM Users WHERE AccountID='%i'", accountID ), callback, (void*)clientID, &zErrMsg );
-	if( rc != SQLITE_OK )
+	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
 	{
-	trap->Print( "SQL error: %s\n", zErrMsg );
-	sqlite3_free( zErrMsg );
-	sqlite3_close( db );
-	return;
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		clientID = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
 	}
 
-	rc = sqlite3_exec( db, va( "SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID ), callback, (void*)loggedIn, &zErrMsg );
-	if( rc != SQLITE_OK )
+	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
 	{
-	trap->Print( "SQL error: %s\n", zErrMsg );
-	sqlite3_free( zErrMsg );
-	sqlite3_close( db );
-	return;
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		loggedIn = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
 	}
 
 	trap->Argv( 2, flag, sizeof( flag ) );

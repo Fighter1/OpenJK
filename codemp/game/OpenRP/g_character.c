@@ -352,7 +352,7 @@ void Cmd_CreateCharacter_F(gentity_t * ent)
 	int rc;
 	sqlite3_stmt *stmt;
 	int forceSensitive = 0;
-	char charName[256] = { 0 }, charNameCleaned[256] = { 0 }, temp[6] = { 0 }, comparisonName[256] = { 0 };
+	char charName[256] = { 0 }, temp[6] = { 0 }, comparisonName[256] = { 0 };
 	int charID = 0, charSkillPoints = 1;
 
 	//The database is not connected. Please do so.
@@ -380,8 +380,9 @@ void Cmd_CreateCharacter_F(gentity_t * ent)
 	}
 
 	trap->Argv(1, charName, sizeof(charName));
-	Q_strncpyz(charName, charNameCleaned, sizeof(charName));
-	Q_StripColor(charNameCleaned);
+
+	Q_StripColor(charName);
+	Q_strlwr(charName);
 
 	trap->Argv(2, temp, sizeof(temp));
 
@@ -395,8 +396,6 @@ void Cmd_CreateCharacter_F(gentity_t * ent)
 	{
 		forceSensitive = 0;
 	}
-
-	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Characters WHERE AccountID='%i' AND Name='%s'", ent->client->sess.accountID, charName), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
@@ -558,6 +557,7 @@ void Cmd_Character_F(gentity_t * ent)
 
 	trap->Argv(1, charName, sizeof(charName));
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE AccountID='%i' AND Name='%s'", ent->client->sess.accountID, charName), -1, &stmt, NULL);
@@ -677,6 +677,7 @@ void Cmd_GiveCredits_F(gentity_t * ent)
 	trap->Argv(2, temp, sizeof(temp));
 	changedCredits = atoi(temp);
 
+	Q_StripColor(recipientCharName);
 	Q_strlwr(recipientCharName);
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", recipientCharName), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
@@ -1150,6 +1151,7 @@ void Cmd_CharacterInfo_F(gentity_t * ent)
 
 	trap->Argv(1, charName, sizeof(charName));
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -2943,6 +2945,7 @@ void Cmd_CheckInventory_F(gentity_t * ent)
 
 	trap->Argv(1, charName, sizeof(charName));
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -3795,7 +3798,7 @@ void Cmd_EditCharacter_F(gentity_t * ent)
 	char *zErrMsg = 0;
 	int rc;
 	sqlite3_stmt *stmt;
-	char parameter[256] = { 0 }, change[256] = { 0 }, changeCleaned[256] = { 0 }, comparisonName[256] = { 0 };
+	char parameter[256] = { 0 }, change[256] = { 0 }, comparisonName[256] = { 0 };
 	int modelscale = 0;
 
 	if ((!ent->client->sess.loggedIn) || (!ent->client->sess.characterSelected))
@@ -3826,12 +3829,11 @@ void Cmd_EditCharacter_F(gentity_t * ent)
 
 	if (!Q_stricmp(parameter, "name"))
 	{
-		Q_strncpyz(change, changeCleaned, sizeof(change));
-		Q_StripColor(changeCleaned);
 
-		Q_strlwr(changeCleaned);
+		Q_StripColor(change);
+		Q_strlwr(change);
 
-		rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Characters WHERE Name='%s'", changeCleaned), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Characters WHERE Name='%s'", change), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -3859,7 +3861,7 @@ void Cmd_EditCharacter_F(gentity_t * ent)
 			sqlite3_close(db);
 			return;
 		}
-		rc = sqlite3_exec(db, va("UPDATE Characters set Name='%s' WHERE CharID= '%i'", changeCleaned, ent->client->sess.characterID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Characters set Name='%s' WHERE CharID= '%i'", change, ent->client->sess.characterID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -3867,7 +3869,7 @@ void Cmd_EditCharacter_F(gentity_t * ent)
 			sqlite3_close(db);
 			return;
 		}
-		trap->SendServerCommand(ent - g_entities, va("print \"^2Name has been changed to ^7%s^2. If you had colors in the name, they were removed.\n\"", changeCleaned));
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Name has been changed to ^7%s^2. If you had colors in the name, they were removed.\n\"", change));
 		sqlite3_close(db);
 		return;
 	}
@@ -4105,6 +4107,7 @@ void Cmd_Bounty_F(gentity_t * ent)
 			return;
 		}
 
+		Q_StripColor(bountyName);
 		Q_strlwr(bountyName);
 
 		rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", bountyName), -1, &stmt, NULL);
@@ -5080,6 +5083,7 @@ void Cmd_FactionInvite_F(gentity_t *ent)
 
 	trap->Argv(1, charName, sizeof(charName));
 
+	Q_StripColor(charName);
 	Q_strlwr(charName);
 
 	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -5402,6 +5406,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 
 	if (G_CheckAdmin(ent, ADMIN_FACTION))
 	{
+		Q_StripColor(charName);
 		Q_strlwr(charName);
 
 		rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
@@ -5642,6 +5647,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 			return;
 		}
 
+		Q_StripColor(charName);
 		Q_strlwr(charName);
 
 		rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
