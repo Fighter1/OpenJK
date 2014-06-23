@@ -4500,13 +4500,11 @@ void Cmd_Radio_F(gentity_t *ent)
 		return;
 	}
 
-	if ( ent->client->sess.radioFrequency <= 0 || ent->client->sess.radioFrequency > 100 )
+	if ( ent->client->sess.radioFrequency < 1 || ent->client->sess.radioFrequency > 100 )
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^1You are silenced and can't speak.\n\"");
-		trap->SendServerCommand(ent - g_entities, "cp \"^1You are silenced and can't speak.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^2Please set a frequency first using /frequency <number>.\nFrequencies can be any integer from 1-100.\n\"");
 		return;
 	}
-
 
 	while (*msg)
 	{
@@ -4612,24 +4610,25 @@ void Cmd_Radio_F(gentity_t *ent)
 void Cmd_Frequency_F(gentity_t *ent)
 {
 	char frequencyTemp[12];
-	int frequency = 0;
+	int frequencyChange = 0;
 
 	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^2Command Usage: /frequency <frequency> Frequencies must be from 0 to 100.\nExample: /frequency 43\n\"");
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%i\n\"", ent->client->sess.radioFrequency));
+		trap->SendServerCommand(ent - g_entities, "print \"^3Remember: To set your frequency use /frequency <frequency>\nFrequencies must be from 1 to 100. Example: /frequency 43\n\"");
 		return;
 	}
 
 	trap->Argv(1, frequencyTemp, sizeof(frequencyTemp));
-	frequency = strtod(frequencyTemp, NULL);
+	frequencyChange = strtod(frequencyTemp, NULL);
 
-	if (frequency < 0 || frequency > 100)
+	if (frequencyChange < 1 || frequencyChange > 100)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 0 to 100.\nExample: /frequency 43\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 1 to 100. Example: /frequency 43\n\"");
 		return;
 	}
-	ent->client->sess.radioFrequency = frequency;
-	trap->SendServerCommand(ent - g_entities, va("print \"^2Frequency set to ^7%i\n\"", frequency));
+	ent->client->sess.radioFrequency = frequencyChange;
+	trap->SendServerCommand(ent - g_entities, va("print \"^2Frequency set to ^7%i\n\"", frequencyChange));
 	return;
 }
 

@@ -1604,18 +1604,35 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 	}
 
 	//[OpenRP - Chat System]
-
-	if (((!allChat && openrp_DistanceBasedChat.integer) || (!openrp_DistanceBasedChat.integer)) || (level.gametype != GT_FFA))
+	if ((!allChat && openrp_DistanceBasedChat.integer) || (!openrp_DistanceBasedChat.integer))
 	{
-		trap->SendServerCommand( other-g_entities, va("%s \"%s\" \"%s\" \"%c\" \"%s\" %i",
-			mode == SAY_TEAM ? "ltchat" : "lchat",
-			name, locMsg, color, message, ent->s.number));
+		if (locMsg && g_gametype.integer != GT_FFA)
+		{
+			trap->SendServerCommand(other - g_entities, va("%s \"%s\" \"%s\" \"%c\" \"%s\" %i",
+				mode == SAY_TEAM ? "ltchat" : "lchat",
+				name, locMsg, color, message, ent->s.number));
+		}
+		else
+		{
+			trap->SendServerCommand(other - g_entities, va("%s \"%s%c%c%s\" %i",
+				mode == SAY_TEAM ? "tchat" : "chat",
+				name, Q_COLOR_ESCAPE, color, message, ent->s.number));
+		}
 	}
 	else if (allChat)
 	{
-		trap->SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\" %i",
-			mode == SAY_TEAM ? "tchat" : "chat",
-			name, Q_COLOR_ESCAPE, color, message, ent->s.number));
+		if (locMsg && g_gametype.integer != GT_FFA)
+		{
+			trap->SendServerCommand(other - g_entities, va("%s \"^6<All Chat> ^7%s\" \"%s\" \"%c\" \"%s\" %i",
+				mode == SAY_TEAM ? "ltchat" : "lchat",
+				name, locMsg, color, message, ent->s.number));
+		}
+		else
+		{
+			trap->SendServerCommand(other - g_entities, va("%s \"^6<All Chat> ^7%s%c%c%s\" %i",
+				mode == SAY_TEAM ? "tchat" : "chat",
+				name, Q_COLOR_ESCAPE, color, message, ent->s.number));
+		}
 	}
 }
 
