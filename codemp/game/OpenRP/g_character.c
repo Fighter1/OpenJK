@@ -4544,6 +4544,10 @@ void Cmd_Radio_F(gentity_t *ent)
 		return;
 	}
 
+	//Make sure the person using the radio sees their own message.
+	trap->SendServerCommand(ent-g_entities, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
+		ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+
 	if (!openrp_DistanceBasedChat.integer)
 	{
 		for (i = 0; i < level.maxclients; i++)
@@ -4552,7 +4556,7 @@ void Cmd_Radio_F(gentity_t *ent)
 			{
 				//Don't have a check for if i == ent-g_entities as this is so they see their own radio message
 				//This person is on the same freq as the one who is talking, so they hear the talker
-				trap->SendServerCommand(i, va("chat \"^4Radio (Freq. ^7%i^4) ^7%s ^4- ^4%s\"",
+				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
 					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
 			}
 		}
@@ -4561,51 +4565,47 @@ void Cmd_Radio_F(gentity_t *ent)
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			
-			//Check the distance from speaker to other players to see if any of them are near the speaker
-			if (Distance(ent->client->ps.origin, g_entities[i].client->ps.origin) <= 600)
+			if (g_entities[i].client->sess.sessionTeam == TEAM_SPECTATOR || g_entities[i].client->tempSpectate >= level.time)
+				continue;
+
+			if (g_entities[i].client->sess.allChat || g_entities[i].client->sess.allChatComplete)
 			{
-				if (i == ent - g_entities)
-					continue;
-				trap->SendServerCommand(i, va("chat \"^7Talking on Their Radio ^7%s ^7- ^2%s\"", ent->client->pers.netname, real_msg));
+				trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
+					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+			}
+
+			//Check the distance from speaker to other players to see if any of them are near the speaker
+			if (Distance(ent->client->ps.origin, g_entities[i].client->ps.origin) <= 600 && i != ent-g_entities )
+			{
+				trap->SendServerCommand(i, va("chat \"^7<Talking on Their Radio> ^7%s^7: %s\"", ent->client->pers.netname, real_msg));
 			}
 			else
 				continue;
+		}
 
-			//Check if any players are on the same frequency as the speaker
-			if (ent->client->sess.radioFrequency == g_entities[i].client->sess.radioFrequency)
+		//Check if any players are on the same frequency as the speaker
+		for (i = 0; i < level.maxclients; i++)
+		{
+			if (ent->client->sess.radioFrequency == g_entities[i].client->sess.radioFrequency && i != ent-g_entities)
 			{
-				trap->SendServerCommand(i, va("chat \"^4Radio (Freq. ^7%i^4) ^7%s ^4- ^4%s\"",
+				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
 					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
 
-				
+
 				for (j = 0; j < level.maxclients; j++)
 				{
-					//Check the distance from a player receiving the radio chatter (i) to the other players (j) to see if any are near them 
-					if (Distance(g_entities[i].client->ps.origin, g_entities[j].client->ps.origin) <= 600)
-					{
-						//Make it so the one who is receiving the radio chatter doesn't hear this
-						//We could do j == ent-g_entities too so the original player who is talking over the radio doesn't see this
-						//However it's more realistic this way
-						if (i == j)
-							continue;
-						trap->SendServerCommand(i, va("chat \"^4Heard on ^7%s's ^4radio - ^4%s\"", g_entities[i].client->ps.origin, real_msg));
-					}
+					//Check the distance from a player receiving the radio chatter (i) to other players (j) to see if any are near the recipient
+					//We could add j != ent-g_entities too so the original player who is talking over the radio doesn't see this
+					//However it's more realistic this way
+					if (Distance(g_entities[i].client->ps.origin, g_entities[j].client->ps.origin) <= 600 && i != j)
+						trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s's ^4radio> ^4%s\"", g_entities[i].client->pers.netname, real_msg));
 				}
-			}
-
-			if (g_entities[i].client->sess.allChat || g_entities[i].client->sess.allChatComplete || g_entities[i].client->sess.sessionTeam == TEAM_SPECTATOR || g_entities[i].client->tempSpectate >= level.time)
-			{
-				trap->SendServerCommand(i, va("chat \"^1<All Chat>^7Radio (Freq. ^7%i^4) ^7%s ^4- ^4%s\"",
-					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
-
-				if (g_entities[i].client->sess.sessionTeam == TEAM_SPECTATOR || g_entities[i].client->tempSpectate >= level.time)
-					return;
 			}
 		}
 	}
 	return;
 }
+
 
 void Cmd_Frequency_F(gentity_t *ent)
 {
@@ -4620,7 +4620,7 @@ void Cmd_Frequency_F(gentity_t *ent)
 	}
 
 	trap->Argv(1, frequencyTemp, sizeof(frequencyTemp));
-	frequencyChange = strtod(frequencyTemp, NULL);
+	frequencyChange = atoi(frequencyTemp);
 
 	if (frequencyChange < 1 || frequencyChange > 100)
 	{

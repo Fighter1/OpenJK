@@ -2672,8 +2672,8 @@ void Cmd_ShakeScreen_F(gentity_t * ent)
 
 void Cmd_Audio_F(gentity_t * ent)
 {
-	char audioPath[256];
-	int i;
+	char audioPath[256] = { 0 };
+	int i = 0;
 
 	if (!G_CheckAdmin(ent, ADMIN_AUDIO))
 	{
@@ -2988,12 +2988,12 @@ void Cmd_RemoveEntity_F(gentity_t *ent)
 		{
 		fPos[i] = ent->client->ps.origin[i] + fPos[i]*Q3_INFINITE;
 		}
-		trap_Trace( &tr, ent->client->ps.origin, 0, 0, fPos, ent->s.number, ent->clipmask );
+		trap->Trace( &tr, ent->client->ps.origin, 0, 0, fPos, ent->s.number, ent->clipmask );
 
 		//Create a box
 		VectorSet( mins, tr.endpos[0]-64.0f, tr.endpos[1]-64.0f, tr.endpos[2]-64.0f );
 		VectorSet( maxs, tr.endpos[0]+64.0f, tr.endpos[1]+64.0f, tr.endpos[2]+64.0f );
-		trap_EntitiesInBox( mins, maxs, &ents[0], 8 );
+		trap->EntitiesInBox( mins, maxs, &ents[0], 8 );
 
 		//Anything in this box will be removed
 		for (i=0; i<8; i++)
@@ -3016,7 +3016,7 @@ void Cmd_RemoveEntity_F(gentity_t *ent)
 	trap->Argv(1, entIDTemp, sizeof(entIDTemp));
 	entID = atoi(entIDTemp);
 
-	if (entID > 31 && entID < 1024 && &g_entities[entID].inuse) //Make sure the ent isn't a player and is an ID that is in use.
+	if (entID > 31 && entID < 1024 && g_entities[entID].inuse) //Make sure the ent isn't a player and is an ID that is in use.
 	{
 		G_FreeEntity(&g_entities[entID]); // G_FreeEntity will free up the slot in g_entities so it can be re-used!
 		for (i = 0; i < 127; i++)
@@ -3973,7 +3973,7 @@ void Cmd_FrequencyCheck_F(gentity_t *ent)
 	{
 		if (!g_entities[i].client->sess.radioFrequency)
 		{
-			trap->SendServerCommand(ent - g_entities, va("print \"^7%s No Frequency Set\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.radioFrequency));
+			trap->SendServerCommand(ent - g_entities, va("print \"^7%s - No Frequency Set\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.radioFrequency));
 		}
 		else
 		{
@@ -3981,7 +3981,7 @@ void Cmd_FrequencyCheck_F(gentity_t *ent)
 				Q_strncpyz(radioStatus, "Radio: On", sizeof(radioStatus));
 			else
 				Q_strncpyz(radioStatus, "Radio: Off", sizeof(radioStatus));
-			trap->SendServerCommand(ent - g_entities, va("print \"^7%s %i %s\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.radioFrequency, radioStatus));
+			trap->SendServerCommand(ent - g_entities, va("print \"^7%s ^2- ^7%i ^2- ^7%s\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.radioFrequency, radioStatus));
 		}
 	}
 	return;

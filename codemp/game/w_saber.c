@@ -3547,6 +3547,10 @@ void WP_SaberApplyDamage( gentity_t *self )
 		}
 		dflags |= saberKnockbackFlags[i];
 
+		//OpenRP - Training saber
+		if (self->client->sess.trainingSaber)
+			totalDmg[i] = 1;
+
 		G_Damage( victim, self, self, dmgDir[i], dmgSpot[i], totalDmg[i], dflags, MOD_SABER );
 	}
 }

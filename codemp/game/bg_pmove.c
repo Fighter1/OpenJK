@@ -10466,7 +10466,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	PM_CmdForSaberMoves(&pm->cmd);
 
-	//OpenRP
+	//OpenRP - autowalk
 	#ifdef _GAME
 		if (((gentity_t *)pm_entSelf)->client->sess.isAutoWalking)
 		{
@@ -10496,7 +10496,7 @@ void PmoveSingle (pmove_t *pmove) {
 	// set the talk balloon flag
 	if ( pm->cmd.buttons & BUTTON_TALK ) {
 		pm->ps->eFlags |= EF_TALK;
-		//OpenRP - Make player invurlnerable while chatting except in duels.
+		//OpenRP - Make player invulnerable while chatting except in duels.
 		if (!pm->ps->duelInProgress)
 			pm->ps->eFlags |= EF_INVULNERABLE;
 	} else {

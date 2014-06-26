@@ -4850,7 +4850,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 		if (targ && targ->client && (targ->client->ps.eFlags & EF_INVULNERABLE) &&
 			attacker && attacker->client && targ != attacker)
 		{
-			if (targ->client->invulnerableTimer <= level.time)
+			//OpenRP
+			if (targ->client->invulnerableTimer <= level.time && !(targ->client->ps.eFlags & EF_TALK) && !targ->client->ps.duelInProgress)
 			{
 				targ->client->ps.eFlags &= ~EF_INVULNERABLE;
 			}
