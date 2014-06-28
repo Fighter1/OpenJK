@@ -4568,12 +4568,6 @@ void Cmd_Radio_F(gentity_t *ent)
 			if (level.clients[i].sess.sessionTeam == TEAM_SPECTATOR || level.clients[i].tempSpectate >= level.time)
 				continue;
 
-			if (level.clients[i].sess.allChat || level.clients[i].sess.allChatComplete)
-			{
-				trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
-					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
-			}
-
 			//Check the distance from speaker to other players to see if any of them are near the speaker
 			if (Distance(ent->client->ps.origin, level.clients[i].ps.origin) <= 600 && i != ent - g_entities)
 			{
@@ -4591,6 +4585,11 @@ void Cmd_Radio_F(gentity_t *ent)
 				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
 					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
 
+				if (ent->client->sess.radioFrequency != level.clients[i].sess.radioFrequency && level.clients[i].sess.allChat)
+				{
+					trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
+						ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+				}
 
 				for (j = 0; j < level.maxclients; j++)
 				{
@@ -4600,6 +4599,11 @@ void Cmd_Radio_F(gentity_t *ent)
 					if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 600 && i != j)
 						trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s's ^4radio> ^4%s\"", level.clients[i].pers.netname, real_msg));
 				}
+			}
+			if (level.clients[i].sess.allChatComplete)
+			{
+				trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
+					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
 			}
 		}
 	}
