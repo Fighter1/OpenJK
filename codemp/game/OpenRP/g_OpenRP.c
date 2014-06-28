@@ -1321,14 +1321,16 @@ void Cmd_eminfo_F(gentity_t *ent)
 void Cmd_ListAdmins_F(gentity_t *ent)
 {
 	int i;
+	gentity_t	*client;
 
 	if (!G_CheckAdmin(ent, ADMIN_ADMINWHOIS))
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (g_entities[i].client->sess.isAdmin && !g_entities[i].client->sess.isDisguised && g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+			client = g_entities + i;
+			if (level.clients[i].sess.isAdmin && !level.clients[i].sess.isDisguised && client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 			{
-				trap->SendServerCommand(ent - g_entities, va("print \"^2Name: %s ^2Admin level: ^7%i\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.adminLevel));
+				trap->SendServerCommand(ent - g_entities, va("print \"^2Name: %s ^2Admin level: ^7%i\n\"", level.clients[i].pers.netname, level.clients[i].sess.adminLevel));
 			}
 		}
 	}
@@ -1336,9 +1338,10 @@ void Cmd_ListAdmins_F(gentity_t *ent)
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (g_entities[i].client->sess.isAdmin && g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+			client = g_entities + i;
+			if (level.clients[i].sess.isAdmin && client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 			{
-				trap->SendServerCommand(ent - g_entities, va("print \"^2Name: %s ^2Admin level: ^7%i\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.adminLevel));
+				trap->SendServerCommand(ent - g_entities, va("print \"^2Name: %s ^2Admin level: ^7%i\n\"", level.clients[i].pers.netname, level.clients[i].sess.adminLevel));
 			}
 		}
 	}

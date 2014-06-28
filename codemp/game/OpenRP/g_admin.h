@@ -100,3 +100,4 @@ void Cmd_Merc_F(gentity_t *ent);
 void SaveForcePowers(gentity_t *ent);
 void RestoreForcePowers(gentity_t *ent);
 void Cmd_Empower_F(gentity_t *ent);
+void Cmd_FrequencyCheck_F(gentity_t *ent);

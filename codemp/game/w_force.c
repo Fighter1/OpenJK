@@ -5204,7 +5204,8 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 
 	i = 0;
 
-	if (!(self->client->ps.fd.forcePowersActive & (1 << FP_TELEPATHY)))
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	if (!self->client->sess.isInvisible && !(self->client->ps.fd.forcePowersActive & (1 << FP_TELEPATHY)))
 	{ //clear the mindtrick index values
 		self->client->ps.fd.forceMindtrickTargetIndex = 0;
 		self->client->ps.fd.forceMindtrickTargetIndex2 = 0;

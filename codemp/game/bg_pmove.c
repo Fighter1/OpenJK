@@ -889,6 +889,12 @@ void PM_AddTouchEnt( int entityNum ) {
 		}
 	}
 
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+#ifdef _GAME
+	if (((gentity_t *)pm_entSelf)->client->sess.isInvisible)
+		return;
+#endif
+
 	// add it
 	pm->touchents[pm->numtouch++] = entityNum;
 }

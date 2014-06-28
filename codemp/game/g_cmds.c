@@ -1976,6 +1976,8 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	char		arg[MAX_TOKEN_CHARS];
 	//OpenRP - allchat
 	int i;
+	gentity_t	*client;
+	
 
 	if ( trap->Argc () < 3 ) {
 		trap->SendServerCommand( ent-g_entities, "print \"Usage: tell <player id> <message>\n\"" );
@@ -2011,11 +2013,12 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+			client = g_entities + i;
+			if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 			{
-				if (g_entities[i].client->sess.isAdmin && ((g_entities[i].client->sess.allChat && i != targetNum) || (g_entities[i].client->sess.allChatComplete)))
+				if (level.clients[i].sess.isAdmin && ((level.clients[i].sess.allChat && i != targetNum) || (level.clients[i].sess.allChatComplete)))
 				{
-					trap->SendServerCommand(i, va("chat \"^6<Tell> ^7%s ^6to ^7%s: ^6%s\"", ent->client->pers.netname, g_entities[targetNum].client->pers.netname, p));
+					trap->SendServerCommand(i, va("chat \"^6<Tell> ^7%s ^6to ^7%s: ^6%s\"", ent->client->pers.netname, level.clients[targetNum].pers.netname, p));
 				}
 			}
 		}
@@ -2167,8 +2170,8 @@ static const char *gameNames[] = {
 };
 
 
-//OpenRP - Combined JAPP code along with a function called G_ClientNumberFromName that used to be in OpenJK for this command (Credits to both) (This function
-//should not be confused with the original function of the same name.
+//OpenRP - Combined JAPP code along with a function called G_ClientNumberFromName that used to be in OpenJK for this command (Credits to both) 
+//(This function should not be confused with the original function of the same name.)
 int G_ClientNumberFromName(const char* name)
 {
 	char		cleanInput[MAX_NETNAME];
@@ -2192,12 +2195,11 @@ int G_ClientNumberFromName(const char* name)
 	{// check for a name match
 		if (cl->pers.connected != CON_CONNECTED)
 			continue;
-		if (!strstr(cl->pers.netname_nocolor, cleanInput))
+		if (strstr(cl->pers.netname_nocolor, cleanInput))
 		{
 			return i;
 		}
 	}
-
 	return -1;
 }
 
@@ -4054,6 +4056,11 @@ void ClientCommand( int clientNum ) {
 	if (!Q_stricmp(cmd, "amban"))
 	{
 		Cmd_amBan_F(ent);
+		return;
+	}
+	if (!Q_stricmp(cmd, "amcheckfrequency"))
+	{
+		Cmd_FrequencyCheck_F(ent);
 		return;
 	}
 	if (!Q_stricmp(cmd, "amcheckstats"))

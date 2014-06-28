@@ -1760,7 +1760,7 @@ void Cmd_FactionWithdraw_F(gentity_t * ent)
 		}
 	}
 
-	if (!Q_stricmp(charFactionName, "none"))
+	if (!Q_stricmp(charFactionName, "none") || !Q_stricmp(charFactionName, '\0'))
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You are not in a faction.\n\"");
 		sqlite3_close(db);
@@ -1966,7 +1966,7 @@ void Cmd_FactionDeposit_F(gentity_t * ent)
 		}
 	}
 
-	if (!Q_stricmp(charFactionName, "none"))
+	if (!Q_stricmp(charFactionName, "none") || !Q_stricmp(charFactionName, '\0'))
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You are not in a faction.\n\"");
 		sqlite3_close(db);
@@ -4552,7 +4552,7 @@ void Cmd_Radio_F(gentity_t *ent)
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (ent->client->sess.radioFrequency == g_entities[i].client->sess.radioFrequency)
+			if (ent->client->sess.radioFrequency == level.clients[i].sess.radioFrequency)
 			{
 				//Don't have a check for if i == ent-g_entities as this is so they see their own radio message
 				//This person is on the same freq as the one who is talking, so they hear the talker
@@ -4565,17 +4565,17 @@ void Cmd_Radio_F(gentity_t *ent)
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (g_entities[i].client->sess.sessionTeam == TEAM_SPECTATOR || g_entities[i].client->tempSpectate >= level.time)
+			if (level.clients[i].sess.sessionTeam == TEAM_SPECTATOR || level.clients[i].tempSpectate >= level.time)
 				continue;
 
-			if (g_entities[i].client->sess.allChat || g_entities[i].client->sess.allChatComplete)
+			if (level.clients[i].sess.allChat || level.clients[i].sess.allChatComplete)
 			{
 				trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
 					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
 			}
 
 			//Check the distance from speaker to other players to see if any of them are near the speaker
-			if (Distance(ent->client->ps.origin, g_entities[i].client->ps.origin) <= 600 && i != ent-g_entities )
+			if (Distance(ent->client->ps.origin, level.clients[i].ps.origin) <= 600 && i != ent - g_entities)
 			{
 				trap->SendServerCommand(i, va("chat \"^7<Talking on Their Radio> ^7%s^7: %s\"", ent->client->pers.netname, real_msg));
 			}
@@ -4586,7 +4586,7 @@ void Cmd_Radio_F(gentity_t *ent)
 		//Check if any players are on the same frequency as the speaker
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (ent->client->sess.radioFrequency == g_entities[i].client->sess.radioFrequency && i != ent-g_entities)
+			if (ent->client->sess.radioFrequency == level.clients[i].sess.radioFrequency && i != ent - g_entities)
 			{
 				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
 					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
@@ -4597,8 +4597,8 @@ void Cmd_Radio_F(gentity_t *ent)
 					//Check the distance from a player receiving the radio chatter (i) to other players (j) to see if any are near the recipient
 					//We could add j != ent-g_entities too so the original player who is talking over the radio doesn't see this
 					//However it's more realistic this way
-					if (Distance(g_entities[i].client->ps.origin, g_entities[j].client->ps.origin) <= 600 && i != j)
-						trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s's ^4radio> ^4%s\"", g_entities[i].client->pers.netname, real_msg));
+					if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 600 && i != j)
+						trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s's ^4radio> ^4%s\"", level.clients[i].pers.netname, real_msg));
 				}
 			}
 		}
@@ -4744,16 +4744,16 @@ void Cmd_ForceMessage_F(gentity_t *ent)
 
 	for (i = 0; i < level.maxclients; i++)
 	{
-		if ((g_entities[i].client->sess.allChat && Q_stricmp(ent->client->pers.netname, g_entities[clientid].client->pers.netname)) || g_entities[i].client->sess.allChatComplete || g_entities[i].client->sess.sessionTeam == TEAM_SPECTATOR || g_entities[i].client->tempSpectate >= level.time)
+		if ((level.clients[i].sess.allChat && Q_stricmp(ent->client->pers.netname, level.clients[clientid].pers.netname)) || level.clients[i].sess.allChatComplete || level.clients[i].sess.sessionTeam == TEAM_SPECTATOR || level.clients[i].tempSpectate >= level.time)
 		{
-			trap->SendServerCommand(i, va("chat \"^1<All Chat>^7<%s ^7to %s^7> ^5%s\"", ent->client->pers.netname, g_entities[clientid].client->pers.netname, real_msg));
+			trap->SendServerCommand(i, va("chat \"^1<All Chat>^7<%s ^7to %s^7> ^5%s\"", ent->client->pers.netname, level.clients[clientid].pers.netname, real_msg));
 		}
 		else
 			continue;
 	}
 
-	trap->SendServerCommand(ent - g_entities, va("chat \"^7<%s ^7to %s^7> ^5%s\"", ent->client->pers.netname, g_entities[clientid].client->pers.netname, real_msg));
-	trap->SendServerCommand(clientid, va("chat \"^7<%s ^7to %s^7> ^5%s\"", ent->client->pers.netname, g_entities[clientid].client->pers.netname, real_msg));
+	trap->SendServerCommand(ent - g_entities, va("chat \"^7<%s ^7to %s^7> ^5%s\"", ent->client->pers.netname, level.clients[clientid].pers.netname, real_msg));
+	trap->SendServerCommand(clientid, va("chat \"^7<%s ^7to %s^7> ^5%s\"", ent->client->pers.netname, level.clients[clientid].pers.netname, real_msg));
 	sqlite3_close(db);
 	return;
 }
@@ -4834,7 +4834,7 @@ void Cmd_Faction_F(gentity_t * ent)
 	}
 
 	//If they're already in a faction
-	if (Q_stricmp(currentFactionName, "none"))
+	if (Q_stricmp(currentFactionName, "none") || Q_stricmp(currentFactionName, '\0'))
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You are already in a faction and must leave it using /factionLeave before joining a new one.\n\"");
 		sqlite3_close(db);

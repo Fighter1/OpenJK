@@ -241,10 +241,10 @@ void G_InitSessionData( gclient_t *client, char *userinfo, qboolean isBot ) {
 	sess->skillPoints = 1;
 	sess->adminLevel = 11;
 	sess->radioOn = qtrue;
-	//OpenRP - Set their frequency to 0, which is an invalid one and will prevent them from talking on the radio until they change it to a different one.
-	//They will of course, be notified that they need to change their frequency upon attempting to use their radio.
+	//OpenRP - Set their frequency to -1, which is an invalid one and will prevent them from talking on the radio until they change it to a different one.
+	//They will, of course, be notified that they need to change their frequency upon attempting to use their radio.
 	//This will prevent everybody from initially being on the same channel.
-	sess->radioFrequency = 0;
+	sess->radioFrequency = -1;
 	sess->invitedFactionID = 0;
 
 	G_WriteClientSessionData( client );

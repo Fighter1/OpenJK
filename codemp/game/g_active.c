@@ -1129,6 +1129,11 @@ static void G_UpdateForceSightBroadcasts ( gentity_t *self )
 			continue;
 		}
 
+		//OpenRP - Invisibility - Credit to Raz0r for this code
+		//Invisible people are handled later
+		if (ent->client->sess.isInvisible)
+			continue;
+
 		VectorSubtract( self->client->ps.origin, ent->client->ps.origin, angles );
 		dist = VectorLengthSquared ( angles );
 		vectoangles ( angles, angles );
@@ -1213,6 +1218,16 @@ void G_UpdateClientBroadcasts ( gentity_t *self )
 
 	// Anyone with force sight on should see this client
 	G_UpdateForceSightBroadcasts ( self );
+
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	//FIXME: implement broadcastClients functionality instead of SVF_SINGLECLIENT
+	if (self->client->sess.isInvisible)
+	{
+		self->r.svFlags |= SVF_SINGLECLIENT;
+		self->r.singleClient = self->s.number;
+	}
+	else
+		self->r.svFlags &= ~SVF_SINGLECLIENT;
 }
 
 void G_AddPushVecToUcmd( gentity_t *self, usercmd_t *ucmd )
@@ -2903,6 +2918,10 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 	else {
 		pmove.tracemask = MASK_PLAYERSOLID;
+
+		//OpenRP - Invisibility - Credit to Raz0r for this code
+		if (ent->client->sess.isInvisible)
+			pmove.tracemask = 267009/*MASK_DEADSOLID*/;
 	}
 	pmove.trace = SV_PMTrace;
 	pmove.pointcontents = trap->PointContents;
@@ -3124,7 +3143,19 @@ void ClientThink_real( gentity_t *ent ) {
 #endif
 	}
 
-	Pmove (&pmove);
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	{
+		int savedMask = pmove.tracemask;
+		if (ent->client->sess.isInvisible)
+		{
+			pmove.tracemask = CONTENTS_SOLID;
+			ent->r.contents = 0;
+		}
+
+		Pmove (&pmove);
+
+		pmove.tracemask = savedMask;
+	}
 
 	if (ent->client->solidHack)
 	{
@@ -3448,7 +3479,9 @@ void ClientThink_real( gentity_t *ent ) {
 
 	// link entity now, after any personal teleporters have been used
 	trap->LinkEntity ((sharedEntity_t *)ent);
-	if ( !ent->client->noclip ) {
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	//Raz: Nor for ghosts
+	if (!ent->client->noclip && !ent->client->sess.isInvisible) {
 		G_TouchTriggers( ent );
 	}
 

@@ -485,6 +485,7 @@ void Cmd_amAnnounce_F(gentity_t *ent)
 	char cmdTarget[256];
 	int clientid = -1;
 	int i;
+	gentity_t	*client;
 
 	if (!G_CheckAdmin(ent, ADMIN_ANNOUNCE))
 	{
@@ -520,7 +521,8 @@ void Cmd_amAnnounce_F(gentity_t *ent)
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+			client = g_entities + i;
+			if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 			{
 				//G_Sound( &g_entities[i], CHAN_MUSIC, G_SoundIndex( "sound/OpenRP/info.mp3" ) );
 			}
@@ -844,6 +846,8 @@ void Cmd_amUnsleep_F(gentity_t *ent)
 	G_LogPrintf("Unsleep admin command executed by %s on %s.\n", ent->client->pers.netname, g_entities[clientid].client->pers.netname);
 	return;
 }
+
+
 
 void Cmd_amEffect_F(gentity_t *ent)
 {
@@ -1222,6 +1226,7 @@ void Cmd_amWeatherPlus_F(gentity_t *ent)
 void Cmd_amStatus_F(gentity_t *ent)
 {
 	int i;
+	gentity_t	*client;
 
 	if (!G_CheckAdmin(ent, ADMIN_STATUS))
 	{
@@ -1232,10 +1237,11 @@ void Cmd_amStatus_F(gentity_t *ent)
 	trap->SendServerCommand(ent - g_entities, va("print \"^2Status:\n\""));
 	for (i = 0; i < level.maxclients; i++)
 	{
-		if (g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+		client = g_entities + i;
+		if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 		{
-			trap->SendServerCommand(ent - g_entities, va("print \"^2ID: ^7%i ^2Name: %s ^2IP: ^7%s\n\"",
-				i, g_entities[i].client->pers.netname, g_entities[i].client->sess.IP));
+			trap->SendServerCommand(ent - g_entities, va("print \"^2ID: ^7%i ^2Name: ^7%s ^2IP: ^7%s\n\"",
+				i, level.clients[i].pers.netname, level.clients[i].sess.IP));
 
 		}
 	}
@@ -2637,6 +2643,7 @@ void Cmd_ShakeScreen_F(gentity_t * ent)
 	int i;
 	char temp[64], temp2[64];
 	int intensity, length;
+	gentity_t	*client;
 
 	if (!G_CheckAdmin(ent, ADMIN_SHAKE))
 	{
@@ -2658,9 +2665,10 @@ void Cmd_ShakeScreen_F(gentity_t * ent)
 
 	for (i = 0; i < level.maxclients; i++)
 	{
-		if (g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+		client = g_entities + i;
+		if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 		{
-			G_ScreenShake(g_entities[i].s.origin, &g_entities[i], intensity, length, qtrue);
+			G_ScreenShake(client->s.origin, &g_entities[i], intensity, length, qtrue);
 			//Don't do a center print for the target - it would distract from the shaking screen.
 			trap->SendServerCommand(i, "print \"^3An admin shook your screen.\n\"");
 		}
@@ -2674,6 +2682,7 @@ void Cmd_Audio_F(gentity_t * ent)
 {
 	char audioPath[256] = { 0 };
 	int i = 0;
+	gentity_t	*client;
 
 	if (!G_CheckAdmin(ent, ADMIN_AUDIO))
 	{
@@ -2683,7 +2692,7 @@ void Cmd_Audio_F(gentity_t * ent)
 
 	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent - g_entities, va("print \"^2Command Usage: /amAudio <path>\nYou can also use /amAudio alert to play an alarm, or /amAudio none to turn off the map music.\n\""));
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Command Usage: /amAudio <path>\nor /amAudio none to turn off the map music.\n\""));
 		return;
 	}
 
@@ -2699,13 +2708,14 @@ void Cmd_Audio_F(gentity_t * ent)
 		trap->SendServerCommand(ent - g_entities, va("print \"^2You started playing the sound file: ^7%s\n\"", audioPath));
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+			client = g_entities + i;
+			if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 				G_Sound(&g_entities[i], CHAN_MUSIC, G_SoundIndex(va("%s", audioPath)));
 		}
 	}
 	else if (!Q_stricmpn(audioPath, "none", 4))
 	{
-		trap->SetConfigstring(CS_MUSIC, "");
+		trap->SetConfigstring(CS_MUSIC, "________");
 		trap->SendServerCommand(ent - g_entities, "print \"^2You turned off the map music.\n\"");
 	}
 	else
@@ -2787,6 +2797,7 @@ void Cmd_AdminChat_F(gentity_t *ent)
 	char real_msg[512];
 	char *msg = ConcatArgs(1);
 	int i;
+	gentity_t	*client;
 
 	if (!ent->client->sess.isAdmin)
 	{
@@ -2812,7 +2823,8 @@ void Cmd_AdminChat_F(gentity_t *ent)
 
 	for (i = 0; i < level.maxclients; i++)
 	{
-		if (g_entities[i].client->sess.isAdmin && g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+		client = g_entities + i;
+		if (level.clients[i].sess.isAdmin && client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 			trap->SendServerCommand(i, va("chat \"^6<Admin Chat> ^7%s^6: ^6%s\"", ent->client->pers.netname, real_msg));
 	}
 	return;
@@ -2882,6 +2894,8 @@ void Cmd_AllChat_F(gentity_t * ent)
 void Cmd_amWarningList_F(gentity_t *ent)
 {
 	int i;
+	gentity_t	*client;
+
 
 	if (!G_CheckAdmin(ent, ADMIN_WARN))
 	{
@@ -2892,9 +2906,10 @@ void Cmd_amWarningList_F(gentity_t *ent)
 	trap->SendServerCommand(ent - g_entities, "print \"^2Warning List:\n\n\"");
 	for (i = 0; i < level.maxclients; i++)
 	{
-		if (g_entities[i].inuse && g_entities[i].client && g_entities[i].client->pers.connected == CON_CONNECTED)
+		client = g_entities + i;
+		if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 		{
-			trap->SendServerCommand(ent - g_entities, va("print \"^7%s %i^2/^7%i\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.warnings, openrp_maxWarnings.integer));
+			trap->SendServerCommand(ent - g_entities, va("print \"^7%s %i^2/^7%i\n\"", level.clients[i].pers.netname, level.clients[i].sess.warnings, openrp_maxWarnings.integer));
 		}
 	}
 	return;
@@ -3016,7 +3031,7 @@ void Cmd_RemoveEntity_F(gentity_t *ent)
 	trap->Argv(1, entIDTemp, sizeof(entIDTemp));
 	entID = atoi(entIDTemp);
 
-	if (entID > 31 && entID < 1024 && g_entities[entID].inuse) //Make sure the ent isn't a player and is an ID that is in use.
+	if (entID > 31 && entID < 1024 && &g_entities[entID].inuse) //Make sure the ent isn't a player and is an ID that is in use.
 	{
 		G_FreeEntity(&g_entities[entID]); // G_FreeEntity will free up the slot in g_entities so it can be re-used!
 		for (i = 0; i < 127; i++)
@@ -3024,12 +3039,13 @@ void Cmd_RemoveEntity_F(gentity_t *ent)
 			if (ent->client->sess.entListIDs[i] == entID)
 			{
 				ent->client->sess.entListIDs[i] = 0;
-				Q_strncpyz(*ent->client->sess.entListNames[i], '\0', sizeof(*ent->client->sess.entListNames[i]));
+				Q_strncpyz((char*)ent->client->sess.entListNames[i], "null", sizeof(ent->client->sess.entListNames[i]));
 			}
 			else
 				continue;
 		}
 		trap->SendServerCommand(ent - g_entities, va("print \"^2Entity with ID: ^7%i ^2removed.\n\"", entID));
+		G_LogPrintf("Remove ent command executed by %s to remove ent with ID %i.\n", ent->client->pers.netname, entID);
 	}
 	else
 	{
@@ -3960,7 +3976,8 @@ void Cmd_Empower_F(gentity_t *ent)
 void Cmd_FrequencyCheck_F(gentity_t *ent)
 {
 	int i = 0;
-	char *radioStatus = { 0 };
+	char radioStatus[11] = { 0 };
+	gentity_t	*client;
 
 	if (!ent->client->sess.isAdmin)
 	{
@@ -3971,17 +3988,21 @@ void Cmd_FrequencyCheck_F(gentity_t *ent)
 	trap->SendServerCommand(ent - g_entities, "print \"^2Frequency Check:\n\n\"");
 	for (i = 0; i < level.maxclients; i++)
 	{
-		if (!g_entities[i].client->sess.radioFrequency)
+		client = g_entities + i;
+		if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 		{
-			trap->SendServerCommand(ent - g_entities, va("print \"^7%s - No Frequency Set\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.radioFrequency));
-		}
-		else
-		{
-			if (g_entities[i].client->sess.radioOn)
-				Q_strncpyz(radioStatus, "Radio: On", sizeof(radioStatus));
+			if (level.clients[i].sess.radioFrequency == -1)
+			{
+				trap->SendServerCommand(ent - g_entities, va("print \"^7%s - No Frequency Set\n\"", level.clients[i].pers.netname, level.clients[i].sess.radioFrequency));
+			}
 			else
-				Q_strncpyz(radioStatus, "Radio: Off", sizeof(radioStatus));
-			trap->SendServerCommand(ent - g_entities, va("print \"^7%s ^2- ^7%i ^2- ^7%s\n\"", g_entities[i].client->pers.netname, g_entities[i].client->sess.radioFrequency, radioStatus));
+			{
+				if (level.clients[i].sess.radioOn)
+					Q_strncpyz(radioStatus, "Radio: On", sizeof(radioStatus));
+				else
+					Q_strncpyz(radioStatus, "Radio: Off", sizeof(radioStatus));
+				trap->SendServerCommand(ent - g_entities, va("print \"^7%s ^2- ^7%i ^2- ^7%s\n\"", level.clients[i].pers.netname, level.clients[i].sess.radioFrequency, radioStatus));
+			}
 		}
 	}
 	return;
