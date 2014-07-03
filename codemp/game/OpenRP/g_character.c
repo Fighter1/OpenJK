@@ -122,7 +122,7 @@ void LevelCheck(int charID)
 		sqlite3_finalize(stmt);
 	}
 	//Get their clientID so we can send them messages
-	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -144,7 +144,7 @@ void LevelCheck(int charID)
 		sqlite3_finalize(stmt);
 	}
 
-	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -796,7 +796,7 @@ void Cmd_GiveCredits_F(gentity_t * ent)
 		sqlite3_finalize(stmt);
 	}
 	//ClientID so we can send them messages
-	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -818,7 +818,7 @@ void Cmd_GiveCredits_F(gentity_t * ent)
 		sqlite3_finalize(stmt);
 	}
 
-	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -4600,6 +4600,7 @@ void Cmd_Radio_F(gentity_t *ent)
 						trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s's ^4radio> ^4%s\"", level.clients[i].pers.netname, real_msg));
 				}
 			}
+
 			if (level.clients[i].sess.allChatComplete)
 			{
 				trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
@@ -5141,7 +5142,7 @@ void Cmd_FactionInvite_F(gentity_t *ent)
 		sqlite3_finalize(stmt);
 	}
 	//ClientID so we can send them messages
-	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -5162,7 +5163,7 @@ void Cmd_FactionInvite_F(gentity_t *ent)
 		clientID = sqlite3_column_int(stmt, 0);
 		sqlite3_finalize(stmt);
 	}
-	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -5463,7 +5464,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 			sqlite3_finalize(stmt);
 		}
 		//ClientID so we can send them messages
-		rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -5484,7 +5485,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 			clientID = sqlite3_column_int(stmt, 0);
 			sqlite3_finalize(stmt);
 		}
-		rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -5704,7 +5705,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 			sqlite3_finalize(stmt);
 		}
 		//Get their clientID so we can send them messages
-		rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -5726,7 +5727,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 			sqlite3_finalize(stmt);
 		}
 
-		rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));

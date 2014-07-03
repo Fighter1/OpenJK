@@ -27,7 +27,7 @@ void CheckAdmin(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Users WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Accounts WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -52,7 +52,7 @@ void CheckAdmin(gentity_t * ent)
 	if (isAdmin)
 	{//The user is an admin.
 		//Check their adminlevel
-		rc = sqlite3_prepare_v2(db, va("SELECT AdminLevel FROM Users WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT AdminLevel FROM Accounts WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -75,7 +75,7 @@ void CheckAdmin(gentity_t * ent)
 		}
 
 		// ^ this was outside the if condition before, how silly.
-		if (adminLevel != 11)
+		if (adminLevel > 0 || adminLevel < 11)
 		{
 			ent->client->sess.isAdmin = qtrue;
 			ent->client->sess.adminLevel = adminLevel;
@@ -138,7 +138,7 @@ void Cmd_Login_F(gentity_t * ent)
 	Q_StripColor(username);
 	Q_strlwr(username);
 
-	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Accounts WHERE Username='%s'", username), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -171,7 +171,7 @@ void Cmd_Login_F(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_prepare_v2(db, va("SELECT Password FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT Password FROM Accounts WHERE Username='%s'", username), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -204,7 +204,7 @@ void Cmd_Login_F(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Accounts WHERE Username='%s'", username), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -228,7 +228,7 @@ void Cmd_Login_F(gentity_t * ent)
 
 	ent->client->sess.accountID = accountID;
 
-	rc = sqlite3_exec(db, va("UPDATE Users set ClientID='%i' WHERE AccountID='%i'", ent - g_entities, accountID), 0, 0, &zErrMsg);
+	rc = sqlite3_exec(db, va("UPDATE Accounts set ClientID='%i' WHERE AccountID='%i'", ent - g_entities, accountID), 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -237,7 +237,7 @@ void Cmd_Login_F(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_exec(db, va("UPDATE Users set LoggedIn='1' WHERE AccountID='%i'", accountID), 0, 0, &zErrMsg);
+	rc = sqlite3_exec(db, va("UPDATE Accounts set LoggedIn='1' WHERE AccountID='%i'", accountID), 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -257,6 +257,68 @@ void Cmd_Login_F(gentity_t * ent)
 
 	sqlite3_close(db);
 	return;
+}
+
+void Cmd_CheckAccountDB_F(gentity_t *ent)
+{
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc;
+	sqlite3_stmt *stmt;
+	int isAdmin = 0;
+
+	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
+	if (rc)
+	{
+		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
+		sqlite3_close(db);
+		return;
+	}
+
+	rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Accounts WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		isAdmin = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+	}
+
+	//Ensure the admin db values are set correctly
+	if (isAdmin != 1)
+	{
+		rc = sqlite3_exec(db, va("UPDATE Accounts set Admin='0' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+
+		rc = sqlite3_exec(db, va("UPDATE Accounts set AdminLevel='11' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+	}
 }
 
 void Cmd_Logout_F(gentity_t * ent)
@@ -285,7 +347,7 @@ void Cmd_Logout_F(gentity_t * ent)
 	//If they have a character selected, safely deselect their character and logout.
 	if (ent->client->sess.characterSelected)
 	{
-		rc = sqlite3_exec(db, va("UPDATE Users set ClientID='33' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Accounts set ClientID='33' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -294,7 +356,7 @@ void Cmd_Logout_F(gentity_t * ent)
 			return;
 		}
 
-		rc = sqlite3_exec(db, va("UPDATE Users set LoggedIn='0' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Accounts set LoggedIn='0' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -327,7 +389,7 @@ void Cmd_Logout_F(gentity_t * ent)
 	}
 	else
 	{
-		rc = sqlite3_exec(db, va("UPDATE Users set ClientID='33' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Accounts set ClientID='33' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -336,7 +398,7 @@ void Cmd_Logout_F(gentity_t * ent)
 			return;
 		}
 
-		rc = sqlite3_exec(db, va("UPDATE Users set LoggedIn='0' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Accounts set LoggedIn='0' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -390,7 +452,7 @@ void Cmd_Register_F(gentity_t * ent)
 	Q_StripColor(username);
 	Q_strlwr(username);
 
-	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Accounts WHERE Username='%s'", username), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -420,7 +482,7 @@ void Cmd_Register_F(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_exec(db, va("INSERT INTO Users(Username,Password,ClientID,Admin,AdminLevel,LoggedIn) VALUES('%s','%s','33','0','11','0')", username, password), 0, 0, &zErrMsg);
+	rc = sqlite3_exec(db, va("INSERT INTO Accounts(Username,Password,ClientID,Admin,AdminLevel,LoggedIn) VALUES('%s','%s','33','0','11','0')", username, password), 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -429,7 +491,7 @@ void Cmd_Register_F(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Users WHERE Username='%s'", username), -1, &stmt, NULL);
+	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Accounts WHERE Username='%s'", username), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -451,7 +513,7 @@ void Cmd_Register_F(gentity_t * ent)
 		sqlite3_finalize(stmt);
 	}
 
-	rc = sqlite3_exec(db, va("UPDATE Users set ClientID='%i' WHERE AccountID='%i'", ent - g_entities, accountID), 0, 0, &zErrMsg);
+	rc = sqlite3_exec(db, va("UPDATE Accounts set ClientID='%i' WHERE AccountID='%i'", ent - g_entities, accountID), 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -460,7 +522,7 @@ void Cmd_Register_F(gentity_t * ent)
 		return;
 	}
 
-	rc = sqlite3_exec(db, va("UPDATE Users set LoggedIn='1' WHERE AccountID='%i'", accountID), 0, 0, &zErrMsg);
+	rc = sqlite3_exec(db, va("UPDATE Accounts set LoggedIn='1' WHERE AccountID='%i'", accountID), 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -510,7 +572,7 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 
 	if (trap->Argc() < 2)
 	{
-		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Accounts WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -532,7 +594,7 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 			sqlite3_finalize(stmt);
 		}
 
-		rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Users WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Accounts WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -554,7 +616,7 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 			sqlite3_finalize(stmt);
 		}
 
-		rc = sqlite3_prepare_v2(db, va("SELECT AdminLevel FROM Users WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT AdminLevel FROM Accounts WHERE AccountID='%i'", ent->client->sess.accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -612,7 +674,7 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 
 		trap->Argv(1, accountName, sizeof(accountName));
 
-		rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Users WHERE Username='%s'", accountName), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Accounts WHERE Username='%s'", accountName), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -641,7 +703,7 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 			return;
 		}
 
-		rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Admin FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -663,7 +725,7 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 			sqlite3_finalize(stmt);
 		}
 
-		rc = sqlite3_prepare_v2(db, va("SELECT AdminLevel FROM Users WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT AdminLevel FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -749,7 +811,7 @@ void Cmd_EditAccount_F(gentity_t * ent)
 		Q_StripColor(change);
 		Q_strlwr(change);
 
-		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE Username='%s'", change), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Accounts WHERE Username='%s'", change), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -778,7 +840,7 @@ void Cmd_EditAccount_F(gentity_t * ent)
 			return;
 		}
 
-		rc = sqlite3_exec(db, va("UPDATE Users set Username='%s' WHERE AccountID= '%i'", change, ent->client->sess.accountID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Accounts set Username='%s' WHERE AccountID= '%i'", change, ent->client->sess.accountID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -792,7 +854,7 @@ void Cmd_EditAccount_F(gentity_t * ent)
 	}
 	else if (!Q_stricmp(parameter, "password"))
 	{
-		rc = sqlite3_exec(db, va("UPDATE Users set Password='%s' WHERE AccountID='%i'", change, ent->client->sess.accountID), 0, 0, &zErrMsg);
+		rc = sqlite3_exec(db, va("UPDATE Accounts set Password='%s' WHERE AccountID='%i'", change, ent->client->sess.accountID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", zErrMsg);
@@ -870,7 +932,7 @@ void Cmd_AccountName_F(gentity_t * ent)
 
 	if (&g_entities[clientid].client->sess.loggedIn)
 	{
-		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Users WHERE AccountID='%i'", g_entities[clientid].client->sess.accountID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Username FROM Accounts WHERE AccountID='%i'", g_entities[clientid].client->sess.accountID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));

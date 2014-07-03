@@ -79,7 +79,7 @@ void M_Send_F( gentity_t *ent )
 		sqlite3_finalize( stmt );
 	}
 	//Get their clientID so we can send them messages
-	rc = sqlite3_prepare_v2( db, va( "SELECT ClientID FROM Users WHERE AccountID='%i'", accountID ), -1, &stmt, NULL) ;
+	rc = sqlite3_prepare_v2( db, va( "SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID ), -1, &stmt, NULL) ;
 	if( rc != SQLITE_OK )
 	{
 		trap->Print( "SQL error: %s\n", sqlite3_errmsg( db ) );
@@ -100,7 +100,7 @@ void M_Send_F( gentity_t *ent )
 		clientID = sqlite3_column_int( stmt, 0 );
 		sqlite3_finalize( stmt );
 	}
-	rc = sqlite3_prepare_v2( db, va( "SELECT LoggedIn FROM Users WHERE AccountID='%i'", accountID ), -1, &stmt, NULL) ;
+	rc = sqlite3_prepare_v2( db, va( "SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID ), -1, &stmt, NULL) ;
 	if( rc != SQLITE_OK )
 	{
 		trap->Print( "SQL error: %s\n", sqlite3_errmsg( db ) );
