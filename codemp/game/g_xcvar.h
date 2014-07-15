@@ -94,6 +94,8 @@ XCVAR_DEF(openrp_DistanceBasedChat, "1", NULL, CVAR_ARCHIVE, qtrue)
 
 XCVAR_DEF(openrp_forceSensitiveBuyGuns, "1", NULL, CVAR_ARCHIVE, qtrue)
 
+XCVAR_DEF(openrp_spectatorlocalchat, "1", NULL, CVAR_ARCHIVE, qtrue)
+
 XCVAR_DEF(g_pistol_velocity, "1600", NULL, CVAR_ARCHIVE, qtrue)
 XCVAR_DEF(g_pistol_damage, "10", NULL, CVAR_ARCHIVE, qtrue)
 
