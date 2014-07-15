@@ -259,7 +259,7 @@ void Cmd_Login_F(gentity_t * ent)
 	return;
 }
 
-void Cmd_CheckAccountDB_F(gentity_t *ent)
+void Cmd_CheckAdminDB_F(gentity_t *ent)
 {
 	sqlite3 *db;
 	char *zErrMsg = 0;

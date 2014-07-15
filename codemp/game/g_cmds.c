@@ -3768,9 +3768,19 @@ void ClientCommand( int clientNum ) {
 		cm_TheEmote(TORSO_WEAPONIDLE4, ent, qtrue);
 		return;
 	}
+	if (!Q_stricmp(cmd, "ematease"))
+	{
+		cm_TheEmote(BOTH_STAND4, ent, qfalse);
+		return;
+	}
 	if (!Q_stricmp(cmd, "embutton"))
 	{
 		cm_TheEmote(BOTH_BUTTON_HOLD, ent, qfalse);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emcommtype"))
+	{
+		cm_TheEmote(BOTH_CONSOLE2, ent, qtrue);
 		return;
 	}
 	if (!Q_stricmp(cmd, "emchoke"))
@@ -3798,14 +3808,34 @@ void ClientCommand( int clientNum ) {
 		cm_TheEmote(BOTH_DEATH4, ent, qtrue);
 		return;
 	}
+	if (!Q_stricmp(cmd, "emhello"))
+	{
+		cm_TheEmote(BOTH_SILENCEGESTURE1, ent, qfalse);
+		return;
+	}
 	if (!Q_stricmp(cmd, "emhips"))
 	{
-		cm_TheEmote(BOTH_STAND8, ent, qfalse);
+		cm_TheEmote(BOTH_STAND5TOSTAND8, ent, qfalse);
+		return;
+	}
+	if (!Q_stricmp(cmd, "eminjuredhand"))
+	{
+		cm_TheEmote(BOTH_RIGHTHANDCHOPPEDOFF, ent, qtrue);
 		return;
 	}
 	if (!Q_stricmp(cmd, "emintimidate"))
 	{
 		cm_TheEmote(BOTH_ROSH_HEAL, ent, qfalse);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emknees"))
+	{
+		cm_TheEmote(BOTH_KNEES1, ent, qtrue);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emmindcrush"))
+	{
+		cm_TheEmote(BOTH_COWER1, ent, qfalse);
 		return;
 	}
 	if (!Q_stricmp(cmd, "empoint"))
@@ -3851,6 +3881,11 @@ void ClientCommand( int clientNum ) {
 	if (!Q_stricmp(cmd, "emsit7"))
 	{
 		cm_TheEmote(BOTH_SIT7, ent, qtrue);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emsleep"))
+	{
+		cm_TheEmote(BOTH_SLEEP1, ent, qtrue);
 		return;
 	}
 	if (!Q_stricmp(cmd, "emsorrow"))
