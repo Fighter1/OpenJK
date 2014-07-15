@@ -1814,10 +1814,10 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	}
 
 	//OpenRP
-	if ((mode == SAY_ALL || mode == SAY_YELL || mode == SAY_WHISPER || mode == SAY_ME || mode == SAY_IT || mode == SAY_LOOC) && openrp_DistanceBasedChat.integer && level.gametype == GT_FFA && (other->client->sess.sessionTeam == TEAM_SPECTATOR || other->client->tempSpectate >= level.time) && openrp_SpectatorsLocalChatDisable.integer)
+	if ((mode == SAY_ALL || mode == SAY_YELL || mode == SAY_WHISPER || mode == SAY_ME || mode == SAY_IT || mode == SAY_LOOC) && openrp_DistanceBasedChat.integer && level.gametype == GT_FFA && (ent->client->sess.sessionTeam == TEAM_SPECTATOR || ent->client->tempSpectate >= level.time) && openrp_SpectatorsLocalChatDisable.integer)
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You are a spectator and can't use this chat mode.\n\"");
-		trap->SendServerCommand(ent - g_entities, "cp \"^1You are silenced and can't use this chat mode.\n\"");
+		trap->SendServerCommand(ent - g_entities, "cp \"^1You are a spectator and can't use this chat mode.\n\"");
 		return;
 	}
 
