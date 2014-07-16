@@ -3765,7 +3765,7 @@ void ClientCommand( int clientNum ) {
 	//OpenRP
 	if (!Q_stricmp(cmd, "emaim"))
 	{
-		cm_TheEmote(TORSO_WEAPONIDLE4, ent, qtrue);
+		cm_TheEmote(TORSO_WEAPONIDLE4, ent, qfalse);
 		return;
 	}
 	if (!Q_stricmp(cmd, "ematease"))
@@ -3923,7 +3923,26 @@ void ClientCommand( int clientNum ) {
 		cm_TheEmote(BOTH_STAND10, ent, qfalse);
 		return;
 	}
-
+	if (!Q_stricmp(cmd, "emhold"))
+	{
+		cm_TheEmote(TORSO_HANDSIGNAL1, ent, qfalse);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emspreadout"))
+	{
+		cm_TheEmote(TORSO_HANDSIGNAL2, ent, qfalse);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emmove"))
+	{
+		cm_TheEmote(TORSO_HANDSIGNAL3, ent, qfalse);
+		return;
+	}
+	if (!Q_stricmp(cmd, "emclear"))
+	{
+		cm_TheEmote(TORSO_HANDSIGNAL4, ent, qfalse);
+		return;
+	}
 
 	if (!Q_stricmp(cmd, "bounty"))
 	{
