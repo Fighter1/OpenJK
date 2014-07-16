@@ -1520,7 +1520,6 @@ void Cmd_FactionInfo_F(gentity_t * ent)
 		return;
 	}
 
-	//Name
 	rc = sqlite3_prepare_v2(db, va("SELECT FactionID FROM Characters WHERE CharID='%i'", ent->client->sess.characterID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
@@ -5254,6 +5253,13 @@ void Cmd_FactionInviteAccept_F(gentity_t *ent)
 		return;
 	}
 
+	if (!ent->client->sess.invitedFactionID)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^1You do not have any faction invites.\n\"");
+		sqlite3_close(db);
+		return;
+	}
+
 	rc = sqlite3_prepare_v2(db, va("SELECT FactionID FROM Characters WHERE CharID='%i'", ent->client->sess.characterID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
 	{
@@ -5350,7 +5356,12 @@ void Cmd_FactionInviteDecline_F(gentity_t *ent)
 		return;
 	}
 
-	ent->client->sess.invitedFactionID = 0;
+	if (!ent->client->sess.invitedFactionID)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^1You do not have any faction invites.\n\"");
+		sqlite3_close(db);
+		return;
+	}
 
 	rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Factions WHERE ID='%i'", ent->client->sess.invitedFactionID), -1, &stmt, NULL);
 	if (rc != SQLITE_OK)
@@ -5373,6 +5384,8 @@ void Cmd_FactionInviteDecline_F(gentity_t *ent)
 		Q_strncpyz(factionName, (const char*)sqlite3_column_text(stmt, 0), sizeof(factionName));
 		sqlite3_finalize(stmt);
 	}
+
+	ent->client->sess.invitedFactionID = 0;
 
 	trap->SendServerCommand(ent - g_entities, va("print \"^1You declined the invite to the %s faction\n\"", factionName));
 	sqlite3_close(db);

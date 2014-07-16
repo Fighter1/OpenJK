@@ -3773,6 +3773,11 @@ void ClientCommand( int clientNum ) {
 		cm_TheEmote(BOTH_STAND4, ent, qfalse);
 		return;
 	}
+	if (!Q_stricmp(cmd, "emfloating"))
+	{
+		cm_TheEmote(BOTH_PULLED_INAIR_B, ent, qtrue);
+		return;
+	}
 	if (!Q_stricmp(cmd, "embutton"))
 	{
 		cm_TheEmote(BOTH_BUTTON_HOLD, ent, qfalse);

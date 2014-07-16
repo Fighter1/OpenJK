@@ -1049,10 +1049,13 @@ static void PM_Friction( void ) {
 		drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime;
 	}
 	// If on a client then there is no friction
+	//OpenRP - Made it so being on a client doesn't result in 0 friction
+	/*
 	else if ( pm->ps->groundEntityNum < MAX_CLIENTS )
 	{
 		drop = 0;
 	}
+	*/
 
 	if ( pm->ps->pm_type == PM_SPECTATOR || pm->ps->pm_type == PM_FLOAT )
 	{

@@ -2326,7 +2326,7 @@ void Cmd_CreateFaction_F(gentity_t * ent)
 		sqlite3_close(db);
 		return;
 	}
-	trap->SendServerCommand(ent - g_entities, va("print \"^2The %s faction has been created. To add people to it, use /setFaction %i <characterName>\n\"", factionName, factionID));
+	trap->SendServerCommand(ent - g_entities, va("print \"^2The %s faction has been created. To add people to it, use /amSetFaction %i <characterName>\n\"", factionName, factionID));
 	sqlite3_close(db);
 	return;
 }
