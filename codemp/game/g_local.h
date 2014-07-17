@@ -470,7 +470,7 @@ typedef struct clientSession_s {
 	qboolean chatCommandExecuted;
 	qboolean isDisguised;
 	int chatMode;
-	int radioFrequency;
+	float radioFrequency;
 	qboolean radioOn;
 
 	char *entListNames[128][128];

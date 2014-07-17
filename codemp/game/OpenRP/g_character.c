@@ -4612,26 +4612,26 @@ void Cmd_Radio_F(gentity_t *ent)
 
 void Cmd_Frequency_F(gentity_t *ent)
 {
-	char frequencyTemp[12];
-	int frequencyChange = 0;
+	char frequencyTemp[4];
+	float frequencyChange = 0;
 
 	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%i\n\"", ent->client->sess.radioFrequency));
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%f\n\"", ent->client->sess.radioFrequency));
 		trap->SendServerCommand(ent - g_entities, "print \"^3Remember: To set your frequency use /frequency <frequency>\nFrequencies must be from 1 to 100. Example: /frequency 43\n\"");
 		return;
 	}
 
 	trap->Argv(1, frequencyTemp, sizeof(frequencyTemp));
-	frequencyChange = atoi(frequencyTemp);
+	frequencyChange = atof(frequencyTemp);
 
 	if (frequencyChange < 1 || frequencyChange > 100)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 1 to 100. Example: /frequency 43\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 1 to 100. Example: /frequency 43.74\n\"");
 		return;
 	}
 	ent->client->sess.radioFrequency = frequencyChange;
-	trap->SendServerCommand(ent - g_entities, va("print \"^2Frequency set to ^7%i\n\"", frequencyChange));
+	trap->SendServerCommand(ent - g_entities, va("print \"^2Frequency set to ^7%f\n\"", frequencyChange));
 	return;
 }
 
