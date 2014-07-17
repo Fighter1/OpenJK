@@ -4551,9 +4551,8 @@ void Cmd_Radio_F(gentity_t *ent)
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (ent->client->sess.radioFrequency == level.clients[i].sess.radioFrequency)
+			if (ent->client->sess.radioFrequency == level.clients[i].sess.radioFrequency && (ent-g_entities) != i)
 			{
-				//Don't have a check for if i == ent-g_entities as this is so they see their own radio message
 				//This person is on the same freq as the one who is talking, so they hear the talker
 				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
 					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
@@ -4568,7 +4567,7 @@ void Cmd_Radio_F(gentity_t *ent)
 				continue;
 
 			//Check the distance from speaker to other players to see if any of them are near the speaker
-			if (Distance(ent->client->ps.origin, level.clients[i].ps.origin) <= 600 && i != ent - g_entities)
+			if (Distance(ent->client->ps.origin, level.clients[i].ps.origin) <= 600 && (ent-g_entities) != i)
 			{
 				trap->SendServerCommand(i, va("chat \"^7<Talking on Their Radio> ^7%s^7: %s\"", ent->client->pers.netname, real_msg));
 			}
