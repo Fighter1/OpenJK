@@ -3727,7 +3727,7 @@ void Cmd_CharName_F(gentity_t * ent)
 		sqlite3_close(db);
 		return;
 	}
-	else if 
+	else
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"^7% ^1is not logged in or does not have a character selected.\n\"", g_entities[clientid].client->pers.netname));
 	}
