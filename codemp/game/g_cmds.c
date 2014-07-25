@@ -4059,12 +4059,6 @@ void ClientCommand( int clientNum ) {
 		Cmd_SetFactionRank_F(ent);
 		return;
 	}
-	if (!Q_stricmp(cmd, "shop"))
-	{
-		Cmd_Shop_F(ent);
-		return;
-	}
-
 
 
 	if (!Q_stricmp(cmd, "accountinfo"))
@@ -4172,6 +4166,11 @@ void ClientCommand( int clientNum ) {
 	if (!Q_stricmp(cmd, "amgiveadmin"))
 	{
 		Cmd_GiveAdmin_F(ent);
+		return;
+	}
+	if (!Q_stricmp(cmd, "amgivegun"))
+	{
+		Cmd_amGiveGun_F(ent);
 		return;
 	}
 	/*

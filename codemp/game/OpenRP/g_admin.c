@@ -2025,7 +2025,7 @@ void Cmd_GenerateCredits_F(gentity_t * ent)
 	int rc;
 	sqlite3_stmt *stmt;
 	char charName[256] = { 0 }, temp[64] = { 0 };
-	int changedCredits = 0, charID = 0, accountID = 0, clientID = 33, loggedIn = 0, currentCredits = 0, newCreditsTotal = 0;
+	int changedCredits = 0, charID = 0, accountID = 0, clientID = 33, loggedIn = 0, newCreditsTotal = 0;
 
 	if (!G_CheckAdmin(ent, ADMIN_CREDITS))
 	{
@@ -2155,9 +2155,7 @@ void Cmd_GenerateCredits_F(gentity_t * ent)
 		sqlite3_finalize(stmt);
 	}
 
-	newCreditsTotal = currentCredits + changedCredits;
-
-	rc = sqlite3_exec(db, va("UPDATE Characters set Credits='%i' WHERE CharID='%i'", newCreditsTotal, charID), 0, 0, &zErrMsg);
+	rc = sqlite3_exec(db, va("UPDATE Characters set Credits='Credits+%i' WHERE CharID='%i'", changedCredits, charID), 0, 0, &zErrMsg);
 	if (rc != SQLITE_OK)
 	{
 		trap->Print("SQL error: %s\n", zErrMsg);
@@ -2168,8 +2166,8 @@ void Cmd_GenerateCredits_F(gentity_t * ent)
 
 	if (loggedIn)
 	{
-		trap->SendServerCommand(clientID, va("print \"^2You received some credits from an admin!\n\"", charName));
-		trap->SendServerCommand(clientID, va("cp \"^2You received some credits from an admin!\n\"", charName));
+		trap->SendServerCommand(clientID, "print \"^2You received some credits!\n\"");
+		trap->SendServerCommand(clientID, "cp \"^2You received some credits!\n\"");
 	}
 
 	trap->SendServerCommand(ent - g_entities, va("print \"^2%i credits have been generated and given to character %s.\n\"", changedCredits, charName));
@@ -4035,6 +4033,200 @@ void Cmd_Empower_F(gentity_t *ent)
 		G_LogPrintf("Unempower admin command executed by %s on %s.\n", ent->client->pers.netname, g_entities[clientid].client->pers.netname);
 		return;
 	}
+	return;
+}
+
+void Cmd_amGiveGun_F(gentity_t *ent)
+{
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc;
+	sqlite3_stmt *stmt;
+	char charName[256] = { 0 }, gunName[25] = { 0 };
+	int charID = 0, accountID = 0, clientID = 33, loggedIn = 0;
+
+	if (!G_CheckAdmin(ent, ADMIN_GUNITEMGIVE))
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"^1You are not allowed to use this command.\n\""));
+		return;
+	}
+
+	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
+	if (rc)
+	{
+		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
+		sqlite3_close(db);
+		return;
+	}
+
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^2Command Usage: /amGiveGun <characterName> <gunName>\n\"");
+		sqlite3_close(db);
+		return;
+	}
+
+	//Character name
+	trap->Argv(1, charName, sizeof(charName));
+
+	//Gun name
+	trap->Argv(2, gunName, sizeof(gunName));
+
+	Q_StripColor(charName);
+	Q_strlwr(charName);
+
+	rc = sqlite3_prepare_v2(db, va("SELECT CharID FROM Characters WHERE Name='%s'", charName), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		charID = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+	}
+
+	if (!charID)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"^1Character %s does not exist.\n\"", charName));
+		trap->SendServerCommand(ent - g_entities, va("cp \"^1Character %s does not exist.\n\"", charName));
+		sqlite3_close(db);
+		return;
+	}
+
+	rc = sqlite3_prepare_v2(db, va("SELECT AccountID FROM Characters WHERE CharID='%i'", charID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		accountID = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+	}
+	//ClientID so we can send them messages
+	rc = sqlite3_prepare_v2(db, va("SELECT ClientID FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		clientID = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+	}
+
+	rc = sqlite3_prepare_v2(db, va("SELECT LoggedIn FROM Accounts WHERE AccountID='%i'", accountID), -1, &stmt, NULL);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_ROW && rc != SQLITE_DONE)
+	{
+		trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return;
+	}
+	if (rc == SQLITE_ROW)
+	{
+		loggedIn = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+	}
+
+	if (!Q_stricmp(gunName, "bowcaster"))
+	{
+		Q_strncpyz(gunName, "Bowcaster", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "concussion"))
+	{
+		Q_strncpyz(gunName, "Concussion", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "demp2"))
+	{
+		Q_strncpyz(gunName, "Demp2", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "disruptor"))
+	{
+		Q_strncpyz(gunName, "Disruptor", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "e-11") || !Q_stricmp(gunName, "e11"))
+	{
+		Q_strncpyz(gunName, "E11", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "flechette"))
+	{
+		Q_strncpyz(gunName, "Flechette", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "pistol"))
+	{
+		Q_strncpyz(gunName, "Pistol", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "repeater"))
+	{
+		Q_strncpyz(gunName, "Repeater", sizeof(gunName));
+	}
+	else if (!Q_stricmp(gunName, "rocket"))
+	{
+		Q_strncpyz(gunName, "Rocket", sizeof(gunName));
+	}
+
+	rc = sqlite3_exec(db, va("UPDATE Characters set %s='%s+1' WHERE CharID='%i'", gunName, gunName, charID), 0, 0, &zErrMsg);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+		sqlite3_close(db);
+		return;
+	}
+
+	if (loggedIn)
+	{
+		trap->SendServerCommand(clientID, va("print \"^2You received a %s!\n\"", gunName));
+		trap->SendServerCommand(clientID, va("cp \"^2You received a %s!\n\"", gunName));
+	}
+
+	trap->SendServerCommand(ent - g_entities, va("print \"^2%s has been given to character %s.\n\"", gunName, charName));
+	trap->SendServerCommand(ent - g_entities, va("cp \"^2%s has been given to character %s.\n\"", gunName, charName));
+	sqlite3_close(db);
 	return;
 }
 

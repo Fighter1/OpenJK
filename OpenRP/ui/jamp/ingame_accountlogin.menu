@@ -246,7 +246,7 @@
 		{
 			name				loginFailed
 			group				main
-			text				"Login Failed"
+			text				"Incorrect username or password"
 			style				WINDOW_STYLE_EMPTY
 			rect				90 98 140 25
 			textalign			ITEM_ALIGN_LEFT		

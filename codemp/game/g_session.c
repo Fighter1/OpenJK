@@ -75,12 +75,6 @@ void G_WriteClientSessionData( gclient_t *client )
 	Q_strcat(s, sizeof(s), va("%i", client->sess.canUseCheatCmds));
 	Q_strcat(s, sizeof(s), va("%i", client->sess.trainingSaber));
 	Q_strcat(s, sizeof(s), va("%i", client->sess.trainingSaberLocked));
-	Q_strcat(s, sizeof(s), va("%i", client->sess.invitedFactionID));
-	Q_strcat(s, sizeof(s), va("%i", client->sess.isMerc));
-	Q_strcat(s, sizeof(s), va("%i", client->sess.isEmp));
-	Q_strcat(s, sizeof(s), va("%i", client->sess.SavedPowers));
-	Q_strcat(s, sizeof(s), va("%i", client->sess.SavedPowersLevels));
-	Q_strcat(s, sizeof(s), va("%i", client->sess.stunMode));
 
 	var = va( "session%i", client - level.clients );
 
@@ -103,7 +97,7 @@ void G_ReadSessionData( gclient_t *client )
 	var = va( "session%i", client - level.clients );
 	trap->Cvar_VariableStringBuffer( var, s, sizeof(s) );
 
-	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %s %s %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %s %s %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
 		&tempSessionTeam, //&client->sess.sessionTeam,
 		&client->sess.spectatorNum,
 		&tempSpectatorState, //&client->sess.spectatorState,
@@ -132,13 +126,7 @@ void G_ReadSessionData( gclient_t *client )
 		&client->sess.chatMode,
 		&client->sess.canUseCheatCmds,
 		&client->sess.trainingSaber,
-		&client->sess.trainingSaberLocked,
-		&client->sess.invitedFactionID,
-		&client->sess.isMerc,
-		&client->sess.isEmp,
-		&client->sess.SavedPowers,
-		&client->sess.SavedPowersLevels,
-		&client->sess.stunMode
+		&client->sess.trainingSaberLocked
 		);
 
 	client->sess.sessionTeam	= (team_t)tempSessionTeam;

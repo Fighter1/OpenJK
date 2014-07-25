@@ -232,6 +232,17 @@ void InitializeSQL(void)
 	if (columnFound)
 		columnFound = qfalse;
 
+	trap->Print("Ensuring that all LoggedIn values are set to 0.\n");
+
+	rc = sqlite3_exec(db, "UPDATE Accounts set LoggedIn='0' WHERE LoggedIn='1'", 0, 0, &zErrMsg);
+	if (rc != SQLITE_OK)
+	{
+		trap->Print("SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+		sqlite3_close(db);
+		return;
+	}
+
 	trap->Print("Done with Account table.\n");
 
 	//Create Bounty Table

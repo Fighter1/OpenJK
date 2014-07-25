@@ -32,7 +32,7 @@
 #define ADMIN_BOUNTY				268435456 // /bounty remove
 #define ADMIN_TOBLACK				536870912 // /amtoblack
 #define ADMIN_TRAININGSABER				1073741824 // Training saber related
-//#define ADMIN_FLAGS				2147483648 // Flag related commands
+#define ADMIN_GUNITEMGIVE				2147483648 // Giving guns/items related commands
 
 void AddSpawnField(char *field, char *value);
 void SP_fx_runner(gentity_t *ent);
@@ -100,4 +100,5 @@ void Cmd_Merc_F(gentity_t *ent);
 void SaveForcePowers(gentity_t *ent);
 void RestoreForcePowers(gentity_t *ent);
 void Cmd_Empower_F(gentity_t *ent);
+void Cmd_amGiveGun_F(gentity_t *ent);
 void Cmd_FrequencyCheck_F(gentity_t *ent);
