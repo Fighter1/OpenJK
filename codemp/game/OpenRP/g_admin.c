@@ -4230,37 +4230,3 @@ void Cmd_amGiveGun_F(gentity_t *ent)
 	return;
 }
 
-void Cmd_FrequencyCheck_F(gentity_t *ent)
-{
-	int i = 0;
-	char radioStatus[11] = { 0 };
-	gentity_t	*client;
-
-	if (!ent->client->sess.isAdmin)
-	{
-		trap->SendServerCommand(ent - g_entities, va("print \"^1You are not allowed to use this command.\n\""));
-		return;
-	}
-
-	trap->SendServerCommand(ent - g_entities, "print \"^2Frequency Check:\n\n\"");
-	for (i = 0; i < level.maxclients; i++)
-	{
-		client = g_entities + i;
-		if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
-		{
-			if (level.clients[i].sess.radioFrequency == -1)
-			{
-				trap->SendServerCommand(ent - g_entities, va("print \"^7%s - No Frequency Set\n\"", level.clients[i].pers.netname, level.clients[i].sess.radioFrequency));
-			}
-			else
-			{
-				if (level.clients[i].sess.radioOn)
-					Q_strncpyz(radioStatus, "Radio: On", sizeof(radioStatus));
-				else
-					Q_strncpyz(radioStatus, "Radio: Off", sizeof(radioStatus));
-				trap->SendServerCommand(ent - g_entities, va("print \"^7%s ^2- ^7%i ^2- ^7%s\n\"", level.clients[i].pers.netname, level.clients[i].sess.radioFrequency, radioStatus));
-			}
-		}
-	}
-	return;
-}

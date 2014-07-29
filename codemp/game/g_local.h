@@ -456,6 +456,8 @@ typedef struct clientSession_s {
 	qboolean    characterSelected;
 	int			characterID;
 	int			modelScale;
+
+
 	//OpenRP admin system stuff
 	qboolean	isAdmin;
 	int adminLevel;
@@ -470,7 +472,14 @@ typedef struct clientSession_s {
 	qboolean chatCommandExecuted;
 	qboolean isDisguised;
 	int chatMode;
-	float radioFrequency;
+
+	//OpenRP Radio Stuff
+	int		RadioDefaultFrequency;
+	int		RadioListenFrequency1;
+	int		RadioListenFrequency2;
+	char		RadioDefaultFrequencyKey[10];
+	char		RadioListenFrequency1Key[10];
+	char		RadioListenFrequency2Key[10];
 	qboolean radioOn;
 
 	char *entListNames[128][128];

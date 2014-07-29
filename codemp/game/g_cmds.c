@@ -4029,6 +4029,11 @@ void ClientCommand( int clientNum ) {
 		Cmd_Frequency_F(ent);
 		return;
 	}
+	if (!Q_stricmp(cmd, "addfrequency"))
+	{
+		Cmd_AddFrequency_F(ent);
+		return;
+	}
 	if (!Q_stricmp(cmd, "givecredits"))
 	{
 		Cmd_GiveCredits_F(ent);
@@ -4118,11 +4123,11 @@ void ClientCommand( int clientNum ) {
 		Cmd_amBan_F(ent);
 		return;
 	}
-	if (!Q_stricmp(cmd, "amcheckfrequency"))
-	{
-		Cmd_FrequencyCheck_F(ent);
-		return;
-	}
+	//if (!Q_stricmp(cmd, "amcheckfrequency"))
+	//{
+	//	Cmd_FrequencyCheck_F(ent);
+	//	return;
+	//}
 	if (!Q_stricmp(cmd, "amcheckstats"))
 	{
 		Cmd_CheckStats_F(ent);

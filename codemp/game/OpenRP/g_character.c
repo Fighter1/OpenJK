@@ -3737,25 +3737,38 @@ void Cmd_CharName_F(gentity_t * ent)
 
 void Cmd_Radio_F(gentity_t *ent)
 {
-	extern char	*ConcatArgs(int start);
+	extern char *ConcatsArgs(int start);
 	int pos = 0;
 	char real_msg[MAX_SAY_TEXT];
+	int i = 0, j = 0;
 	char *msg = ConcatArgs(1);
-	int i = 0, j = 0; //i = A player (possibly) on the same frequency as the speaker, or standing near the speaker. j = Player who is near a recipient of the radio message (so they will hear it too)
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc;
+	sqlite3_stmt *stmt;
+	trap->SendServerCommand(ent - g_entities, "print \"^2Command Entered\n\"");
+	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
+	if (rc)
+	{
+		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
+		sqlite3_close(db);
+		return;
+	}
+	trap->SendServerCommand(ent - g_entities, "print \"^2Database Stuff Complete\n\"");
 
-	if (ent->client->sess.isSilenced)
+	if (ent->client->sess.isSilenced) //Check if the user is silenced
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You are silenced and can't speak.\n\"");
 		trap->SendServerCommand(ent - g_entities, "cp \"^1You are silenced and can't speak.\n\"");
 		return;
 	}
-
-	if ( ent->client->sess.radioFrequency < 1 || ent->client->sess.radioFrequency > 100 )
+	if (ent->client->sess.RadioDefaultFrequency < 1 || ent->client->sess.RadioDefaultFrequency > 100)  //Check if the user has a valid frequency set
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^2Please set a frequency first using /frequency <number>.\nFrequencies can be any integer from 1-100.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^2Set a frequency using /frequency <number>.  Example: /frequency 52.75\n\"");
 		return;
 	}
-
+	trap->SendServerCommand(ent - g_entities, "print \"^2Silence/Frequency Check Complete\n\"");
 	while (*msg)
 	{
 		if (msg[0] == '\\' && msg[1] == 'n')
@@ -3769,120 +3782,307 @@ void Cmd_Radio_F(gentity_t *ent)
 		}
 		msg++;
 	}
-
 	real_msg[pos] = 0;
-
-	if (trap->Argc() < 2)
+	trap->SendServerCommand(ent - g_entities, "print \"^2*msg Complete\n\"");
+	if (trap->Argc() < 2) //Toggles radio on and off with no message
 	{
-		if (!ent->client->sess.radioOn)
+		if (ent->client->sess.radioOn == qtrue)
 		{
-			ent->client->sess.radioOn = qtrue;
-			trap->SendServerCommand(ent - g_entities, "print \"^2Radio is now ON.\n\"");
+			ent->client->sess.radioOn = qfalse;
+			trap->SendServerCommand(ent - g_entities, "print \"^2Radio turned OFF\n\"");
 			return;
 		}
 		else
 		{
-			ent->client->sess.radioOn = qfalse;
-			trap->SendServerCommand(ent - g_entities, "print \"^2Radio is now OFF.\n\"");
+			ent->client->sess.radioOn = qtrue;
+			trap->SendServerCommand(ent - g_entities, "print \"^2Radio turned ON.\n\"");
 			return;
 		}
 	}
-
-	if (!ent->client->sess.radioOn)
+	trap->SendServerCommand(ent - g_entities, "print \"^2Toggle not Entered\n\"");
+	if (ent->client->sess.radioOn == qfalse) //Checks if radio is on
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^1Your radio is off. Use /radio to turn it on.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^1Your radio is turned off. Use /radio to turn it on.\n\"");
 		return;
 	}
+	trap->SendServerCommand(ent - g_entities, "print \"^2Radio Toggle Check Complete\n\"");
+	trap->SendServerCommand(ent - g_entities, va("chat \"^4<Radio [%i]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg)); //Displays the message for the sender
 
-	//Make sure the person using the radio sees their own message.
-	trap->SendServerCommand(ent-g_entities, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
-		ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
-
-	if (!openrp_DistanceBasedChat.integer)
+	if (openrp_DistanceBasedChat.integer == 0)  //No distance based chat
 	{
 		for (i = 0; i < level.maxclients; i++)
 		{
-			if (ent->client->sess.radioFrequency == level.clients[i].sess.radioFrequency && (ent-g_entities) != i)
+			if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioDefaultFrequency && (ent - g_entities) != i)
 			{
-				//This person is on the same freq as the one who is talking, so they hear the talker
-				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
-					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+				if (ent->client->sess.RadioDefaultFrequencyKey == NULL || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioDefaultFrequencyKey))
+				{
+					trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+				}
 			}
+			else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency1 && (ent - g_entities) != i)
+			{
+				if (ent->client->sess.RadioDefaultFrequencyKey == NULL || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency1Key))
+				{
+					trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+				}
+			}
+			else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency2 && (ent - g_entities) != i)
+			{
+				if (ent->client->sess.RadioDefaultFrequencyKey == NULL || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency2Key))
+				{
+					trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+				}
+			}
+		}
+	}
+	else //Distance based chat
+	{
+
+	}
+
+
+	return;
+
+}
+
+void Cmd_Frequency_F(gentity_t *ent)
+{
+	char frequencyTemp[5]; //Input from command for use as a frequency ex. 15.33
+	char frequencyEncr[10]; //Input from command for use as a key ex. ayg3314dga
+	int frequencyChange = 0; //frequencyTemp as an int
+
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc;
+	sqlite3_stmt *stmt;
+	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
+	if (rc)
+	{
+		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
+		sqlite3_close(db);
+		return;
+	}
+
+	//Check to see if the input is within valid ranges
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%f\n\"", ent->client->sess.RadioDefaultFrequency));
+		trap->SendServerCommand(ent - g_entities, "print \"^3Remember: To set your frequency use /frequency <frequency> [key]\n^3Frequencies must be from 1 to 100. Example: /frequency 43\n\"");
+		return;
+	}
+	trap->Argv(1, frequencyTemp, sizeof(frequencyTemp));
+	frequencyChange = atoi(frequencyTemp);
+	if (frequencyChange < 1 || frequencyChange > 100)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 1 to 100. Example: /frequency 43\n\"");
+		return;
+	}
+	//------------Check Complete------------
+
+	if (trap->Argc() == 2) //No input for encryption key
+	{
+		ent->client->sess.RadioDefaultFrequency = frequencyChange;
+		Q_strncpyz(ent->client->sess.RadioDefaultFrequencyKey, " ", sizeof(ent->client->sess.RadioDefaultFrequencyKey));
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Default frequency set to ^7%i.\n ^2Unencrypted\n\"", frequencyChange));
+		rc = sqlite3_exec(db, va("UPDATE Characters set RadioDefaultFrequency='%i' WHERE AccountID='%i'", frequencyChange, ent->client->sess.accountID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+		rc = sqlite3_exec(db, va("UPDATE Characters set RadioDefaultFrequencyKey=' ' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+		return;
+	}
+	else //Input for encryption key
+	{
+		trap->Argv(2, frequencyEncr, sizeof(frequencyEncr));
+		Q_strncpyz(ent->client->sess.RadioDefaultFrequencyKey, frequencyEncr, sizeof(ent->client->sess.RadioDefaultFrequency));
+		ent->client->sess.RadioDefaultFrequency = frequencyChange;
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Default frequency set to ^7%i.\n^2Encryption Key is ^7%s\"", frequencyChange, frequencyEncr));
+		rc = sqlite3_exec(db, va("UPDATE Characters set RadioDefaultFrequency='%i' WHERE AccountID='%i'", frequencyChange, ent->client->sess.accountID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+
+		rc = sqlite3_exec(db, va("UPDATE Characters set RadioDefaultFrequencyKey='%s' WHERE AccountID='%i'", frequencyEncr, ent->client->sess.accountID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+		return;
+	}
+	trap->SendServerCommand(ent - g_entities, "print \"^1Unknown Error, contact Fighter\n\"");
+	return;
+}
+
+void Cmd_AddFrequency_F(gentity_t *ent)  //  /AddFrequency <Slot> <Frequency> <Key>
+{
+	char tempslot[5];
+	int slot;
+	char tempfrequency[5];
+	int frequency;
+	char key[10];
+
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc;
+	sqlite3_stmt *stmt;
+	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
+	if (rc)
+	{
+		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
+		sqlite3_close(db);
+		return;
+	}
+
+	//Input Checks 
+	if (trap->Argc() < 3)
+	{
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%i\n\"", ent->client->sess.RadioListenFrequency1));
+		trap->SendServerCommand(ent - g_entities, "print \"^3Remember: To add a frequency use /addfrequency <1/2> <Frequency> [Key]\n^3Frequencies must be from 1 to 100. Example: /addfrequency 1 43\n\"");
+		return;
+	}
+	trap->Argv(1, tempslot, sizeof(tempslot));
+	slot = atoi(tempslot);
+	trap->Argv(2, tempfrequency, sizeof(tempfrequency));
+	frequency = atoi(tempfrequency);
+
+
+	if (slot < 1 || slot > 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^1Slot must be 1 or 2. Example: /addfrequency 1 43\n\"");
+		return;
+	}
+	if (frequency < 1 || frequency > 100)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 1 to 100. Example: /addfrequency 1 43\n\"");
+		return;
+	}
+	//Checks Complete
+
+	if (slot == 1)
+	{
+		if (trap->Argc() == 3) //No input for encryption key
+		{
+			ent->client->sess.RadioListenFrequency1 = frequency;
+			Q_strncpyz(ent->client->sess.RadioListenFrequency1Key, " ", sizeof(ent->client->sess.RadioListenFrequency1Key));
+			trap->SendServerCommand(ent - g_entities, va("print \"^2Listen frequency 1 set to ^7%i.\n^2Unencrypted\n\"", frequency));
+
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency1='%i' WHERE AccountID='%i'", frequency, ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
+			{
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
+			}
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency1Key=' ' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
+			{
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
+			}
+			return;
+		}
+		else  //Input for encryption key
+		{
+			trap->Argv(3, key, sizeof(key));
+			ent->client->sess.RadioListenFrequency1 = frequency;
+			Q_strncpyz(ent->client->sess.RadioListenFrequency1Key, key, sizeof(ent->client->sess.RadioListenFrequency1Key));
+			trap->SendServerCommand(ent - g_entities, va("print \"^2 Listen frequency 1 set to ^7%i.\n ^2Encryption Key is ^7%s\"", frequency, key));
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency1='%i' WHERE AccountID='%i'", frequency, ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
+			{
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
+			}
+
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency1Key='%s' WHERE AccountID='%i'", key, ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
+			{
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
+			}
+			return;
 		}
 	}
 	else
 	{
-		for (i = 0; i < level.maxclients; i++)
+		if (trap->Argc() == 3) //No input for encryption key
 		{
-			if (level.clients[i].sess.sessionTeam == TEAM_SPECTATOR || level.clients[i].tempSpectate >= level.time)
-				continue;
+			ent->client->sess.RadioListenFrequency2 = frequency;
+			Q_strncpyz(ent->client->sess.RadioListenFrequency2Key, " ", sizeof(ent->client->sess.RadioListenFrequency2Key));
+			trap->SendServerCommand(ent - g_entities, va("print \"^2 Listen frequency 2 set to ^7%i.\n ^2Unencrypted\n\"", frequency));
 
-			//Check the distance from speaker to other players to see if any of them are near the speaker
-			if (Distance(ent->client->ps.origin, level.clients[i].ps.origin) <= 600 && (ent-g_entities) != i)
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency2='%i' WHERE AccountID='%i'", frequency, ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
 			{
-				trap->SendServerCommand(i, va("chat \"^7<Talking on Their Radio> ^7%s^7: %s\"", ent->client->pers.netname, real_msg));
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
 			}
-			else
-				continue;
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency2Key=' ' WHERE AccountID='%i'", ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
+			{
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
+			}
+			return;
 		}
-
-		//Check if any players are on the same frequency as the speaker
-		for (i = 0; i < level.maxclients; i++)
+		else  //Input for encryption key
 		{
-			if (ent->client->sess.radioFrequency == level.clients[i].sess.radioFrequency && i != ent - g_entities)
+			trap->Argv(3, key, sizeof(key));
+			ent->client->sess.RadioListenFrequency2 = frequency;
+			Q_strncpyz(ent->client->sess.RadioListenFrequency2Key, key, sizeof(ent->client->sess.RadioListenFrequency2Key));
+			trap->SendServerCommand(ent - g_entities, va("print \"^2 Listen frequency 2 set to ^7%i.\n ^2Encryption Key is ^7%s\"", frequency, key));
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency2='%i' WHERE AccountID='%i'", frequency, ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
 			{
-				trap->SendServerCommand(i, va("chat \"^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
-					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
-
-				if (ent->client->sess.radioFrequency != level.clients[i].sess.radioFrequency && level.clients[i].sess.allChat)
-				{
-					trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
-						ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
-				}
-
-				for (j = 0; j < level.maxclients; j++)
-				{
-					//Check the distance from a player receiving the radio chatter (i) to other players (j) to see if any are near the recipient
-					//We could add j != ent-g_entities too so the original player who is talking over the radio doesn't see this
-					//However it's more realistic this way
-					if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 600 && i != j)
-						trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s's ^4radio> ^4%s\"", level.clients[i].pers.netname, real_msg));
-				}
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
 			}
 
-			if (level.clients[i].sess.allChatComplete)
+			rc = sqlite3_exec(db, va("UPDATE Characters set RadioListenFrequency2Key='%s' WHERE AccountID='%i'", key, ent->client->sess.accountID), 0, 0, &zErrMsg);
+			if (rc != SQLITE_OK)
 			{
-				trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^4: %s\"",
-					ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+				trap->Print("SQL error: %s\n", zErrMsg);
+				sqlite3_free(zErrMsg);
+				sqlite3_close(db);
+				return;
 			}
+			return;
 		}
 	}
-	return;
-}
-
-
-void Cmd_Frequency_F(gentity_t *ent)
-{
-	char frequencyTemp[4];
-	float frequencyChange = 0;
-
-	if (trap->Argc() < 2)
-	{
-		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%f\n\"", ent->client->sess.radioFrequency));
-		trap->SendServerCommand(ent - g_entities, "print \"^3Remember: To set your frequency use /frequency <frequency>\nFrequencies must be from 1 to 100. Example: /frequency 43\n\"");
-		return;
-	}
-
-	trap->Argv(1, frequencyTemp, sizeof(frequencyTemp));
-	frequencyChange = atof(frequencyTemp);
-
-	if (frequencyChange < 1 || frequencyChange > 100)
-	{
-		trap->SendServerCommand(ent - g_entities, "print \"^1Frequencies must be from 1 to 100. Example: /frequency 43.74\n\"");
-		return;
-	}
-	ent->client->sess.radioFrequency = frequencyChange;
-	trap->SendServerCommand(ent - g_entities, va("print \"^2Frequency set to ^7%f\n\"", frequencyChange));
+	trap->SendServerCommand(ent - g_entities, "print \"^1Unknown Error, contact Fighter\n\"");
 	return;
 }
 

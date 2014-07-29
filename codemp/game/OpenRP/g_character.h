@@ -19,6 +19,7 @@ void Cmd_ForceMessage_F(gentity_t *ent);
 void Cmd_Faction_F(gentity_t * ent);
 void Cmd_SetFactionRank_F(gentity_t * ent);
 void Cmd_Frequency_F(gentity_t *ent);
+void Cmd_AddFrequency_F(gentity_t *ent);
 void Cmd_FactionLeave_F(gentity_t *ent);
 void Cmd_FactionInvite_F(gentity_t *ent);
 void Cmd_FactionInviteAccept_F(gentity_t *ent);
