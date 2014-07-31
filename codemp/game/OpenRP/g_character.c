@@ -3746,7 +3746,6 @@ void Cmd_Radio_F(gentity_t *ent)
 	char *zErrMsg = 0;
 	int rc;
 	sqlite3_stmt *stmt;
-	trap->SendServerCommand(ent - g_entities, "print \"^2Command Entered\n\"");
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
@@ -3755,8 +3754,6 @@ void Cmd_Radio_F(gentity_t *ent)
 		sqlite3_close(db);
 		return;
 	}
-	trap->SendServerCommand(ent - g_entities, "print \"^2Database Stuff Complete\n\"");
-
 	if (ent->client->sess.isSilenced) //Check if the user is silenced
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You are silenced and can't speak.\n\"");
@@ -3768,7 +3765,6 @@ void Cmd_Radio_F(gentity_t *ent)
 		trap->SendServerCommand(ent - g_entities, "print \"^2Set a frequency using /frequency <number>.  Example: /frequency 52.75\n\"");
 		return;
 	}
-	trap->SendServerCommand(ent - g_entities, "print \"^2Silence/Frequency Check Complete\n\"");
 	while (*msg)
 	{
 		if (msg[0] == '\\' && msg[1] == 'n')
@@ -3783,7 +3779,6 @@ void Cmd_Radio_F(gentity_t *ent)
 		msg++;
 	}
 	real_msg[pos] = 0;
-	trap->SendServerCommand(ent - g_entities, "print \"^2*msg Complete\n\"");
 	if (trap->Argc() < 2) //Toggles radio on and off with no message
 	{
 		if (ent->client->sess.radioOn == qtrue)
@@ -3799,51 +3794,104 @@ void Cmd_Radio_F(gentity_t *ent)
 			return;
 		}
 	}
-	trap->SendServerCommand(ent - g_entities, "print \"^2Toggle not Entered\n\"");
 	if (ent->client->sess.radioOn == qfalse) //Checks if radio is on
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1Your radio is turned off. Use /radio to turn it on.\n\"");
 		return;
 	}
-	trap->SendServerCommand(ent - g_entities, "print \"^2Radio Toggle Check Complete\n\"");
-	trap->SendServerCommand(ent - g_entities, va("chat \"^4<Radio [%i]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg)); //Displays the message for the sender
+	trap->SendServerCommand(ent - g_entities, va("chat \"^4<Radio [%i]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg)); //Displays the message for the sender
 
-	if (openrp_DistanceBasedChat.integer == 0)  //No distance based chat
+
+	for (i = 0; i < level.maxclients; i++)
 	{
-		for (i = 0; i < level.maxclients; i++)
+		if (level.clients[i].sess.allChatComplete)
 		{
-			if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioDefaultFrequency && (ent - g_entities) != i)
+			trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^7: ^2%s\"", ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+		}		
+		if (level.clients[i].sess.sessionTeam == TEAM_SPECTATOR || level.clients[i].tempSpectate >= level.time)
+		{
+			continue;
+		}
+		if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
+		{
+			if (Distance(ent->client->ps.origin, level.clients[i].ps.origin) <= 600 && (ent - g_entities) != i)
 			{
-				if (ent->client->sess.RadioDefaultFrequencyKey == NULL || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioDefaultFrequencyKey))
+				trap->SendServerCommand(i, va("chat \"^7<Talking on Their Radio> ^7%s^7: ^2%s\"", ent->client->pers.netname, real_msg));
+			}
+		}
+		if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioDefaultFrequency && (ent - g_entities) != i)
+		{
+			if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioDefaultFrequencyKey))
+			{
+				trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+				if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
 				{
-					trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+					for (j = 0; j < level.maxclients; j++)
+					{
+						if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 300 && i != j)
+						{
+							trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s^7's ^4radio>^7: ^2%s\"", level.clients[i].pers.netname, real_msg));
+						}
+					}
 				}
 			}
-			else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency1 && (ent - g_entities) != i)
+			else
 			{
-				if (ent->client->sess.RadioDefaultFrequencyKey == NULL || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency1Key))
+				trap->SendServerCommand(i, "print \^4Garbled Transmission\n\"");
+			}
+		}
+		else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency1 && (ent - g_entities) != i)
+		{
+			if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency1Key))
+			{
+				trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+				if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
 				{
-					trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+					for (j = 0; j < level.maxclients; j++)
+					{
+						if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 300 && i != j)
+						{
+							trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s^7's ^4radio>^7: ^2%s\"", level.clients[i].pers.netname, real_msg));
+						}
+					}
 				}
 			}
-			else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency2 && (ent - g_entities) != i)
+			else
 			{
-				if (ent->client->sess.RadioDefaultFrequencyKey == NULL || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency2Key))
+				trap->SendServerCommand(i, "print \^4Garbled Transmission\n\"");
+			}
+		}
+		else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency2 && (ent - g_entities) != i)
+		{
+			if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency2Key))
+			{
+				trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+				if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
 				{
-					trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
+					for (j = 0; j < level.maxclients; j++)
+					{
+						if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 300 && i != j)
+						{
+							trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s^7's ^4radio>^7: ^2%s\"", level.clients[i].pers.netname, real_msg));
+						}
+					}
 				}
+			}
+			else
+			{
+				trap->SendServerCommand(i, "print \^4Garbled Transmission\n\"");
 			}
 		}
 	}
-	else //Distance based chat
-	{
 
-	}
+
 
 
 	return;
-
 }
+
+
+
 
 void Cmd_Frequency_F(gentity_t *ent)
 {
