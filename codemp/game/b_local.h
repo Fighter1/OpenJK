@@ -38,6 +38,9 @@ void SaveNPCGlobals(void);
 void RestoreNPCGlobals(void);
 extern void NPC_Think ( gentity_t *self);
 
+//ClanMod - NPC Order
+extern QINLINE qboolean IsMeleeWeapon(int weapon);
+
 //NPC_reactions.cpp
 extern void NPC_Pain(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Touch( gentity_t *self, gentity_t *other, trace_t *trace );
@@ -49,6 +52,9 @@ extern float NPC_GetPainChance( gentity_t *self, int damage );
 //
 extern void Debug_Printf( vmCvar_t *cv, int level, char *fmt, ... );
 extern void Debug_NPCPrintf( gentity_t *printNPC, vmCvar_t *cv, int debugLevel, char *fmt, ... );
+
+//ClanMod - Order NPC
+extern void NPC_RestoreStats(gentity_t *self);
 
 //MCG - Begin============================================================
 //NPC_ai variables - shared by NPC.cpp and the following modules
@@ -198,6 +204,8 @@ extern qboolean NAV_CheckAhead( gentity_t *self, vec3_t end, trace_t *trace, int
 
 //NPC_combat
 extern float IdealDistance ( gentity_t *self );
+//ClanMod - Order NPC
+extern void NPC_KyleChooseWeapon(void);
 
 //g_squad
 extern void NPC_SetSayState (gentity_t *self, gentity_t *to, int saying);

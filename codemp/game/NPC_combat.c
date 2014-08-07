@@ -14,6 +14,86 @@ extern qboolean PM_DroidMelee( int npc_class );
 
 void ChangeWeapon( gentity_t *ent, int newWeapon );
 
+//ClanMod - Order NPC
+QINLINE qboolean IsMeleeWeapon(int weapon)
+{
+	if (weapon == WP_SABER
+		|| weapon == WP_MELEE
+		|| weapon == WP_STUN_BATON)
+		return qtrue;
+
+	return qfalse;
+}
+
+void NPC_KyleChooseWeapon(void)
+{
+	float	enemyDist;
+	int i;
+	qboolean	nonStaticWeap = qfalse;
+
+	if (!NPCS.NPC->enemy)
+		return;
+
+	if (Q_irand(0, 1))
+		NPCS.NPCInfo->scriptFlags &= ~SCF_ALT_FIRE;
+	else
+		NPCS.NPCInfo->scriptFlags |= SCF_ALT_FIRE;
+
+	enemyDist = DistanceSquared(NPCS.NPC->r.currentOrigin, NPCS.NPC->enemy->r.currentOrigin);
+
+	if (enemyDist < (128 * 128))
+	{
+		if (HaveWeapon(WP_SABER))
+		{
+			NPC_ChangeWeapon(WP_SABER);
+			NPCS.NPCInfo->scriptFlags &= ~SCF_ALT_FIRE;
+			return;
+		}
+		else if (HaveWeapon(WP_STUN_BATON) && !Q_irand(0, 2))
+		{
+			NPC_ChangeWeapon(WP_STUN_BATON);
+			return;
+		}
+		else if (HaveWeapon(WP_MELEE) && !Q_irand(0, 3))
+		{
+			NPC_ChangeWeapon(WP_MELEE);
+			return;
+		}
+	}
+
+	for (i = WP_BRYAR_PISTOL; i < (WP_CONCUSSION + 1); i++)
+	{
+		if (HaveWeapon(i))
+		{
+			if (i != WP_TRIP_MINE && i != WP_DET_PACK)
+				nonStaticWeap = qtrue;
+
+			if (!Q_irand(0, 8))
+			{
+				NPC_ChangeWeapon(i);
+				break;
+			}
+		}
+	}
+
+	if (i == WP_TRIP_MINE || i == WP_DET_PACK)
+		if (nonStaticWeap)
+		{
+			for (i = WP_CONCUSSION; i >= WP_SABER; i--)
+			{
+				if (HaveWeapon(i))
+				{
+					if (i == WP_TRIP_MINE || i == WP_DET_PACK)
+						continue;
+
+					NPC_ChangeWeapon(i);
+					break;
+				}
+			}
+		}
+}
+
+
 void G_ClearEnemy (gentity_t *self)
 {
 	NPC_CheckLookTarget( self );

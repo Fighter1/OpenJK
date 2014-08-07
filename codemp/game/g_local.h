@@ -145,6 +145,55 @@ typedef enum
 	HL_MAX
 } hitLocation_t;
 
+//ClanMod - NPC Order
+#define MAX_GEN_NPCTYPES 32
+#define MAX_GEN_COUNT 32
+#define MAX_GEN_FIRSTGOALS 8
+
+typedef gentity_t	*pgentity_t;
+typedef struct gnpcgentype_s
+{
+	int			luck;
+	char		*type;
+} gnpcgentype_t;
+
+typedef struct gnpcgen_s
+{
+	gnpcgentype_t	npcTypes[MAX_GEN_NPCTYPES];
+	int				totalLuck;
+
+	int			max2; //RoAR mod NOTE: This is our MAX linux busted function
+	int			interval;
+
+	int			numFirstGoals;
+	vec3_t		firstGoal[MAX_GEN_FIRSTGOALS];
+
+	int			lastSpawn;
+
+	int			numSpawned;
+	pgentity_t	spawned[MAX_GEN_COUNT];
+
+} gnpcgen_t;
+
+gnpcgen_t	*NPCG_New();
+void		NPCG_Free(gnpcgen_t *gen);
+
+void	NPCG_RefreshTotalLuck(gnpcgen_t *gen);
+void	NPCG_AddType(int luck, const char *type, qboolean refresh, gnpcgen_t *gen);
+void	NPCG_ParseTypes(const char **p, gnpcgen_t *gen);
+void	NPCG_ParseGoals(const char **p, gnpcgen_t *gen);
+
+void	NPCG_Spawn(gentity_t *self);
+void	NPCG_RemoveNPC(gentity_t *ent, gnpcgen_t *gen);
+
+gnpcgentype_t	*NPCG_RandomNPC(gnpcgen_t *gen);
+int		NPCG_ChooseGoal(gnpcgen_t *gen);
+
+int		NPCG_TypeCount(gnpcgen_t *gen);
+
+//int		NPCG_GetSpawnEffect( gentity_t *ent, float prob );
+
+
 //============================================================================
 extern void *precachedKyle;
 extern void *g2SaberInstance;
@@ -497,7 +546,7 @@ typedef struct clientSession_s {
 
 	qboolean isEmote;
 
-	int skillPoints;
+	int skillpoints;
 
 	qboolean alarm;
 
@@ -628,6 +677,9 @@ typedef struct renderInfo_s
 
 	int			boltValidityTime;
 } renderInfo_t;
+
+//ClanMod - NPC Order
+typedef gentity_t *follower_t;
 
 // this structure is cleared on each ClientSpawn(),
 // except for 'client->pers' and 'client->sess'
@@ -844,7 +896,55 @@ struct gclient_s {
 		int		drainDebounce;
 		int		lightningDebounce;
 	} force;
+
+	//ClanMod - NPC Order
+#define MAX_FOLLOWERS 64
+
+	gentity_t	*playerLeader;
+
+	follower_t	plFollower[MAX_FOLLOWERS];
+	int			numPlFollowers;
+
+	//----CoopMod : ICARUS----
+	qboolean	noFallDamage;	//Si c true le NPC ne prend pas de dommage en tombant(ex. : t3_rift)
+	int			enemyLastSeenTime2;
 };
+
+typedef void (NPCORDER_FUNC)(gentity_t *ent, qboolean init);
+
+typedef struct orderNPC_s
+{
+	char			*name;
+	char			*description;
+
+	NPCORDER_FUNC	*order;
+
+} orderNPC_t;
+
+extern orderNPC_t orderNPCTable[];
+NPCORDER_FUNC *NPCF_GetOrderForName(const char *name);
+
+int NPCF_MaxFollowers();
+
+void NPCF_Add(gentity_t *self, gentity_t *ent);
+qboolean NPCF_Remove(gentity_t *self, gentity_t *ent);
+void NPCF_Drop(gentity_t *self, gentity_t *ent);
+void NPCF_DropAll(gentity_t *self);
+void NPCF_Recruit(gentity_t *self, gentity_t *ent);	//recrute ou vire
+
+void NPCF_DynamicBehavior(void);	//utilises NPC, NPCInfo, ..
+void NPCF_ProtectLeader(gentity_t *self, gentity_t *attacker);
+
+void NPCF_Order(gentity_t *self, gentity_t *ent, NPCORDER_FUNC *order, qboolean init);	//c lourd le init
+void NPCF_OrderToAll(gentity_t *self, NPCORDER_FUNC *order);
+
+//différents ordres
+void NPCF_O_Attack(gentity_t *ent, qboolean init);
+void NPCF_O_StayHere(gentity_t *ent, qboolean init);
+void NPCF_O_Follow(gentity_t *ent, qboolean init);
+//void NPCF_O_Defend( gentity_t *ent, qboolean init );
+void NPCF_O_JetpackGo(gentity_t *ent, qboolean init);	//pour Boba et cie
+
 
 //Interest points
 

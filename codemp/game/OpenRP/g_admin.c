@@ -1345,7 +1345,6 @@ void Cmd_GiveAdmin_F(gentity_t *ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -1570,7 +1569,6 @@ void Cmd_RemoveAdmin_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -1814,7 +1812,6 @@ void Cmd_GiveSkillPoints_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -2037,7 +2034,6 @@ void Cmd_GenerateCredits_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -2201,7 +2197,6 @@ void Cmd_CreateFaction_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -2348,7 +2343,6 @@ void Cmd_SetFaction_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -2604,7 +2598,6 @@ void Cmd_FactionGenerateCredits_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -3348,12 +3341,10 @@ void Cmd_LockSaberSetting_F(gentity_t *ent)
 	char charName[256] = { 0 };
 	int charID = 0, accountID = 0, clientID = 33, loggedIn = 0, i = 0;
 
-	//The database is not connected. Please do so.
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -3564,12 +3555,10 @@ void Cmd_AddFlag_F( gentity_t * ent )
 	char charName[256] = { 0 }, flag[64] = { 0 };
 	int charID = 0, accountID = 0, clientID = 33, loggedIn = 0, i = 0;
 
-	//The database is not connected. Please do so.
 	rc = sqlite3_open( (const char*)openrp_databasePath.string, &db );
 	if(rc)
 	{
 		trap->Print( "Can't open database: %s\n", sqlite3_errmsg( db ) );
-		trap->SendServerCommand( ent-g_entities, "print \"^1The server's database is not connected.\n\"" );
 		sqlite3_close( db );
 		return;
 	}
@@ -4055,7 +4044,6 @@ void Cmd_amGiveGun_F(gentity_t *ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}

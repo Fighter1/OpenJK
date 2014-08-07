@@ -12,12 +12,10 @@ void InitializeSQL(void)
 	int rc;
 	qboolean columnFound = qfalse;
 
-	//The database is not connected. Please do so.
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		//trap->SendServerCommand( ent-g_entities, "print \"^1The server's database is not connected.\n\"" );
 		sqlite3_close(db);
 		return;
 	}
@@ -1422,12 +1420,10 @@ void Cmd_TrainingSaber_F(gentity_t *ent)
 	char charName[256] = { 0 };
 	int charID = 0, accountID = 0, clientID = -1, loggedIn = 0, i = 0;
 
-	//The database is not connected. Please do so.
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -1680,4 +1676,130 @@ void Cmd_StunMode_F(gentity_t * ent)
 		trap->SendServerCommand(-1, va("chat \"^2You have ^7deactiveated ^2stun mode.\n\"", ent->client->pers.netname));
 	}
 	return;
+}
+
+//Credit to ClanMod for NPC Order command and related code
+void Cmd_OrderNPC_f(gentity_t *ent)
+{
+	NPCORDER_FUNC	*order;
+	char			buffer[MAX_TOKEN_CHARS];
+	qboolean		applyOrder[MAX_FOLLOWERS];
+	int				i, index = -1;
+	qboolean		found = qfalse;
+
+	if (trap->Argc() < 2)
+	{
+		orderNPC_t *type;
+		trap->SendServerCommand(ent - g_entities, "print \"usage: ordernpc *ordertype* [ *npcclass or npcname* [ *number* ] ]\npossible values for *ordertype* are :\n\"");
+		type = orderNPCTable;
+		while (type->order)
+		{
+			trap->SendServerCommand(ent - g_entities, va("print \"'%s' - %s\n\"", type->name, type->description));
+			type++;
+		}
+		return;
+	}
+
+	if (!ent->client->numPlFollowers)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"you don't have any follower!\n\"");
+		return;
+	}
+
+	trap->Argv(1, buffer, sizeof(buffer));
+	order = NPCF_GetOrderForName(buffer);
+	if (!order)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"invalid order!\n\"");
+		return;
+	}
+
+	//pour tous
+	if (trap->Argc() == 2)
+	{
+		NPCF_OrderToAll(ent, order);
+		return;
+	}
+
+	memset(buffer, 0, sizeof(buffer));
+	trap->Argv(2, buffer, sizeof(buffer));
+
+	for (i = 0; i < ent->client->numPlFollowers; i++)
+	{
+		gentity_t *fwr = ent->client->plFollower[i];
+
+		applyOrder[i] = qfalse;
+
+		if (!Q_stricmp(buffer, fwr->targetname))
+		{
+			NPCF_Order(ent, fwr, order, qtrue);
+			return;
+		}
+
+		//if ( !Q_wildmat( fwr->NPC_type, buffer ) )
+		//{
+		applyOrder[i] = qtrue;
+		found = qtrue;
+		//}
+	}
+
+	if (!found)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"NPC not recognized!\n\"");
+		return;
+	}
+
+	if (trap->Argc() > 3)
+	{
+		memset(buffer, 0, sizeof(buffer));
+		trap->Argv(3, buffer, sizeof(buffer));
+		index = atoi(buffer);
+
+		if (index < 0)
+			index = 0;
+	}
+
+	if (index == -1)
+	{
+		for (i = 0; i < ent->client->numPlFollowers; i++)
+		{
+			gentity_t *fwr = ent->client->plFollower[i];
+
+			if (!applyOrder[i])
+				continue;
+
+			if (index == -1)
+			{
+				NPCF_Order(ent, fwr, order, qtrue);
+				index = 0;
+			}
+			else
+			{
+				NPCF_Order(ent, fwr, order, qfalse);
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < ent->client->numPlFollowers; i++)
+		{
+			gentity_t *fwr = ent->client->plFollower[i];
+
+			if (!applyOrder[i])
+				continue;
+
+			if (!index)
+			{
+				NPCF_Order(ent, fwr, order, qtrue);
+				break;
+			}
+
+			index--;
+		}
+	}
+
+	if (index > 0)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Bad NPC Index!\n\"");
+	}
 }

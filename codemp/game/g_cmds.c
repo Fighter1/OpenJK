@@ -4021,7 +4021,7 @@ void ClientCommand( int clientNum ) {
 	}
 	if (!Q_stricmp(cmd, "force"))
 	{
-		Cmd_ForceMessage_F(ent);
+		Cmd_ForceBondMessage_F(ent);
 		return;
 	}
 	if (!Q_stricmp(cmd, "frequency"))
@@ -4347,6 +4347,11 @@ void ClientCommand( int clientNum ) {
 	if (!Q_stricmp(cmd, "listadmins"))
 	{
 		Cmd_ListAdmins_F(ent);
+		return;
+	}
+	if (!Q_stricmp(cmd, "ordernpc"))
+	{
+		Cmd_OrderNPC_f(ent);
 		return;
 	}
 	if (!Q_stricmp(cmd, "roll"))

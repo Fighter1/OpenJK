@@ -9,3 +9,4 @@ void Cmd_AutoWalk_F(gentity_t *ent);
 void InitializeSQL(void);
 void Cmd_Roll_F(gentity_t *ent);
 void Cmd_StunMode_F(gentity_t * ent);
+void Cmd_OrderNPC_f(gentity_t *ent);

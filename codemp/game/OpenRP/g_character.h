@@ -15,7 +15,7 @@ void Cmd_EditCharacter_F(gentity_t * ent);
 void Cmd_Bounty_F(gentity_t * ent);
 void Cmd_CharName_F(gentity_t * ent);
 void Cmd_Radio_F(gentity_t *ent);
-void Cmd_ForceMessage_F(gentity_t *ent);
+void Cmd_ForceBondMessage_F(gentity_t *ent);
 void Cmd_Faction_F(gentity_t * ent);
 void Cmd_SetFactionRank_F(gentity_t * ent);
 void Cmd_Frequency_F(gentity_t *ent);

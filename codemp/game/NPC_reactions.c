@@ -1088,8 +1088,14 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 			NPC_UseResponse( self, other, qfalse );
 		}
 	}
-
-	RestoreNPCGlobals();
+	//ClanMod - NPC Order
+	if (!other || !other->client || (self->client->NPC_class == CLASS_JAWA && !self->client->ps.stats[STAT_WEAPONS]))
+		RestoreNPCGlobals();
+	else
+	{ 
+		NPCF_Recruit(other, self);
+		RestoreNPCGlobals();
+	}
 }
 
 void NPC_CheckPlayerAim( void )

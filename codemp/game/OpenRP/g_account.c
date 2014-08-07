@@ -22,7 +22,6 @@ void CheckAdmin(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -111,7 +110,6 @@ void Cmd_Login_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -271,7 +269,6 @@ void Cmd_CheckAdminDB_F(gentity_t *ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -331,7 +328,6 @@ void Cmd_Logout_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -434,7 +430,6 @@ void Cmd_Register_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -565,7 +560,6 @@ void Cmd_AccountInfo_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -791,7 +785,6 @@ void Cmd_EditAccount_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -886,7 +879,6 @@ void Cmd_AccountName_F(gentity_t * ent)
 	if (rc)
 	{
 		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
-		trap->SendServerCommand(ent - g_entities, "print \"^1The server's database is not connected.\n\"");
 		sqlite3_close(db);
 		return;
 	}

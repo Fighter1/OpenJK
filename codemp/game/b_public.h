@@ -193,6 +193,9 @@ typedef struct
 
 	//stats
 	gNPCstats_t	stats;
+	//ClanMod - NPC Order
+	//NPCMod : vraies stats, les autres sont déformées à chaque frames pour améliorer l'IA
+	gNPCstats_t	rstats;
 	int			aimErrorDebounceTime;
 	float		lastAimErrorYaw;
 	float		lastAimErrorPitch;
@@ -258,6 +261,23 @@ typedef struct
 	int			ffireCount;		//sigh... you'd think I'd be able to find a way to do this without having to use 3 int fields, but...
 	int			ffireDebounce;
 	int			ffireFadeDebounce;
+
+	//ClanMod - NPC Order
+	int			keepTeam;		//1er bit = isNeutral ;4 et 5 = enemyTeam
+
+	float					lastAltitud;
+
+	//nouveau sys de navigation en vol
+	qboolean				shouldJetOn;	//FIXME : utiliser TIMER_Done2 et TIMER_Remove à la place
+	int						special;
+	int						jediAggression;
+	int						lastRightMove;
+	float					flySpeed;
+	vec3_t					lastFlyDir;	//dernière poussée quoi
+	short		genericBolt1;		// For bolts special to an entity
+	short		genericBolt2;
+	int						forcePowerRegenRate;
+	int						forcePowerRegenAmount;
 } gNPC_t;
 
 void G_SquadPathsInit(void);

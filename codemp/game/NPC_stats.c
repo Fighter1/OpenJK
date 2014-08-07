@@ -4,6 +4,8 @@
 #include "anims.h"
 #include "ghoul2/G2.h"
 
+//ClanMod - Order NPCs
+extern void WP_DeactivateSaber(gentity_t *self, qboolean clearLength);
 extern qboolean NPCsPrecached;
 
 extern qboolean WP_SaberParseParms( const char *SaberName, saberInfo_t *saber );
@@ -207,6 +209,18 @@ char	*ClassNames[CLASS_NUM_CLASSES] =
 	"rancor",
 	"wampa",
 };
+
+//ClanMod - Order NPC
+void NPC_RestoreStats(gentity_t *self)
+{
+	if (!self)
+		return;
+
+	if (!self->NPC)
+		return;
+
+	memcpy(&self->NPC->stats, &self->NPC->rstats, sizeof(gNPCstats_t));
+}
 
 
 /*

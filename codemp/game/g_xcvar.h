@@ -110,6 +110,9 @@ XCVAR_DEF(g_stunbaton_altdamage, "20", NULL, CVAR_ARCHIVE, qtrue)
 XCVAR_DEF(g_meleeswing1_damage, "10", NULL, CVAR_ARCHIVE, qtrue)
 XCVAR_DEF(g_meleeswing2_damage, "12", NULL, CVAR_ARCHIVE, qtrue)
 
+//ClanMod - NPC Order
+XCVAR_DEF(g_NPCmaxFollowers, "8", NULL, CVAR_ARCHIVE, qtrue)
+
 //End OpenRP cvars
 
 XCVAR_DEF( bg_fighterAltControl,		"0",			NULL,				CVAR_SYSTEMINFO,								qtrue )
