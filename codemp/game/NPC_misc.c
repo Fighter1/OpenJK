@@ -268,7 +268,7 @@ void NPCF_Drop(gentity_t *self, gentity_t *ent)
 	ent->NPC->scriptFlags &= ~SCF_CROUCHED;	//FIXME?
 }
 
-static void NPCF_CheckSafe(gentity_t *self)	//fait le ménage
+static void NPCF_CheckSafe(gentity_t *self)	//Cleans up
 {
 	int i;
 
@@ -501,8 +501,8 @@ void NPCF_DynamicBehavior(void)
 
 	//endHelpLeader:
 
-	//FIX : les NPCs ont parfois un comportement étrange(attaque d'alliés, bloqués en attaque), cela va permettre dy remedier
-	//même si avec une petite perte de vitesse
+	// FIX: NPCs sometimes behave in a strange manner (allied attack, attack blocked), this fixes it 
+	// although with a small speed
 #if 1
 	if (NPCS.NPC->enemy)
 	{
@@ -545,7 +545,7 @@ void NPCF_ProtectLeader(gentity_t *self, gentity_t *attacker)
 		return;
 
 	if (!attacker->client)
-		return;	//FIXME? faudrait vérifier sil sagit pas de turret ou autre
+		return;	//FIXME? check for turrent or other stuff
 
 	if (attacker->client->playerLeader == self)
 		return;
@@ -665,7 +665,7 @@ void NPCF_O_Follow(gentity_t *ent, qboolean init)
 
 	NPC_RestoreStats(ent);
 
-	if (ent->NPC->defaultBehavior == BS_FOLLOW_LEADER) //ça agace qd les jedis font la sourde oreille
+	if (ent->NPC->defaultBehavior == BS_FOLLOW_LEADER) //related to jedi not listening
 	{
 		ent->NPC->behaviorState = BS_FOLLOW_LEADER;
 		ent->NPC->scriptFlags &= ~SCF_CROUCHED;
@@ -801,7 +801,7 @@ void NPCF_O_Attack(gentity_t *ent, qboolean init)
 
 	ent->client->leader = ent->NPC->captureGoal = NULL;
 
-	//même plus du gros hack ki pu, les tps changent
+	//big hack
 	ent->NPC->scriptFlags &= ~(SCF_CROUCHED | SCF_WALKING);
 	ent->NPC->scriptFlags |= (SCF_RUNNING | SCF_CHASE_ENEMIES | SCF_LOOK_FOR_ENEMIES | SCF_DONT_FLEE | SCF_USE_CP_NEAREST);
 

@@ -194,7 +194,7 @@ typedef struct
 	//stats
 	gNPCstats_t	stats;
 	//ClanMod - NPC Order
-	//NPCMod : vraies stats, les autres sont déformées à chaque frames pour améliorer l'IA
+	//NPCMod : real stats, others are deformed each frames to improve AI
 	gNPCstats_t	rstats;
 	int			aimErrorDebounceTime;
 	float		lastAimErrorYaw;
@@ -268,12 +268,12 @@ typedef struct
 	float					lastAltitud;
 
 	//nouveau sys de navigation en vol
-	qboolean				shouldJetOn;	//FIXME : utiliser TIMER_Done2 et TIMER_Remove à la place
+	qboolean				shouldJetOn;	// FIXME: use TIMER_Done2 and TIMER_Remove instead
 	int						special;
 	int						jediAggression;
 	int						lastRightMove;
 	float					flySpeed;
-	vec3_t					lastFlyDir;	//dernière poussée quoi
+	vec3_t					lastFlyDir;	//final push
 	short		genericBolt1;		// For bolts special to an entity
 	short		genericBolt2;
 	int						forcePowerRegenRate;

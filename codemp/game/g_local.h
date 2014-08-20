@@ -904,10 +904,6 @@ struct gclient_s {
 
 	follower_t	plFollower[MAX_FOLLOWERS];
 	int			numPlFollowers;
-
-	//----CoopMod : ICARUS----
-	qboolean	noFallDamage;	//Si c true le NPC ne prend pas de dommage en tombant(ex. : t3_rift)
-	int			enemyLastSeenTime2;
 };
 
 typedef void (NPCORDER_FUNC)(gentity_t *ent, qboolean init);
@@ -938,7 +934,7 @@ void NPCF_ProtectLeader(gentity_t *self, gentity_t *attacker);
 void NPCF_Order(gentity_t *self, gentity_t *ent, NPCORDER_FUNC *order, qboolean init);	//c lourd le init
 void NPCF_OrderToAll(gentity_t *self, NPCORDER_FUNC *order);
 
-//différents ordres
+//the various orders
 void NPCF_O_Attack(gentity_t *ent, qboolean init);
 void NPCF_O_StayHere(gentity_t *ent, qboolean init);
 void NPCF_O_Follow(gentity_t *ent, qboolean init);
