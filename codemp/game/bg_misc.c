@@ -384,7 +384,9 @@ fpDisabled is actually only expected (needed) from the server, because the ui di
 force power selection anyway when force powers are disabled on the server.
 ================
 */
-qboolean BG_LegalizedForcePowers(char *powerOut, size_t powerOutSize, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled, int skillpoints)
+//openrptodo
+//qboolean BG_LegalizedForcePowers(char *powerOut, size_t powerOutSize, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled, int skillPoints)
+qboolean BG_LegalizedForcePowers(char *powerOut, size_t powerOutSize, int maxRank, qboolean freeSaber, int teamForce, int gametype, int fpDisabled)
 {
 	char powerBuf[128];
 	char readBuf[128];
@@ -460,8 +462,9 @@ qboolean BG_LegalizedForcePowers(char *powerOut, size_t powerOutSize, int maxRan
 	//final_Powers now contains all the stuff from the string
 	//Set the maximum allowed points used based on the max rank level, and count the points actually used.
 	//OpenRP - Skillpoints
-	//allowedPoints = forceMasteryPoints[maxRank];
-	allowedPoints =
+	//openrptodo
+	allowedPoints = forceMasteryPoints[maxRank];
+	//allowedPoints = skillPoints;
 
 	i = 0;
 	while (i < NUM_FORCE_POWERS)

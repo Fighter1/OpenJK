@@ -546,7 +546,7 @@ typedef struct clientSession_s {
 
 	qboolean isEmote;
 
-	int skillpoints;
+	int skillPoints;
 
 	qboolean alarm;
 

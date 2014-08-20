@@ -3727,7 +3727,7 @@ void Cmd_Radio_F(gentity_t *ent)
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int rc;
-	sqlite3_stmt *stmt;
+//	sqlite3_stmt *stmt;
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
@@ -3788,7 +3788,7 @@ void Cmd_Radio_F(gentity_t *ent)
 	{
 		if (level.clients[i].sess.allChatComplete)
 		{
-			trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^7: ^2%s\"", ent->client->sess.radioFrequency, ent->client->pers.netname, real_msg));
+			trap->SendServerCommand(i, va("chat \"^1<All Chat>^4<Radio (Freq. ^7%i^4)> ^7%s^7: ^2%s\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
 		}		
 		if (level.clients[i].sess.sessionTeam == TEAM_SPECTATOR || level.clients[i].tempSpectate >= level.time)
 		{
@@ -3819,7 +3819,7 @@ void Cmd_Radio_F(gentity_t *ent)
 			}
 			else
 			{
-				trap->SendServerCommand(i, "print \^4Garbled Transmission\n\"");
+				trap->SendServerCommand(i, "print \"^4Garbled Transmission\n\"");
 			}
 		}
 		else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency1 && (ent - g_entities) != i)
@@ -3840,7 +3840,7 @@ void Cmd_Radio_F(gentity_t *ent)
 			}
 			else
 			{
-				trap->SendServerCommand(i, "print \^4Garbled Transmission\n\"");
+				trap->SendServerCommand(i, "print \"^4Garbled Transmission\n\"");
 			}
 		}
 		else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency2 && (ent - g_entities) != i)
@@ -3861,7 +3861,7 @@ void Cmd_Radio_F(gentity_t *ent)
 			}
 			else
 			{
-				trap->SendServerCommand(i, "print \^4Garbled Transmission\n\"");
+				trap->SendServerCommand(i, "print \"^4Garbled Transmission\n\"");
 			}
 		}
 	}
@@ -3884,7 +3884,7 @@ void Cmd_Frequency_F(gentity_t *ent)
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int rc;
-	sqlite3_stmt *stmt;
+//	sqlite3_stmt *stmt;
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
@@ -3973,7 +3973,7 @@ void Cmd_AddFrequency_F(gentity_t *ent)  //  /AddFrequency <Slot> <Frequency> <K
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int rc;
-	sqlite3_stmt *stmt;
+//	sqlite3_stmt *stmt;
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if (rc)
 	{
@@ -5289,7 +5289,7 @@ void Cmd_CreateForceBond_F(gentity_t *ent)
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int rc;
-	sqlite3_stmt *stmt;
+//	sqlite3_stmt *stmt;
 	char charName[512] = { 0 };
 
 	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);

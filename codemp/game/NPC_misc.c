@@ -355,9 +355,12 @@ void NPCF_Recruit(gentity_t *self, gentity_t *ent)
 	TIMER_Set(ent, "followUse", 1750);
 }
 
+//ClanMod - Order NPCs
+extern void WP_DeactivateSaber(gentity_t *self, qboolean clearLength);
 void NPCF_DynamicBehavior(void)
 {
 	gentity_t *leader = NPCS.NPC->client->playerLeader;
+
 
 	if (!leader)
 		return;

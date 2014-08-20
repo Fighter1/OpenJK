@@ -5,7 +5,6 @@
 #include "ghoul2/G2.h"
 
 //ClanMod - Order NPCs
-extern void WP_DeactivateSaber(gentity_t *self, qboolean clearLength);
 extern qboolean NPCsPrecached;
 
 extern qboolean WP_SaberParseParms( const char *SaberName, saberInfo_t *saber );

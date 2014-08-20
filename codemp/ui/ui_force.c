@@ -508,6 +508,7 @@ void UI_ReadLegalForce(void)
 		}
 	}
 	//Second, legalize them.
+	//openrptodo
 	if (!BG_LegalizedForcePowers(fcfString, sizeof (fcfString), uiMaxRank, ui_freeSaber.integer, forceTeam, atoi( Info_ValueForKey( info, "g_gametype" )), 0))
 	{ //if they were illegal, we should refresh them.
 		updateForceLater = qtrue;
@@ -1208,6 +1209,7 @@ void UI_ForceConfigHandle( int oldindex, int newindex )
 		}
 	}
 
+	//openrptodo
 	BG_LegalizedForcePowers(fcfBuffer, sizeof (fcfBuffer), uiMaxRank, ui_freeSaber.integer, forceTeam, atoi( Info_ValueForKey( info, "g_gametype" )), 0);
 	//legalize the config based on the max rank
 

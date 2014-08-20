@@ -215,14 +215,22 @@ void WP_InitForcePowers( gentity_t *ent ) {
 
 	if ( g_forceBasedTeams.integer ) {
 		if ( ent->client->sess.sessionTeam == TEAM_RED )
-			warnClient = !(BG_LegalizedForcePowers( forcePowers, sizeof (forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), FORCE_DARKSIDE, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillpoints ));
+			//openrptodo
+			//warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), FORCE_DARKSIDE, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillPoints));
+			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), FORCE_DARKSIDE, level.gametype, g_forcePowerDisable.integer));
 		else if ( ent->client->sess.sessionTeam == TEAM_BLUE )
-			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), FORCE_LIGHTSIDE, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillpoints));
+		//openrptodo
+			//warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), FORCE_LIGHTSIDE, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillPoints));
+			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), FORCE_LIGHTSIDE, level.gametype, g_forcePowerDisable.integer));
 		else
-			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), 0, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillpoints));
+		//openrptodo
+			//warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), 0, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillPoints));
+			warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), 0, level.gametype, g_forcePowerDisable.integer));
 	}
 	else
-		warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), 0, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillpoints));
+		//openrptodo
+		//warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), 0, level.gametype, g_forcePowerDisable.integer, ent->client->sess.skillPoints));
+		warnClient = !(BG_LegalizedForcePowers(forcePowers, sizeof(forcePowers), g_maxForceRank.integer, HasSetSaberOnly(), 0, level.gametype, g_forcePowerDisable.integer));
 
 	//rww - parse through the string manually and eat out all the appropriate data
 	i = 0;
