@@ -3369,7 +3369,7 @@ static inline const int *R_FindLightmap( const int *lightmapIndex )
 	//R_SyncRenderThread(); 
 
 	// attempt to load an external lightmap 
-	Com_sprintf( fileName, sizeof(fileName), "$%s/" EXTERNAL_LIGHTMAP, tr.worldDir, *lightmapIndex ); 
+	Com_sprintf( fileName, sizeof(fileName), "%s/" EXTERNAL_LIGHTMAP, tr.worldDir, *lightmapIndex ); 
 	image = R_FindImageFile( fileName, qfalse, qfalse, r_ext_compressed_lightmaps->integer, GL_CLAMP ); 
 	if( image == NULL ) 
 	{ 
@@ -3736,7 +3736,7 @@ Finds and loads all .shader files, combining them into
 a single large text block that can be scanned for shader names
 =====================
 */
-#define	MAX_SHADER_FILES	1024
+#define	MAX_SHADER_FILES	4096
 static void ScanAndLoadShaderFiles( void )
 {
 	char **shaderFiles;

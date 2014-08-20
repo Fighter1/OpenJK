@@ -131,6 +131,7 @@ void G_CacheGametype( void )
 		level.gametype = atoi( g_gametype.string );
 
 	trap->Cvar_Set( "g_gametype", va( "%i", level.gametype ) );
+	trap->Cvar_Update( &g_gametype );
 }
 
 /*
@@ -2514,6 +2515,7 @@ void CheckTournament( void ) {
 		if ( level.time > level.warmupTime ) {
 			level.warmupTime += 10000;
 			trap->Cvar_Set( "g_restarted", "1" );
+			trap->Cvar_Update( &g_restarted );
 			trap->SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 			level.restarted = qtrue;
 			return;
