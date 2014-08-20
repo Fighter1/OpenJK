@@ -763,7 +763,7 @@ void NPCF_O_Attack(gentity_t *ent, qboolean init)
 	{
 		if (ent->client->NPC_class == CLASS_BOBAFETT)
 		{
-			Boba_ForceFlyStart(ent, 20000);	//le calculer intelligemment
+			Boba_ForceFlyStart(ent, 20000); //calculate intelligently
 		}
 		else
 		{

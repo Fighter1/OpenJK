@@ -939,7 +939,7 @@ void NPCF_O_Attack(gentity_t *ent, qboolean init);
 void NPCF_O_StayHere(gentity_t *ent, qboolean init);
 void NPCF_O_Follow(gentity_t *ent, qboolean init);
 //void NPCF_O_Defend( gentity_t *ent, qboolean init );
-void NPCF_O_JetpackGo(gentity_t *ent, qboolean init);	//pour Boba et cie
+void NPCF_O_JetpackGo(gentity_t *ent, qboolean init);	//for boba and others
 
 
 //Interest points

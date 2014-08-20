@@ -362,6 +362,28 @@ void Boba_FlyStart( gentity_t *self )
 	}
 }
 
+//ClanMod - Order NPC
+void Boba_ForceFlyStart(gentity_t *self, int jetTime)
+{//switch to seeker AI for a while
+	self->client->ps.gravity = 0;
+	if (self->NPC)
+	{
+		self->NPC->aiFlags |= NPCAI_CUSTOM_GRAVITY;
+		self->NPC->scriptFlags &= ~SCF_CROUCHED;
+		self->NPC->scriptFlags &= ~SCF_RUNNING;
+		self->NPC->scriptFlags &= ~SCF_WALKING;
+		self->NPC->scriptFlags &= ~SCF_FORCED_MARCH;
+	}
+	self->client->ps.eFlags2 |= EF2_FLYING;//moveType = MT_FLYSWIM;
+	self->client->jetPackTime = level.time + jetTime/*Q_irand( 3000, 10000 )*/;
+	//take-off sound
+	G_Sound(self, CHAN_ITEM, G_SoundIndex("sound/chars/boba/bf_blast-off.mp3"));
+	if (self->NPC)
+	{
+		self->count = Q3_INFINITE; // SEEKER shot ammo count
+	}
+}
+
 void Boba_FlyStop( gentity_t *self )
 {
 	self->client->ps.gravity = g_gravity.value;
