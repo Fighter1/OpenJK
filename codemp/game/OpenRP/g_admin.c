@@ -91,7 +91,7 @@ void Cmd_amBan_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -156,7 +156,7 @@ void Cmd_amKick_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -210,7 +210,7 @@ void Cmd_amWarn_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -300,7 +300,7 @@ void Cmd_amTeleport_F(gentity_t *ent)
 	if (trap->Argc() == 2)
 	{
 		trap->Argv(1, arg1, sizeof(arg1));
-		clientid = G_ClientNumberFromName(arg1);
+		clientid = G_ClientNumberFromArg(arg1);
 		if (clientid == -1)
 		{
 			trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", arg1));
@@ -346,8 +346,8 @@ void Cmd_amTeleport_F(gentity_t *ent)
 	{
 		trap->Argv(1, arg1, sizeof(arg1));
 		trap->Argv(2, arg2, sizeof(arg2));
-		clientid = G_ClientNumberFromName(arg1);
-		clientid2 = G_ClientNumberFromName(arg2);
+		clientid = G_ClientNumberFromArg(arg1);
+		clientid2 = G_ClientNumberFromArg(arg2);
 
 		if (clientid == -1)
 		{
@@ -435,7 +435,7 @@ void Cmd_amTeleport_F(gentity_t *ent)
 	{
 		trap->Argv(1, arg1, sizeof(arg1));
 
-		clientid = G_ClientNumberFromName(arg1);
+		clientid = G_ClientNumberFromArg(arg1);
 		if (clientid == -1)
 		{
 			trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", arg1));
@@ -533,7 +533,7 @@ void Cmd_amAnnounce_F(gentity_t *ent)
 		return;
 	}
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -581,7 +581,7 @@ void Cmd_amSilence_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -640,7 +640,7 @@ void Cmd_amUnSilence_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -702,7 +702,7 @@ void Cmd_amSleep_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -789,7 +789,7 @@ void Cmd_amUnsleep_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -917,7 +917,7 @@ void Cmd_amForceTeam_F(gentity_t *ent)
 
 	trap->Argv(2, teamname, sizeof(teamname)); //The second command argument is the team's name.
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -1288,7 +1288,7 @@ void Cmd_amRename_F(gentity_t *ent)
 	}
 
 	trap->Argv(1, currentname, sizeof(currentname));
-	clientid = G_ClientNumberFromName(currentname);
+	clientid = G_ClientNumberFromArg(currentname);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", currentname));
@@ -2806,7 +2806,7 @@ void Cmd_amOrigin_F(gentity_t * ent)
 
 	trap->Argv(1, arg1, sizeof(arg1));
 
-	clientid = G_ClientNumberFromName(arg1);
+	clientid = G_ClientNumberFromArg(arg1);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", arg1));
@@ -3196,7 +3196,7 @@ void Cmd_CheckStats_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -3711,7 +3711,7 @@ void Cmd_Merc_F(gentity_t *ent)
 		//Give them every weapon.
 		ent->client->ps.stats[STAT_WEAPONS] |= (1 << WP_SABER) | (1 << WP_MELEE) | (1 << WP_BLASTER) | (1 << WP_DISRUPTOR) | (1 << WP_BOWCASTER)
 			| (1 << WP_REPEATER) | (1 << WP_DEMP2) | (1 << WP_FLECHETTE) | (1 << WP_ROCKET_LAUNCHER) | (1 << WP_THERMAL) | (1 << WP_DET_PACK)
-			| (1 << WP_BRYAR_OLD) | (1 << WP_CONCUSSION) | (1 << WP_TRIP_MINE) | (1 << WP_BRYAR_PISTOL);
+			| (1 << WP_BRYAR_OLD) | (1 << WP_CONCUSSION) | (1 << WP_TRIP_MINE) | (1 << WP_BRYAR_PISTOL) | (1 << WP_STUN_BATON);
 		{
 			for (i = 0; i < MAX_WEAPONS; i++)
 				//Give them max ammo
@@ -3739,7 +3739,7 @@ void Cmd_Merc_F(gentity_t *ent)
 		//Take away every weapon.
 		ent->client->ps.stats[STAT_WEAPONS] &= ~(1 << WP_STUN_BATON) & ~(1 << WP_BLASTER) & ~(1 << WP_DISRUPTOR) & ~(1 << WP_BOWCASTER)
 			& ~(1 << WP_REPEATER) & ~(1 << WP_DEMP2) & ~(1 << WP_FLECHETTE) & ~(1 << WP_ROCKET_LAUNCHER) & ~(1 << WP_THERMAL) & ~(1 << WP_DET_PACK)
-			& ~(1 << WP_BRYAR_OLD) & ~(1 << WP_CONCUSSION) & ~(1 << WP_TRIP_MINE) & ~(1 << WP_BRYAR_PISTOL);
+			& ~(1 << WP_BRYAR_OLD) & ~(1 << WP_CONCUSSION) & ~(1 << WP_TRIP_MINE) & ~(1 << WP_BRYAR_PISTOL) & ~(1 << WP_STUN_BATON);
 
 		//Give them melee and saber. They should already have these but this seems to prevent a bug with them not being switched to the correct active weapon.
 		//ent->client->ps.stats[STAT_WEAPONS] |= (1 << WP_MELEE) | (1 << WP_SABER); 
@@ -3755,7 +3755,7 @@ void Cmd_Merc_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -3801,7 +3801,7 @@ void Cmd_Merc_F(gentity_t *ent)
 		//Give them every weapon.
 		g_entities[clientid].client->ps.stats[STAT_WEAPONS] |= (1 << WP_SABER) | (1 << WP_MELEE) | (1 << WP_BLASTER) | (1 << WP_DISRUPTOR) | (1 << WP_BOWCASTER)
 			| (1 << WP_REPEATER) | (1 << WP_DEMP2) | (1 << WP_FLECHETTE) | (1 << WP_ROCKET_LAUNCHER) | (1 << WP_THERMAL) | (1 << WP_DET_PACK)
-			| (1 << WP_BRYAR_OLD) | (1 << WP_CONCUSSION) | (1 << WP_TRIP_MINE) | (1 << WP_BRYAR_PISTOL);
+			| (1 << WP_BRYAR_OLD) | (1 << WP_CONCUSSION) | (1 << WP_TRIP_MINE) | (1 << WP_BRYAR_PISTOL) | (1 << WP_STUN_BATON);
 
 		{
 			for (i = 0; i < MAX_WEAPONS; i++)
@@ -3824,11 +3824,12 @@ void Cmd_Merc_F(gentity_t *ent)
 	{
 		//Take away every item.
 		g_entities[clientid].client->ps.eFlags &= ~EF_SEEKERDRONE;
-		g_entities[clientid].client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SEEKER) & ~(1 << HI_BINOCULARS) & ~(1 << HI_SENTRY_GUN) & ~(1 << HI_EWEB) & ~(1 << HI_CLOAK);
-		//Take away every weapon.
-		g_entities[clientid].client->ps.stats[STAT_WEAPONS] &= ~(1 << HI_SEEKER) & ~(1 << HI_SHIELD) & ~(1 << HI_MEDPAC) & ~(1 << HI_MEDPAC_BIG)
+		g_entities[clientid].client->ps.stats[STAT_HOLDABLE_ITEMS] &= ~(1 << HI_SEEKER) & ~(1 << HI_SHIELD) & ~(1 << HI_MEDPAC) & ~(1 << HI_MEDPAC_BIG)
 			& ~(1 << HI_BINOCULARS) & ~(1 << HI_SENTRY_GUN) & ~(1 << HI_JETPACK)
 			& ~(1 << HI_HEALTHDISP) & ~(1 << HI_AMMODISP) & ~(1 << HI_EWEB) & ~(1 << HI_CLOAK);
+		g_entities[clientid].client->ps.stats[STAT_WEAPONS] &= ~(1 << WP_STUN_BATON) & ~(1 << WP_BLASTER) & ~(1 << WP_DISRUPTOR) & ~(1 << WP_BOWCASTER)
+			& ~(1 << WP_REPEATER) & ~(1 << WP_DEMP2) & ~(1 << WP_FLECHETTE) & ~(1 << WP_ROCKET_LAUNCHER) & ~(1 << WP_THERMAL) & ~(1 << WP_DET_PACK)
+			& ~(1 << WP_BRYAR_OLD) & ~(1 << WP_CONCUSSION) & ~(1 << WP_TRIP_MINE) & ~(1 << WP_BRYAR_PISTOL) & ~(1 << WP_STUN_BATON);
 
 		//Give them melee and saber. They should already have these but this seems to prevent a bug with them not being switched to the correct active weapon.
 		//tent->client->ps.stats[STAT_WEAPONS] |= (1 << WP_MELEE) | (1 << WP_SABER); 
@@ -3846,6 +3847,7 @@ void Cmd_Merc_F(gentity_t *ent)
 	return;
 }
 
+//Credit to ClanMod for force power saving/restoring
 void SaveForcePowers(gentity_t *ent)
 {
 	int i = 0;
@@ -3937,7 +3939,7 @@ void Cmd_Empower_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));

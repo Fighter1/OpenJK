@@ -3658,7 +3658,7 @@ void Cmd_CharName_F(gentity_t * ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));
@@ -4198,7 +4198,7 @@ void Cmd_ForceBondMessage_F(gentity_t *ent)
 
 	trap->Argv(1, cmdTarget, sizeof(cmdTarget));
 
-	clientid = G_ClientNumberFromName(cmdTarget);
+	clientid = G_ClientNumberFromArg(cmdTarget);
 	if (clientid == -1)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"Can't find client ID for %s\n\"", cmdTarget));

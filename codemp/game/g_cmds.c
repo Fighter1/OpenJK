@@ -2176,38 +2176,60 @@ static const char *gameNames[] = {
 	"Capture the Ysalamiri"
 };
 
-
-//OpenRP - Combined JAPP code along with a function called G_ClientNumberFromName that used to be in OpenJK for this command (Credits to both) 
-//(This function should not be confused with the original function of the same name.)
-int G_ClientNumberFromName(const char* name)
+//lmo added for ease of admin commands
+int G_ClientNumberFromStrippedSubstring(const char* name)
 {
-	char		cleanInput[MAX_NETNAME];
-	int			i;
-	int num;
-	gclient_t*	cl;
+	char		s2[MAX_NETNAME];
+	int			i, match = -1;
+	gclient_t	*cl;
 
-	//	First check for clientNum match
-	if (name[0] >= '0' && name[0] <= '9')
+	// check for a name match
+	Q_strncpyz(s2, (char*)name, sizeof(s2));
+	Q_StripColor(s2);
+	for (i = 0; i < level.numConnectedClients; i++)
 	{
-		num = atoi(name);
-		if (num >= 0 && num < MAX_CLIENTS)
-			return num;
-		else
-			return -1;
-	}
-
-	Q_strncpyz(cleanInput, name, sizeof(cleanInput));
-	Q_StripColor(cleanInput);
-	for (i = 0, cl = level.clients; i < level.maxclients; i++, cl++)
-	{// check for a name match
-		if (cl->pers.connected != CON_CONNECTED)
-			continue;
-		if (strstr(cl->pers.netname_nocolor, cleanInput))
+		cl = &level.clients[level.sortedClients[i]];
+		if (strstr(cl->pers.netname_nocolor, s2))
 		{
-			return i;
+			if (match != -1)
+			{ //found more than one match
+				return -2;
+			}
+			match = level.sortedClients[i];
 		}
 	}
-	return -1;
+
+	return match;
+}
+
+//OpenRP - Credits to ClanMod for this function
+////lmo to snag client id from argument to admin command
+int G_ClientNumberFromArg(char* name)
+{
+	int client_id = 0;
+	char *cp;
+
+	cp = name;
+	while (*cp)
+	{
+		if (*cp >= '0' && *cp <= '9') cp++;
+		else
+		{
+			client_id = -1; //mark as alphanumeric
+			break;
+		}
+	}
+
+	if (client_id == 0)
+	{ // arg is assumed to be client number
+		client_id = atoi(name);
+	}
+	// arg is client name
+	if (client_id == -1)
+	{
+		client_id = G_ClientNumberFromStrippedSubstring(name);
+	}
+	return client_id;
 }
 
 //OpenRP - credit to ClanMod for this function

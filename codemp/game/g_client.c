@@ -3785,8 +3785,23 @@ void ClientSpawn(gentity_t *ent) {
 
 			//OpenRP
 			if (ent->client->sess.isEmp)
+			{
 				ent->client->ps.eFlags |= EF_BODYPUSH; //Thanks to ClanMod for this
+				//Sometimes it appears that when you're emped and die, your powers
+				//aren't properly given back to you when you respawn. This should prevent that.
+				while (i < NUM_FORCE_POWERS)
+				{
+					ent->client->ps.fd.forcePowerLevel[i] = 3;
+					i++;
+				}
 
+				//Give every force power
+				ent->client->ps.fd.forcePowersKnown |= (1 << FP_HEAL) | (1 << FP_LEVITATION) | (1 << FP_SPEED) | (1 << FP_PUSH) | (1 << FP_PULL)
+					| (1 << FP_TELEPATHY) | (1 << FP_GRIP) | (1 << FP_LIGHTNING) | (1 << FP_RAGE) | (1 << FP_PROTECT) | (1 << FP_ABSORB)
+					| (1 << FP_TEAM_HEAL) | (1 << FP_TEAM_FORCE) | (1 << FP_DRAIN) | (1 << FP_SEE) | (1 << FP_SABER_OFFENSE) | (1 << FP_SABER_DEFENSE) | (1 << FP_SABERTHROW);
+			}
+
+			//OpenRP
 			if (ent->client->sess.isMerc)
 			{
 				//Give them every item.
@@ -3805,6 +3820,10 @@ void ClientSpawn(gentity_t *ent) {
 
 				ent->client->ps.weapon = WP_BLASTER; //Switch their active weapon to the E-11.
 			}
+
+			//OpenRP - Ensure their modelscale is always correct.
+			if (ent->client->ps.iModelScale != ent->client->sess.modelScale)
+				ent->client->ps.iModelScale = ent->client->sess.modelScale;
 		}
 	} else {
 		// move players to intermission

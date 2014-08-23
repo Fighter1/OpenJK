@@ -1461,8 +1461,9 @@ void DeathmatchScoreboardMessage (gentity_t *client);
 //OpenRP - Added prototype so it can be used in places other than g_cmds.c
 void G_Say(gentity_t *ent, gentity_t *target, int mode, const char *chatText);
 
-//OpenRP - Combined JAPP and OpenJK code (from above) for this command (Credits to both)
-int G_ClientNumberFromName(const char *name);
+//OpenRP - Credits to ClanMod for this function
+////lmo to snag client id from argument to admin command
+int G_ClientNumberFromArg(char* name);
 
 //OpenRP - credit to ClanMod for this function
 void Admin_Teleport(gentity_t *ent);
