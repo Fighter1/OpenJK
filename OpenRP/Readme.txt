@@ -9,7 +9,8 @@ File Name and Version: OpenRP Pre-alpha 1
 Date:
 Filesize:
 Description with installation instructions: OpenRP is an open source role playing mod for Star Wars Jedi Knight: Jedi Academy based on OpenJK. Its goal is to be a high quality role playing mod that any server can use.
-To install it, place the OpenRP folder and exe in your GameData folder and run the .bat file.
+To install it, place the OpenRP folder and exe in your GameData folder and run the .bat file. Note: If you get an error when running the Client, make sure you have the Visual C++ 2013 x86 Redistributable installed.
+For servers, you need to have both the Visual C++ 2010 x86 Redistributable and Visual C++ 2013 x86 Redistributable installed.
 Copyright/License: GNU GPLv2
 Credits with Permissions from other authors if necessary: See below.
 

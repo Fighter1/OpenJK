@@ -3798,12 +3798,12 @@ void ClientCommand( int clientNum ) {
 	}
 	if (!Q_stricmp(cmd, "ematease"))
 	{
-		cm_TheEmote(BOTH_STAND4, ent, qfalse);
+		cm_TheEmote(BOTH_STAND4, ent, qtrue);
 		return;
 	}
 	if (!Q_stricmp(cmd, "emfloating"))
 	{
-		cm_TheEmote(BOTH_PULLED_INAIR_B, ent, qtrue);
+		cm_TheEmote(BOTH_PULLED_INAIR_B, ent, qfalse);
 		return;
 	}
 	if (!Q_stricmp(cmd, "embutton"))
@@ -3848,7 +3848,7 @@ void ClientCommand( int clientNum ) {
 	}
 	if (!Q_stricmp(cmd, "emhips"))
 	{
-		cm_TheEmote(BOTH_STAND5TOSTAND8, ent, qfalse);
+		cm_TheEmote(BOTH_STAND5TOSTAND8, ent, qtrue);
 		return;
 	}
 	if (!Q_stricmp(cmd, "eminjuredhand"))
