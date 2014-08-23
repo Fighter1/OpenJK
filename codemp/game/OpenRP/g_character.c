@@ -3803,8 +3803,8 @@ void Cmd_Radio_F(gentity_t *ent)
 		}
 		if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioDefaultFrequency && (ent - g_entities) != i)
 		{
-			if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioDefaultFrequencyKey))
-			{
+			//if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioDefaultFrequencyKey))
+			//{
 				trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
 				if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
 				{
@@ -3816,16 +3816,16 @@ void Cmd_Radio_F(gentity_t *ent)
 						}
 					}
 				}
-			}
-			else
-			{
-				trap->SendServerCommand(i, "print \"^4Garbled Transmission\n\"");
-			}
+			//}
+			//else
+			//{
+			//	trap->SendServerCommand(i, "chat \"^4Garbled Transmission\n\"");
+			//}
 		}
 		else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency1 && (ent - g_entities) != i)
 		{
-			if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency1Key))
-			{
+			/*if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency1Key))
+			{*/
 				trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
 				if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
 				{
@@ -3834,19 +3834,20 @@ void Cmd_Radio_F(gentity_t *ent)
 						if (Distance(level.clients[i].ps.origin, level.clients[j].ps.origin) <= 300 && i != j)
 						{
 							trap->SendServerCommand(i, va("chat \"^4<Heard on ^7%s^7's ^4radio>^7: ^2%s\"", level.clients[i].pers.netname, real_msg));
+
 						}
 					}
 				}
-			}
+			/*}
 			else
 			{
-				trap->SendServerCommand(i, "print \"^4Garbled Transmission\n\"");
-			}
+				trap->SendServerCommand(i, "chat \"^4Garbled Transmission\n\"");
+			}*/
 		}
 		else if (ent->client->sess.RadioDefaultFrequency == level.clients[i].sess.RadioListenFrequency2 && (ent - g_entities) != i)
 		{
-			if (ent->client->sess.RadioDefaultFrequencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency2Key))
-			{
+			/*if (ent->client->sess.RadioDefaultF	requencyKey == " " || (ent->client->sess.RadioDefaultFrequencyKey == level.clients[i].sess.RadioListenFrequency2Key))
+			{*/
 				trap->SendServerCommand(i, va("chat \"^4<Radio [^7%i^4]> ^7%s^7: ^2%s\n\"", ent->client->sess.RadioDefaultFrequency, ent->client->pers.netname, real_msg));
 				if (openrp_DistanceBasedChat.integer != 0)  //distance based chat
 				{
@@ -3858,17 +3859,13 @@ void Cmd_Radio_F(gentity_t *ent)
 						}
 					}
 				}
-			}
+			/*}
 			else
 			{
-				trap->SendServerCommand(i, "print \"^4Garbled Transmission\n\"");
-			}
+				trap->SendServerCommand(i, "chat \"^4Garbled Transmission\n\"");
+			}*/
 		}
 	}
-
-
-
-
 	return;
 }
 
@@ -3897,7 +3894,7 @@ void Cmd_Frequency_F(gentity_t *ent)
 	//Check to see if the input is within valid ranges
 	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%f\n\"", ent->client->sess.RadioDefaultFrequency));
+		trap->SendServerCommand(ent - g_entities, va("print \"^2Current Frequency: ^7%i\n\"", ent->client->sess.RadioDefaultFrequency));
 		trap->SendServerCommand(ent - g_entities, "print \"^3Remember: To set your frequency use /frequency <frequency> [key]\n^3Frequencies must be from 1 to 100. Example: /frequency 43\n\"");
 		return;
 	}
@@ -3936,7 +3933,7 @@ void Cmd_Frequency_F(gentity_t *ent)
 	else //Input for encryption key
 	{
 		trap->Argv(2, frequencyEncr, sizeof(frequencyEncr));
-		Q_strncpyz(ent->client->sess.RadioDefaultFrequencyKey, frequencyEncr, sizeof(ent->client->sess.RadioDefaultFrequency));
+		Q_strncpyz(ent->client->sess.RadioDefaultFrequencyKey, frequencyEncr, sizeof(ent->client->sess.RadioDefaultFrequencyKey));
 		ent->client->sess.RadioDefaultFrequency = frequencyChange;
 		trap->SendServerCommand(ent - g_entities, va("print \"^2Default frequency set to ^7%i.\n^2Encryption Key is ^7%s\"", frequencyChange, frequencyEncr));
 		rc = sqlite3_exec(db, va("UPDATE Characters set RadioDefaultFrequency='%i' WHERE AccountID='%i'", frequencyChange, ent->client->sess.accountID), 0, 0, &zErrMsg);
