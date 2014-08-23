@@ -2189,7 +2189,7 @@ int G_ClientNumberFromStrippedSubstring(const char* name)
 	for (i = 0; i < level.numConnectedClients; i++)
 	{
 		cl = &level.clients[level.sortedClients[i]];
-		if (strstr(cl->pers.netname_nocolor, s2))
+		if (Q_stristr(cl->pers.netname_nocolor, s2))
 		{
 			if (match != -1)
 			{ //found more than one match
