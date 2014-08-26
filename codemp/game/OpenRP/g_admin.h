@@ -16,7 +16,7 @@
 #define ADMIN_INVISIBLE			    16384 // /aminvisible
 #define ADMIN_CHEATS				32768 // Cheat commands related
 #define	ADMIN_ADMINWHOIS			65536 // /listadmins
-//#define ADMIN_SCALE					131072 // modelscaling
+#define ADMIN_GUNITEMGIVE			131072 // Giving guns/items related commands
 #define ADMIN_MERCEMP				131072 // /ammerc and /amemp
 #define ADMIN_SHAKE					262144 // /amshakescreen
 #define ADMIN_EFFECT				524288 // /ameffect
@@ -32,7 +32,6 @@
 #define ADMIN_BOUNTY				268435456 // /bounty remove
 #define ADMIN_TOBLACK				536870912 // /amtoblack
 #define ADMIN_TRAININGSABER				1073741824 // Training saber related
-#define ADMIN_GUNITEMGIVE				2147483648 // Giving guns/items related commands
 
 void AddSpawnField(char *field, char *value);
 void SP_fx_runner(gentity_t *ent);

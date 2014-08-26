@@ -3805,7 +3805,9 @@ void ClientSpawn(gentity_t *ent) {
 			if (ent->client->sess.isMerc)
 			{
 				//Give them every item.
-				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] |= (1 << HI_BINOCULARS) | (1 << HI_SEEKER) | (1 << HI_CLOAK) | (1 << HI_EWEB) | (1 << HI_SENTRY_GUN);
+				ent->client->ps.stats[STAT_HOLDABLE_ITEMS] |= (1 << HI_SEEKER) | (1 << HI_SHIELD) | (1 << HI_MEDPAC) | (1 << HI_MEDPAC_BIG)
+					| (1 << HI_BINOCULARS) | (1 << HI_SENTRY_GUN) | (1 << HI_JETPACK)
+					| (1 << HI_HEALTHDISP) | (1 << HI_AMMODISP) | (1 << HI_EWEB) | (1 << HI_CLOAK);
 				//Take away saber and melee. We'll give it back in the next line along with the other weapons.
 				ent->client->ps.stats[STAT_WEAPONS] &= ~(1 << WP_SABER) & ~(1 << WP_MELEE);
 				//Give them every weapon.
