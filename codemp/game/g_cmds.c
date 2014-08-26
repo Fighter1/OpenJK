@@ -3970,7 +3970,7 @@ void ClientCommand( int clientNum ) {
 	}
 	if (!Q_stricmp(cmd, "emwait"))
 	{
-		cm_TheEmote(BOTH_STAND10, ent, qfalse);
+		cm_TheEmote(BOTH_STAND10, ent, qtrue);
 		return;
 	}
 	if (!Q_stricmp(cmd, "emhold"))
