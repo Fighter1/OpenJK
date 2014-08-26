@@ -5,13 +5,21 @@ You can view more information about the mod at https://github.com/Fighter1/OpenR
 You can get the source code for the mod by cloning: https://github.com/Fighter1/OpenRP.git
 
 Author: OpenRP Development Team
-File Name and Version: OpenRP Pre-alpha 1
-Date:
-Filesize:
+
+File Name and Version: OpenRP 0.0.1 Pre-alpha
+
+Date: August 25, 2014
+Filesize: Client - 1.34 megabytes, Server - 2.15 megabytes
+
 Description with installation instructions: OpenRP is an open source role playing mod for Star Wars Jedi Knight: Jedi Academy based on OpenJK. Its goal is to be a high quality role playing mod that any server can use.
-To install it, place the OpenRP folder and exe in your GameData folder and run the .bat file. Note: If you get an error when running the Client, make sure you have the Visual C++ 2013 x86 Redistributable installed.
-For servers, you need to have both the Visual C++ 2010 x86 Redistributable and Visual C++ 2013 x86 Redistributable installed.
+To install the clientside and run it, place the OpenRP folder, play_OpenRP.bat, openrp.x86, and rd-openrp_x86 in your GameData folder and run the play_OpenRP.bat file. Note: If you get an error when running the Client, make sure you have the Visual C++ 2013 x86 Redistributable installed.
+
+For servers, you need to have both the Visual C++ 2010 x86 Redistributable and Visual C++ 2013 x86 Redistributable installed. Also, you will need the OpenJK dedicated server .exe, which you can get from http://builds.openjk.org/.
+Place the OpenRP folder, OpenRP_server.bat, play_OpenRP.bat, openrp.x86, and rd-openrp_x86 in your GameData folder
+Then, simply run the OpenRP_server.bat file to start the server.
+
 Copyright/License: GNU GPLv2
+
 Credits with Permissions from other authors if necessary: See below.
 
 ========
@@ -24,13 +32,14 @@ Main Development Team Members:
 Fighter - Programming, Documentation
 Buz - Images
 Zanka/Zaxxeh - Documentation, Public Relations
+Kidd - Programming
+Mezzy - Programming
 
 ====
 Retired members:
 ====
 Cistio - Concepts, some programming, an early animation, weapons descriptions
 Exe/Drex - Animations
-Kidd - Programming
 
 ====
 Others:
@@ -52,13 +61,13 @@ JAPP by Raz0r
 *Nile - Shield mod
 *Darth NormaN - Elegance HUD which is used as the OpenRP HUD (permission given by him to use the HUD in the mod and modify it if we wish to)
 *eezstreet - Complete console text mod (permission given by him to include it in OpenRP)
-*Legacy Mods - The Legacy OJP base that OpenRP was previously based on. Code from was used with characters, accounts, the sqlite database, etc.
+*Legacy Mods - The Legacy OJP base that OpenRP was previously based on. Code from it was used with characters, accounts, the sqlite database, etc.
 NOTE: I have tried to rewrite or remove all LegacyOJP code as best I can. This is because LOJP is licensed under the GPLv3, while OpenJK is licensed under GPLv2 (and thus so is OpenRP since it's an OpenJK fork),
 (Cont.) If you spot any remaining LOJP code, or think you can rewrite code like code for accounts, characters, etc. (It's best if someone who has not seen LOJP code does this, 
 (Cont.) but I'm doubtful anybody will be rewilling to rewrite code), please remove the remaining code or rewrite the code and submit it with a pull request. Thank you.
 
-========
+====
 Additional Information
-========
+====
 
 THIS FILE OR THIS LEVEL IS NOT MADE, DISTRIBUTED, OR SUPPORTED BY LUCASARTS, A DIVISION OF LUCASFILM ENTERTAINMENT COMPANY LTD. ELEMENTS TM & (C) LUCASARTS, A DIVISION OF LUCASFILM ENTERTAINMENT COMPANY LTD. 

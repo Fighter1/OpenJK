@@ -1,0 +1,1 @@
+start openjkded.x86.exe +set dedicated 2 +set fs_game OpenRP +set net_port 29070 +exec server.cfg
