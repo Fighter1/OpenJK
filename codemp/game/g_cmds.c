@@ -4399,11 +4399,13 @@ void ClientCommand( int clientNum ) {
 		Cmd_ListAdmins_F(ent);
 		return;
 	}
+	/*
 	if (!Q_stricmp(cmd, "ordernpc"))
 	{
 		Cmd_OrderNPC_f(ent);
 		return;
 	}
+	*/
 	if (!Q_stricmp(cmd, "roll"))
 	{
 		Cmd_Roll_F(ent);

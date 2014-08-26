@@ -2717,7 +2717,7 @@ void ClientBegin( int clientNum, qboolean allowTeamReset ) {
 			trap->SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " %s\n\"", client->pers.netname, G_GetStringEdString("MP_SVGAME", "PLENTER")) );
 		}
 		//OpenRP
-		trap->SendServerCommand(ent - g_entities, va("print \"^2OpenRP Server: ^7%s\n^2OpenRP Website: ^7https://github.com/Fighter1/OpenRP\n^2Server's Website: ^7%s\n^2Type /info for a list of commands or /eminfo for a list of emotes.\n\"", OPENRP_SERVERVERSION, openrp_website.string));
+		trap->SendServerCommand(ent - g_entities, va("print \"^2OpenRP Server: ^7%s %s %s\n^2OpenRP Website: ^7https://github.com/Fighter1/OpenRP\n^2Server's Website: ^7%s\n^2Type /info for a list of commands or /eminfo for a list of emotes.\n\"", OPENRP_SERVERVERSIONNUMBER, OPENRP_SERVERVERSIONTYPE, OPENRP_SERVERBUILDDATE, openrp_website.string));
 	}
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 

@@ -1089,11 +1089,15 @@ void NPC_Use( gentity_t *self, gentity_t *other, gentity_t *activator )
 		}
 	}
 	//ClanMod - NPC Order
-	if (!other || !other->client || (self->client->NPC_class == CLASS_JAWA && !self->client->ps.stats[STAT_WEAPONS]))
+	//if (!other || !other->client || (self->client->NPC_class == CLASS_JAWA && !self->client->ps.stats[STAT_WEAPONS]))
+	if (!other || !other->client)
+	{
 		RestoreNPCGlobals();
+	}
 	else
 	{ 
-		NPCF_Recruit(other, self);
+	//openrptodo
+		//NPCF_Recruit(other, self);
 		RestoreNPCGlobals();
 	}
 }

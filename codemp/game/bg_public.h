@@ -18,8 +18,11 @@
 
 #define	GAME_VERSION		"basejka-1"
 
-#define OPENRP_CLIENTVERSION		"0.0.1 (Pre-alpha)"
-#define OPENRP_SERVERVERSION		"Pre-alpha Built: "__DATE__" "__TIME__
+#define OPENRP_CLIENTVERSIONNUMBER		"0.0.1"
+#define OPENRP_CLIENTVERSIONTYPE "Pre-alpha"
+#define OPENRP_SERVERVERSIONNUMBER		"0.0.1"
+#define OPENRP_SERVERVERSIONTYPE "Pre-alpha"
+#define OPENRP_SERVERBUILDDATE  __DATE__' '__TIME__
 
 #define DEFAULT_SABER			"Kyle"
 #define DEFAULT_SABER_STAFF		"dual_1"
