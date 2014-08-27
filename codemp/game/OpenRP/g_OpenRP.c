@@ -1673,7 +1673,7 @@ void Cmd_StunMode_F(gentity_t * ent)
 	else
 	{
 		ent->client->sess.stunMode = qfalse;
-		trap->SendServerCommand(ent - g_entities, "print \"^2You have ^7deactiveated ^2stun mode.\n\"");
+		trap->SendServerCommand(ent-g_entities, "print \"^2You have ^7deactiveated ^2stun mode.\n\"");
 	}
 	return;
 }

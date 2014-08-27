@@ -575,6 +575,8 @@ void TossClientItems( gentity_t *self ) {
 		return;
 	}
 
+	//OpenRP - disabled weapon drops.
+	/*
 	// drop the weapon if not a gauntlet or machinegun
 	weapon = self->s.weapon;
 
@@ -610,6 +612,7 @@ void TossClientItems( gentity_t *self ) {
 		// spawn the item
 		Drop_Item( self, item, 0 );
 	}
+	*/
 
 	// drop all the powerups if not in teamplay
 	if ( level.gametype != GT_TEAM && level.gametype != GT_SIEGE ) {
@@ -5476,6 +5479,14 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 		}
 
 		if ( targ->health <= 0 ) {
+			//OpenRP - knockdown
+			if (targ->client && targ->s.eType == ET_PLAYER && targ->s.eType != ET_NPC &&)
+			{
+				targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
+				targ->client->ps.forceDodgeAnim = 0;
+				targ->client->ps.forceHandExtendTime = level.time + 1000000000;
+				targ->client->ps.quickerGetup = qfalse;
+			}
 			if ( client )
 			{
 				targ->flags |= FL_NO_KNOCKBACK;
