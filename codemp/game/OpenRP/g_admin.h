@@ -16,7 +16,6 @@
 #define ADMIN_INVISIBLE			    16384 // /aminvisible
 #define ADMIN_CHEATS				32768 // Cheat commands related
 #define	ADMIN_ADMINWHOIS			65536 // /listadmins
-#define ADMIN_GUNITEMGIVE			131072 // Giving guns/items related commands
 #define ADMIN_MERCEMP				131072 // /ammerc and /amemp
 #define ADMIN_SHAKE					262144 // /amshakescreen
 #define ADMIN_EFFECT				524288 // /ameffect
@@ -26,8 +25,7 @@
 #define ADMIN_RENAME				8388608 // /amrename
 #define	ADMIN_FACTION				16777216 // Faction related
 #define ADMIN_CREDITS				33554432 // Credits related
-//#define ADMIN_ALARM					67108864 // /amalarm
-#define ADMIN_ITEM					67108864 // /Item related
+#define ADMIN_GUNITEM				67108864 // Gun or item related
 #define ADMIN_AUDIO					134217728 // /amaudio
 #define ADMIN_BOUNTY				268435456 // /bounty remove
 #define ADMIN_TOBLACK				536870912 // /amtoblack

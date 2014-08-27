@@ -4414,7 +4414,7 @@ void ClientCommand( int clientNum ) {
 		Cmd_TrainingSaber_F(ent);
 		return;
 	}
-	if (!Q_stricmp(cmd, "setStun"))
+	if (!Q_stricmp(cmd, "setstun"))
 	{
 		Cmd_StunMode_F(ent);
 		return;

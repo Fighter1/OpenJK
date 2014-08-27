@@ -1668,12 +1668,12 @@ void Cmd_StunMode_F(gentity_t * ent)
 	if (!ent->client->sess.stunMode)
 	{
 		ent->client->sess.stunMode = qtrue;
-		trap->SendServerCommand(-1, va("chat \"^2You have ^7activated ^2stun mode.\n\"", ent->client->pers.netname));
+		trap->SendServerCommand(ent-g_entities, "print \"^2You have ^7activated ^2stun mode.\n\"");
 	}
 	else
 	{
 		ent->client->sess.stunMode = qfalse;
-		trap->SendServerCommand(-1, va("chat \"^2You have ^7deactiveated ^2stun mode.\n\"", ent->client->pers.netname));
+		trap->SendServerCommand(ent - g_entities, "print \"^2You have ^7deactiveated ^2stun mode.\n\"");
 	}
 	return;
 }

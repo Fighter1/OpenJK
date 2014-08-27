@@ -4940,12 +4940,15 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 
 	//OpenRP-related code here
 	//Stun command created by Kannos'v Lightdust. All credit goes to him for creating it. Slight modifications made in variables/comments, and printed messages, and damage code.
-	if (attacker->client && attacker->client->sess.stunMode)
+	if (attacker->client && attacker->client->sess.stunMode && 
+		(mod == MOD_SABER || mod == MOD_BRYAR_PISTOL || mod == MOD_BRYAR_PISTOL_ALT ||
+		mod == MOD_BLASTER || mod == MOD_BOWCASTER || mod == MOD_REPEATER ))
 	{
-		if (targ->health > 10)
+		if (targ->health >= 6)
 		{
-			targ->health = 10;
+			targ->health -= 5;
 		}
+
 		targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
 		targ->client->ps.forceDodgeAnim = 0;
 		targ->client->ps.forceHandExtendTime = level.time + 10000;

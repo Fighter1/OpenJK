@@ -8,9 +8,7 @@
 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 </head>
-
 <body>
-
 <div class="container">
   <header style="text-align:center; margin-top:0px; margin-bottom:0px; padding:0px;">
   <a id="top"></a>
@@ -38,12 +36,10 @@
      <p>To start OpenRP, run the <strong>play_OpenRP.bat</strong> file in your GameData folder.</p>
     </section>
     <section>
-    </section>
-    <section>
       <h2><a id="account">Account Commands</a></h2>
 	  <a href="#top">Back to the top of the page</a>
-	  <br />
-	  <br />
+	  <br>
+	  <br>
       <p><strong>accountInfo</strong> - Display the account information of yourself or another player.</p>
       <blockquote>
         <p><strong>Usage:</strong> /acccountInfo - Display your own account info; /accountInfo &lt;username&gt; - Display the account info of another player</p>
@@ -66,7 +62,7 @@
       </blockquote>
       <p><strong>register</strong> - Register a new account.</p>
       <blockquote>
-        <p><strong>Usage:</strong> /register &lt;username&gt; &lt;password&gt;        <br>
+        <p><strong>Usage:</strong> /register &lt;username&gt; &lt;password&gt;
     </p>
       </blockquote>
 	</section>
@@ -74,40 +70,39 @@
       <h2><a id="admin">Admin Commands</a></h2>
 	  <p><a href="#top">Back to the top of the page</a>      </p>
 	  <p>Bitvalues.</p>
-	  <p> ADMIN_KICK					1 // /amkick<br>
-	     ADMIN_BAN					2 // /amban<br>
-	     ADMIN_TELEPORT				4 // /amtele<br>
-	     ADMIN_SEARCH				8 // /characterInfo and /accountInfo on another character or account<br>
-	     ADMIN_SLEEP					16 // /amsleep and /amunsleep<br>
-	     ADMIN_SILENCE				32 // /amsilence and /amunsilence<br>
-	     ADMIN_CHECKSTATS			64 // /amcheckstats<br>
-	     ADMIN_GRANTREMOVEADMIN		128 // Grant or remove admin<br>
-	     ADMIN_MAP					256 // /ammap<br>
-	     ADMIN_SKILLPOINTS			512 // skill point related<br>
-	     ADMIN_BUILD					1024 // building related commands<br>
-	     ADMIN_ANNOUNCE				2048 // /amannounce<br>
-	     ADMIN_WARN					4096 // /amwarn<br>
-	     ADMIN_ALLCHAT				8192 // /amAllChat<br>
-	     ADMIN_INVISIBLE			    16384 // /aminvisible<br>
-	     ADMIN_CHEATS				32768 // Cheat commands related<br>
-	    	ADMIN_ADMINWHOIS			65536 // /listadmins<br>
-	     ADMIN_MERCEMP				131072 // /ammerc and /amemp<br>
-	     ADMIN_SHAKE					262144 // /amshakescreen<br>
-	     ADMIN_EFFECT				524288 // /ameffect<br>
-	     ADMIN_FORCETEAM				1048576 // /amforceteam<br>
-	     ADMIN_WEATHER				2097152 // /amweather<br>
-	     ADMIN_STATUS				4194304 // /amstatus<br>
-	     ADMIN_RENAME				8388608 // /amrename<br>
-	    	ADMIN_FACTION				16777216 // Faction related<br>
-	     ADMIN_CREDITS				33554432 // Credits related<br>
-	     ADMIN_ITEM					67108864 // /Item related<br>
-	     ADMIN_AUDIO					134217728 // /amaudio<br>
-	     ADMIN_BOUNTY				268435456 // /bounty remove<br>
-	     ADMIN_TOBLACK				536870912 // /amtoblack<br>
-	     ADMIN_TRAININGSABER				1073741824 // Training saber related<br>
-	     ADMIN_GUNITEMGIVE				2147483648 // Giving guns/items related commands<br />
+	  <p>ADMIN_KICK 1 /amkick<br>
+	     ADMIN_BAN 2 /amban<br>
+	     ADMIN_TELEPORT 4 /amtele<br>
+	     ADMIN_SEARCH 8 /characterInfo and /accountInfo on another character or account<br>
+	     ADMIN_SLEEP 16 /amsleep and /amunsleep<br>
+	     ADMIN_SILENCE 32 /amsilence and /amunsilence<br>
+	     ADMIN_CHECKSTATS 64 /amcheckstats<br>
+	     ADMIN_GRANTREMOVEADMIN 128 Grant or remove admin<br>
+	     ADMIN_MAP 256 /ammap<br>
+	     ADMIN_SKILLPOINTS 512 skill point related<br>
+	     ADMIN_BUILD 1024 building related commands<br>
+	     ADMIN_ANNOUNCE 2048 /amannounce<br>
+	     ADMIN_WARN	4096 /amwarn<br>
+	     ADMIN_ALLCHAT 8192 /amAllChat<br>
+	     ADMIN_INVISIBLE 16384 /aminvisible<br>
+	     ADMIN_CHEATS 32768 Cheat commands related<br>
+   	  ADMIN_ADMINWHOIS 65536 /listadmins<<br>
+	     ADMIN_MERCEMP 131072 /ammerc and /amemp<br>
+	     ADMIN_SHAKE 262144 /amshakescreen<br>
+	     ADMIN_EFFECT 524288 /ameffect<br>
+	     ADMIN_FORCETEAM 1048576 /amforceteam<br>
+	     ADMIN_WEATHER 2097152 /amweather<br>
+	     ADMIN_STATUS 4194304 /amstatus<br>
+	     ADMIN_RENAME 8388608 /amrename<br>
+	    	ADMIN_FACTION 16777216 Faction related<br>
+	     ADMIN_CREDITS 33554432 Credits related<br>
+	     ADMIN_GUNITEM 67108864 Gun or item related<br>
+	     ADMIN_AUDIO 134217728 /amaudio<br>
+	     ADMIN_BOUNTY 268435456 /bounty remove<br>
+	     ADMIN_TOBLACK 536870912 /amtoblack<br>
+	     ADMIN_TRAININGSABER 1073741824 Training saber related<br>
       </p>
-	  <p><strong>amAlarm</strong> - Currently unused or disabled.</p>
+<p><strong>amAlarm</strong> - Currently unused or disabled.</p>
 	  <blockquote>
 	    <p><strong>	Usage:</strong></p>
       </blockquote>
@@ -301,17 +296,15 @@
 	  <p><strong>amWeatherPlus</strong> - Add additional weather effects so multiple weather effects can be used at the same time. Specify &quot;none&quot; as the weather effect to clear the weather.</p>
 	  <blockquote>
 	    <p><strong>Usage:</strong> /amWeatherPlus &lt;weatherEffect&gt;
-	      <br />
+	      <br>
         </p>
       </blockquote>
     </section>
     <section>
-    </section>
-    <section>
       <h2><a id="character">Character Commands<a/></h2>
       <a href="#top">Back to the top of the page</a>
-      <br />
-      <br />
+      <br>
+      <br>
       <p><strong>bounty</strong> - View the bounty board, add bounties, and remove bounties if you're an admin</p>
       <blockquote>
         <p><strong>Usage:</strong> /bounty - View the bounty board; /bounty add &lt;characterName&gt; &lt;reward&gt; &lt;0(dead)/1(alive)/2(dead or alive)&gt; - Add a character to the bounty board, along with a specified reward for the person who completes the bounty as well as a number indictating the target is wanted dead, alive, dead or alive; /bounty remove &lt;bountyID&gt; - If you're an admin, remove a certain bounty from the board. <em>Credits currently will need to be given manually to the bounty hunter who completes a bounty.</em></p>
@@ -356,7 +349,7 @@
       <blockquote>
         <p><strong>Usage:</strong>/factionInvite &lt;characterName&gt;</p>
       </blockquote>
-      <!--Note to self - make listfactioninvites cmd, allow for  reception of multiple invites
+      <!--
 	  <p><strong>factionInviteAccept</strong> - Accept an invite to a faction that you received.</p>
       <blockquote>
         <p><strong>Usage:</strong>/factionInviteAccept &lt;inviteID&gt; - Use /listFactionInvites to find the inviteID.</p>
@@ -414,8 +407,8 @@
         <section>
           <h2><a id="chat">Chat Commands</a></h2>
           <a href="#top">Back to the top of the page</a>
-          <br />
-          <br />
+          <br>
+          <br>
           <p><strong>admin</strong> - Only usable if you're an admin. Chat with other admins. Only admins can send and see this chat.</p>
           <blockquote>
             <p><strong>Usage:</strong> /admin &lt;text&gt;</p>
@@ -456,8 +449,8 @@
         <section>
           <h2><a id="general">General Commands<a/></h2>
           <a href="#top">Back to the top of the page</a>
-          <br />
-          <br />
+          <br>
+          <br>
           <p><strong>amInfo</strong> - Currently unused or disabled.</p>
           <blockquote>
             <p><strong>Usage:</strong> /amInfo</p>
@@ -494,9 +487,9 @@
             <p><strong>Usage:</strong> /setTraining - Changes your own lightsaber's mode to training mode. (Use the command a second time to change it back to the normal mode); /setTraining &lt;playerName&gt; - If you're an admin, this changes the specified player's saber mode so it's set to training mode. (Use the command a second time to change it back to the normal mode)</p>
           </blockquote>
           <p><br>
-            <strong>setStun</strong> - Sets your lightsaber to stun mode. It stuns the person who is hit. They are stunned for 10 seconds, are on the ground, and are unable to move for that duration of time.</p>
+            <strong>setStun</strong> - Sets your lightsaber, e-11, bryar pistol, bowcaster, and repeater to stun mode. It stuns the person who is hit. They are stunned for 10 seconds, are on the ground, and are unable to move for that duration of time. They are also damaged for 5 hp if they have 6 or more hp.</p>
           <blockquote>
-            <p><strong>Usage:</strong> /setStun TODO - Changes your own lightsaber's mode to training mode. (Use the command a second time to change it back to the normal mode); /setTraining &lt;playerName&gt; - If you're an admin, this changes the specified player's saber mode so it's set to training mode. (Use the command a second time to change it back to the normal mode)</p>
+            <p><strong>Usage:</strong> /setStun - Use the command a second time to turn off stun mode.</p>
           </blockquote>
           <p><br>
             <strong>toggleChat</strong> - Changes what type(mode) of chat team chat acts as. Your can either cycle through the various chat modes, or choose a specific mode.</p>
@@ -515,8 +508,8 @@
     <p>Thanks for reading!</p>
     <address>
       -The OpenRP Dev Team
-	  <br />
-	  <br />
+	  <br>
+	  <br>
 	  <a href="#top">Back to the top of the page</a>
     </address>
   </footer>
