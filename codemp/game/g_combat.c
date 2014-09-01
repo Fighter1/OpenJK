@@ -565,7 +565,8 @@ Toss the weapon and powerups for the killed player
 */
 void TossClientItems( gentity_t *self ) {
 	gitem_t		*item;
-	int			weapon;
+	//OpenRP - commented this out
+//	int			weapon;
 	float		angle;
 	int			i;
 	gentity_t	*drop;
@@ -5480,6 +5481,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 
 		if ( targ->health <= 0 ) {
 			//OpenRP - knockdown
+			/*
 			if (targ->client && targ->s.eType == ET_PLAYER && targ->s.eType != ET_NPC &&)
 			{
 				targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
@@ -5487,6 +5489,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 				targ->client->ps.forceHandExtendTime = level.time + 1000000000;
 				targ->client->ps.quickerGetup = qfalse;
 			}
+			*/
 			if ( client )
 			{
 				targ->flags |= FL_NO_KNOCKBACK;
