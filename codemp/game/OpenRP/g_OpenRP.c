@@ -1261,15 +1261,53 @@ void InitializeSQL(void)
 
 void Cmd_info_F(gentity_t *ent)
 {
+	trap->SendServerCommand(ent - g_entities, "print \"^2Character CMD List : \n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"bounty, characterInfo, character, characterName, checkInventory, createcharacter\n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"editcharacter, faction, factiondeposit,  factioninfo, factioninvite, factionleave\n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"factionwithdraw, force, frequency, givecredits, listfactions, listcharacters,  radio\n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"setFactionrank, shop\n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"^1General Commands\n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"amInfo, autowalk, emInfo, hologram, info, listAdmins, roll, setTraining, setStun, togglechat\n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"^6Chat CMD List : \n\"");
+	trap->SendServerCommand(ent - g_entities, "print \"admin, it, looc, me, ooc, report, whisper, yell \n\"");
+	
 	return;
 }
 void Cmd_aminfo_F(gentity_t *ent)
 {
+	if (ent->client->sess.isAdmin)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^3Admin Command List :\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"amAlarm, amAnnounce, amAudio, amban, amCheckStats, amCreateFaction, amDisguise\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"amEffect, amFactionGenCredits, amForceTeam, amGenCredits, amGhost, amGiveAdmin\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"amGiveGun, amGiveSkillPoints, amInvisible, amKick, amListEnts, amListWarnings, amLockSaberSetting, amMap, amMerc, amOrigin, amRemoveAdmin, amRemoveEnt, amRename, amSetFaction\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"amSilence, amSpawnEnt, amStatus, amTele, amTeleMark, amTimer, amToBlack, amUnsilence\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"amUnsleep, amWarn, amWeather, amWeatherPlus\n\"");
+		return;
+	}
+	if (!ent->client->sess.isAdmin)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^3You are not an admin.\n\"");
+		return;
+	}
 	return;
 }
 void Cmd_eminfo_F(gentity_t *ent)
 {
-	return;
+	// So that the cmd can only be used as a logged-in user.
+	if (ent->client->sess.loggedIn)
+	{
+		// emote list
+		trap->SendServerCommand(ent - g_entities, "print \"^3EMOTE list :\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^5emaim, ematease, emfloating, embutton, emcommtype, emchoke, emdie, emdie2\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^5emdie3, emdie4, emhello, emhips, eminjuredhand, emintimidate, emknees\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^5emmindcrush, empoint, empush, emsit, emsit2, emsit3, emsit4,  emsit5\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^5emsit6, emsit7, emsorrow, emstand, emthrow, emtwitch, emtyping, emtyping\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^5emwait, emhold, emspreadout, emmove, emclear\n\"");
+				return;
+	}
+
+	
 }
 
 void Cmd_ListAdmins_F(gentity_t *ent)
@@ -1668,12 +1706,12 @@ void Cmd_StunMode_F(gentity_t * ent)
 	if (!ent->client->sess.stunMode)
 	{
 		ent->client->sess.stunMode = qtrue;
-		trap->SendServerCommand(ent-g_entities, "print \"^2You have ^7activated ^2stun mode.\n\"");
+		trap->SendServerCommand(-1, va("chat \"^2You have ^7activated ^2stun mode.\n\"", ent->client->pers.netname));
 	}
 	else
 	{
 		ent->client->sess.stunMode = qfalse;
-		trap->SendServerCommand(ent-g_entities, "print \"^2You have ^7deactiveated ^2stun mode.\n\"");
+		trap->SendServerCommand(-1, va("chat \"^2You have ^7deactiveated ^2stun mode.\n\"", ent->client->pers.netname));
 	}
 	return;
 }
