@@ -586,8 +586,8 @@ void AddSoundEvent( gentity_t *owner, vec3_t position, float radius, alertEventL
 			return;
 		}
 	}
-
-	if ( owner == NULL && alertLevel < AEL_DANGER )	//allows un-owned danger alerts
+	// ineedblood
+	if (owner == NULL/* && alertLevel < AEL_DANGER*/ && alertLevel < AEL_SUSPICIOUS)	//allows un-owned danger alerts
 		return;
 
 	//FIXME: if owner is not a player or player ally, and there are no player allies present,

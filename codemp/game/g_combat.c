@@ -434,6 +434,7 @@ Adds score to both the client and his team
 extern qboolean g_dontPenalizeTeam; //g_cmds.c
 void AddScore( gentity_t *ent, vec3_t origin, int score )
 {
+	playerState_t	*ps = NULL;
 	/*
 	if (level.gametype == GT_SIEGE)
 	{ //no scoring in this gametype at all.
@@ -446,6 +447,31 @@ void AddScore( gentity_t *ent, vec3_t origin, int score )
 	}
 	// no scoring during pre-match warmup
 	if ( level.warmupTime ) {
+		// ineedblood
+		if (ent->NPC) {
+			if (score <= 0)
+			{
+				return;
+			}
+			if (!ent->client->playerLeader)
+			{
+				return;
+			}
+			if (!ent->client->playerLeader->client)
+			{
+				return;
+			}
+		}
+
+	
+		if (!ent->NPC)
+		{
+			ps = &ent->client->ps;
+		}
+		else
+		{
+			ps = &ent->client->playerLeader->client->ps;
+		}
 		return;
 	}
 	// show score plum
@@ -455,7 +481,9 @@ void AddScore( gentity_t *ent, vec3_t origin, int score )
 	if ( level.gametype == GT_TEAM && !g_dontPenalizeTeam )
 		level.teamScores[ ent->client->ps.persistant[PERS_TEAM] ] += score;
 	CalculateRanks();
+
 }
+
 
 /*
 =================
@@ -463,7 +491,9 @@ TossClientItems
 
 rww - Toss the weapon away from the player in the specified direction
 =================
-*/
+*/	
+
+
 void TossClientWeapon(gentity_t *self, vec3_t direction, float speed)
 {
 	vec3_t vel;
@@ -565,8 +595,7 @@ Toss the weapon and powerups for the killed player
 */
 void TossClientItems( gentity_t *self ) {
 	gitem_t		*item;
-	//OpenRP - commented this out
-//	int			weapon;
+	int			weapon;
 	float		angle;
 	int			i;
 	gentity_t	*drop;
@@ -576,8 +605,6 @@ void TossClientItems( gentity_t *self ) {
 		return;
 	}
 
-	//OpenRP - disabled weapon drops.
-	/*
 	// drop the weapon if not a gauntlet or machinegun
 	weapon = self->s.weapon;
 
@@ -613,7 +640,6 @@ void TossClientItems( gentity_t *self ) {
 		// spawn the item
 		Drop_Item( self, item, 0 );
 	}
-	*/
 
 	// drop all the powerups if not in teamplay
 	if ( level.gametype != GT_TEAM && level.gametype != GT_SIEGE ) {
@@ -2306,6 +2332,19 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			AI_GroupMemberKilled( self );
 			AI_DeleteSelfFromGroup( self );
 		}
+		// AÑADIDO
+		if (self->client->playerLeader)
+		{
+			NPCF_Remove(self->client->playerLeader, self);
+		}
+
+		//NPCMod : générators
+		if (self->parent != NULL)
+		{
+			NPCG_RemoveNPC(self, self->parent->npcgen);
+		}
+
+	// FIN AÑADIDO 
 
 		if ( self->NPC->tempGoal )
 		{
@@ -4604,6 +4643,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 		}
 	}
 
+	NPCF_ProtectLeader(targ, attacker);
+
 	if ( targ->client
 		&& targ->client->NPC_class == CLASS_RANCOR
 		&& (!attacker||!attacker->client||attacker->client->NPC_class!=CLASS_RANCOR) )
@@ -4944,15 +4985,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 
 	//OpenRP-related code here
 	//Stun command created by Kannos'v Lightdust. All credit goes to him for creating it. Slight modifications made in variables/comments, and printed messages, and damage code.
-	if (attacker->client && attacker->client->sess.stunMode && 
-		(mod == MOD_SABER || mod == MOD_BRYAR_PISTOL || mod == MOD_BRYAR_PISTOL_ALT ||
-		mod == MOD_BLASTER || mod == MOD_BOWCASTER || mod == MOD_REPEATER ))
+	if (attacker->client && attacker->client->sess.stunMode)
 	{
-		if (targ->health >= 6)
+		if (targ->health > 10)
 		{
-			targ->health -= 5;
+			targ->health = 10;
 		}
-
 		targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
 		targ->client->ps.forceDodgeAnim = 0;
 		targ->client->ps.forceHandExtendTime = level.time + 10000;
@@ -5480,16 +5518,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 		}
 
 		if ( targ->health <= 0 ) {
-			//OpenRP - knockdown
-			/*
-			if (targ->client && targ->s.eType == ET_PLAYER && targ->s.eType != ET_NPC &&)
-			{
-				targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
-				targ->client->ps.forceDodgeAnim = 0;
-				targ->client->ps.forceHandExtendTime = level.time + 1000000000;
-				targ->client->ps.quickerGetup = qfalse;
-			}
-			*/
 			if ( client )
 			{
 				targ->flags |= FL_NO_KNOCKBACK;

@@ -29,6 +29,7 @@ extern qboolean Boba_Flying( gentity_t *self );
 
 //Local Variables
 npcStatic_t NPCS;
+gentity_t		*NPC;
 
 void NPC_SetAnim(gentity_t	*ent,int type,int anim,int priority);
 void pitch_roll_for_slope( gentity_t *forwhom, vec3_t pass_slope );
@@ -1563,7 +1564,11 @@ NPC Behavior state thinking
 void NPC_ExecuteBState ( gentity_t *self)//, int msec )
 {
 	bState_t	bState;
-
+	// ineedblood
+	if (self->enemy && self->enemy->client && (self->enemy->client->pers.tzone || self->enemy->client->ps.duelInProgress))
+	{
+		G_ClearEnemy(NPC);
+	}
 	NPC_HandleAIFlags();
 
 	//FIXME: these next three bits could be a function call, some sort of setup/cleanup func

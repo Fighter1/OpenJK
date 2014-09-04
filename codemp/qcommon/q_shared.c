@@ -661,6 +661,26 @@ qboolean COM_ParseFloat( const char **data, float *f )
 	*f = atof( token );
 	return qfalse;
 }
+/*
+== == == == == == == =
+COM_ParseVec3
+== == == == == == == =
+*/
+qboolean COM_ParseVec3(const char **buffer, vec3_t *c)
+{
+	int i;
+	float f;
+
+	for (i = 0; i < 3; i++)
+	{
+		if (COM_ParseFloat(buffer, &f))
+		{
+			return qtrue;
+		}
+		(*c)[i] = f;
+	}
+	return qfalse;
+}
 
 /*
 ===============
@@ -696,7 +716,94 @@ void COM_MatchToken( const char **buf_p, char *match ) {
 		Com_Error( ERR_DROP, "MatchToken: %s != %s", token, match );
 	}
 }
+/*
+=================
+DoMatch
+=================
+*/
+#define TRUE			1
+#define FALSE			0
+#define ABORT			0
+/* What character marks an inverted character class? */
+#define NEGATE_CLASS		'^'
+/* Is "*" a common pattern? */
+#define OPTIMIZE_JUST_STAR
+/* Do tar(1) matching rules, which ignore a trailing slash? */
+#undef MATCH_TAR_PATTERN
+static int
+DoMatch(register const char* text, register const char* p)
+//register char	*text;
+//register char	*p;
+{
+	register int	last;
+	register int	matched;
+	register int	reverse;
 
+	for (; *p; text++, p++) {
+		if (*text == '\0' && *p != '*')
+			return ABORT;
+		switch (*p) {
+		case '\\':
+			/* Literal match with following character. */
+			p++;
+			/* FALLTHROUGH */
+		default:
+			if (tolower(*text) != tolower(*p))
+				return FALSE;
+			continue;
+		case '?':
+			/* Match anything. */
+			continue;
+		case '*':
+			while (*++p == '*')
+				/* Consecutive stars act just like one. */
+				continue;
+			if (*p == '\0')
+				/* Trailing star matches everything. */
+				return TRUE;
+			while (*text)
+				if ((matched = DoMatch(text++, p)) != FALSE)
+					return matched;
+			return ABORT;
+		case '[':
+			reverse = p[1] == NEGATE_CLASS ? TRUE : FALSE;
+			if (reverse)
+				/* Inverted character class. */
+				p++;
+			for (last = 0400, matched = FALSE; *++p && *p != ']'; last = *p)
+				/* This next line requires a good C compiler. */
+				if (*p == '-' ? tolower(*text) <= tolower(*++p) && tolower(*text) >= tolower(last) : tolower(*text) == tolower(*p))
+					matched = TRUE;
+			if (matched == reverse)
+				return FALSE;
+			continue;
+		}
+	}
+
+#ifdef	MATCH_TAR_PATTERN
+	if (*text == '/')
+		return TRUE;
+#endif	/* MATCH_TAR_ATTERN */
+	return *text == '\0';
+}
+
+
+/*
+=================
+Q_Wildmat
+=================
+*/
+int
+Q_wildmat(const char *text, const char *p)
+//char	*text;
+//char	*p;
+{
+#ifdef	OPTIMIZE_JUST_STAR
+	if (p[0] == '*' && p[1] == '\0')
+		return 0;
+#endif	/* OPTIMIZE_JUST_STAR */
+	return (DoMatch(text, p) == TRUE) ? 0 : -1;
+}
 
 /*
 =================

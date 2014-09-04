@@ -2743,6 +2743,422 @@ void SP_target_escapetrig(gentity_t *ent)
 
 	ent->use = Use_Target_Escapetrig;
 }
+#ifdef _DEBUG
+void NPCG_GetTypePart(gnpcgentype_t *npctype, char *out, int len)
+#else
+void NPCG_GetTypePart(gnpcgentype_t *npctype, char *out)
+#endif
+{
+	int count = 0;
+	int eow = strlen(npctype->type);
+	const char *p = npctype->type;
+
+	if (!out || /*!len || */!npctype || !eow)
+	{
+		return;
+	}
+
+	eow--;
+
+	while (1)
+	{
+		p = strchr(p, '|');
+
+		if (!p)
+			break;
+
+		count++;
+
+		if (p == (npctype->type + eow))
+			break;
+
+		p++;
+	}
+
+	if (!count)
+	{
+#ifdef _DEBUG
+		if (len <= strlen(npctype->type))
+		{
+			G_Error(S_COLOR_RED"ERROR : Out String Length is insufficient!\n");
+		}
+#endif
+		strcpy(out, npctype->type);
+		return;
+	}
+	else
+	{
+		int i;
+		int istop = Q_irand(0, count);
+
+		p = npctype->type;
+
+		for (i = 0; i < istop; i++)
+		{
+			p = strchr(p, '|');
+			p++;
+		}
+
+		if (istop == count)
+		{
+			strcpy(out, p);
+			return;
+		}
+		else
+		{
+			const char *p2 = strchr(p, '|');
+
+			strncpy(out, p, p2 - p);
+		}
+	}
+}
+int NPCG_TypeCount(gnpcgen_t *gen)
+{
+	int i;
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return 0;
+	}
+
+	for (i = 0; i < MAX_GEN_NPCTYPES; i++)
+	{
+		if (i == MAX_GEN_NPCTYPES)
+		{
+			break;
+		}
+
+		if (!gen->npcTypes[i].type)
+		{
+			break;
+		}
+	}
+
+	return i;
+}
+int NPCG_GetSpawnEffect(gentity_t *ent, float prob)
+{
+	int t;
+
+	if (prob > 0.35f)
+	{
+		t = 1;
+	}
+	else if (prob > 0.15f)
+	{
+		t = 2;
+	}
+	else if (prob > 0.05f)
+	{
+		t = 3;
+	}
+	else if (prob > 0.01f)
+	{
+		t = 4;
+	}
+	else //un peu comme MewTwo
+	{
+		t = 5;
+	}
+
+	switch (ent->client->playerTeam)
+	{
+	case NPCTEAM_FREE:
+		break;
+	case NPCTEAM_ENEMY:
+		t += 5;
+		break;
+	case NPCTEAM_PLAYER:
+		t += 10;
+		break;
+	case NPCTEAM_NEUTRAL:
+		t += 15;
+		break;
+	}
+
+	return t;
+}
+void NPCG_Spawn(gentity_t *self)
+{
+	gentity_t		*NPCspawner = G_Spawn(), *newNPC;
+	vec3_t			end, goalPoint;
+	gnpcgentype_t	*npctype;
+	float			prob;
+	char			newNPCType[64];
+	int				goalIdx;
+
+	if (!self)
+		return;
+
+	if (!self->npcgen)
+		return;
+
+	//--
+
+	if (!NPCspawner)
+	{
+		Com_Printf(S_COLOR_RED"ERROR ( NPCG_Spawn ) : Out of entities!\n");
+		self->genericValue1 = level.time + 5000;
+		return;
+	}
+
+	NPCspawner->think = G_FreeEntity;
+	NPCspawner->nextthink = level.time;
+
+	VectorCopy(self->r.currentOrigin, end);
+	end[2] += 24.0f;
+	G_SetOrigin(NPCspawner, end);
+	VectorCopy(NPCspawner->r.currentOrigin, NPCspawner->s.origin);
+
+	NPCspawner->s.angles[YAW] = self->s.angles[YAW];
+
+	trap_LinkEntity(NPCspawner);
+
+	//--
+
+	npctype = NPCG_RandomNPC(self->npcgen);
+	//	if ( !npctype )
+	//	{
+	//#ifdef _DEBUG
+	//		Com_Printf( S_COLOR_RED"NPCGen Fatal Error: Cannot get random NPC from NPCG!\n" );
+	//#endif
+	//		return;
+	//	}
+
+	memset(newNPCType, 0, sizeof(newNPCType));
+
+	NPCG_GetTypePart(npctype
+		, newNPCType
+#ifdef _DEBUG
+		, sizeof(newNPCType)
+#endif
+		);
+
+	NPCspawner->NPC_type = newNPCType;
+
+	NPCspawner->count = 1;
+	NPCspawner->delay = 0;
+
+	//--
+
+	newNPC = NPC_Spawn_Do(NPCspawner);
+
+	if (!newNPC)
+	{
+		//qqun bloque la gen
+		self->genericValue1 = level.time + 5000;
+		return;
+	}
+
+	//--
+
+	goalIdx = NPCG_ChooseGoal(self->npcgen);
+
+	VectorCopy(self->npcgen->firstGoal[goalIdx], goalPoint);
+	goalPoint[2] += 12.0f;
+
+	NPC_SetMoveGoal(newNPC, goalPoint, 5, qtrue, 0, NULL);
+
+	//--
+
+	newNPC->parent = self;
+
+	//--
+
+	self->npcgen->lastSpawn = level.time;
+	self->npcgen->numSpawned++;
+
+	self->npcgen->spawned[self->npcgen->numSpawned - 1] = newNPC;
+
+	//--
+
+	prob = npctype->luck;
+	prob /= self->npcgen->totalLuck;
+
+	//pour le spawn effect
+	newNPC->genericValue4 = NPCG_GetSpawnEffect(newNPC, prob);	//les précacher?
+}
+gnpcgentype_t *NPCG_RandomNPC(gnpcgen_t *gen)
+{
+	int count;
+	int	idx;
+	int	i;
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return NULL;
+	}
+
+	if (!gen->totalLuck)
+		return NULL;
+
+	count = NPCG_TypeCount(gen);
+
+	if (!count)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : count is null mientras que totalLuck isn't\n");
+#endif
+		return NULL;
+	}
+
+	idx = Q_irand(1, gen->totalLuck);
+
+	for (i = 0; i < count; i++)
+	{
+		idx -= gen->npcTypes[i].luck;
+
+		if (idx <= 0)
+		{
+			break;
+		}
+	}
+
+	return &gen->npcTypes[i];
+}
+int NPCG_ChooseGoal(gnpcgen_t *gen)
+{
+#if 0
+	int i, i2;
+	int	r = -1;
+#endif
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return 0;
+	}
+
+#if 0
+	for (i = 0; i < gen->numFirstGoals; i++)
+	{
+		qboolean isFree = qtrue;
+
+#		ifdef _DEBUG
+		if (VectorCompare(vec3_origin, gen->firstGoal[i]))
+			Com_Printf(S_COLOR_YELLOW"NPCG WARNING : First goal #%d is null!\n", i);
+#		endif
+
+		for (i2 = 0; i2 < gen->numSpawned; i2++)
+		{
+			gentity_t	*ent = gen->spawned[i2];
+
+#ifdef _DEBUG
+			if (!ent)
+			{
+#				ifdef _DEBUG
+				Com_Printf(S_COLOR_CYAN"NPCG DEBUG ( NPCG_ChooseGoal ): ent is NULL!!!!!\n");
+#				endif
+				continue;
+			}
+
+			if (!ent->inuse)
+			{
+#				ifdef _DEBUG
+				Com_Printf(S_COLOR_CYAN"NPCG DEBUG ( NPCG_ChooseGoal ): ent is inused!!!!!\n");
+#				endif
+				continue;
+			}
+
+			if (ent->health <= 0)
+			{
+#				ifdef _DEBUG
+				Com_Printf(S_COLOR_CYAN"NPCG DEBUG ( NPCG_ChooseGoal ): ent is dead and not removed!!!!!\n");
+#				endif
+				continue;
+			}
+
+			if (!ent->NPC)
+			{
+#				ifdef _DEBUG
+				Com_Printf(S_COLOR_CYAN"NPCG DEBUG ( NPCG_ChooseGoal ): ent is not a NPC!!!!!\n");
+#				endif
+				continue;
+			}
+#endif
+
+			if (!ent->NPC->goalEntity)
+			{
+				continue;
+			}
+
+			if (VectorCompare(gen->firstGoal[i], ent->NPC->goalEntity->r.currentOrigin))
+			{
+				isFree = qfalse;
+				break;
+			}
+
+		}
+
+		if (isFree)
+		{
+			r = i;
+			break;
+		}
+	}
+
+	if (r == -1)
+		r = Q_irand(0, gen->numFirstGoals - 1);
+
+#ifdef _DEBUG
+	Com_Printf("NPCG : r = %d\n", r);
+#endif
+
+	return r;
+#else //bah ouai c con
+	return Q_irand(0, gen->numFirstGoals - 1);
+#endif
+}
+void NPCG_RemoveNPC(gentity_t *ent, gnpcgen_t *gen)
+{
+	int i;
+	qboolean found = qfalse;
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return;
+	}
+
+	for (i = 0; i < gen->numSpawned; i++)
+	{
+		if (gen->spawned[i] == ent)
+		{
+			found = qtrue;
+			break;
+		}
+	}
+
+	if (found)
+	{
+		if (i != (gen->numSpawned - 1))
+		{
+			memmove(&(gen->spawned[i]), &(gen->spawned[i + 1]), (gen->numSpawned - (i + 1)) * sizeof(pgentity_t));
+			gen->spawned[gen->numSpawned - 1] = NULL;
+		}
+		else
+		{
+			gen->spawned[i] = NULL;
+		}
+
+		gen->numSpawned--;
+	}
+
+#ifdef _DEBUG
+	if (!found)
+		Com_Printf(S_COLOR_CYAN"DEBUG NPCG ERROR : Cannot find the entry ( strange.. )\n");
+#endif
+}
 
 /*QUAKED misc_maglock (0 .5 .8) (-8 -8 -8) (8 8 8) x x x x x x x x
 Place facing a door (using the angle, not a targetname) and it will lock that door.  Can only be destroyed by lightsaber and will automatically unlock the door it's attached to
@@ -2770,10 +3186,318 @@ void maglock_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	//rwwFIXMEFIXME - weap expl func
 //	WP_Explode( self );
 }
+void NPCG_CheckHeal(gnpcgen_t *gen)
+{
+	int i;
 
+#ifdef _DEBUG
+	if (!gen)
+	{
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+		return;
+	}
+#endif
+
+	for (i = 0; i < gen->numSpawned; i++)
+	{
+		gentity_t	*ent = gen->spawned[i];
+
+		if (!ent)
+		{
+			NPCG_RemoveNPC(ent, gen);
+			continue;
+		}
+
+		if (!ent->inuse || ent->health <= 0 || !ent->NPC)
+		{
+			NPCG_RemoveNPC(ent, gen);
+			continue;
+		}
+
+	}
+}
+gnpcgen_t *NPCG_New()
+{
+	gnpcgen_t	*gen = BG_Alloc(sizeof(gnpcgen_t));
+	memset(gen, 0, sizeof(gnpcgen_t));
+
+	return gen;
+}
+void NPCG_ParseTypes(const char **p, gnpcgen_t *gen)
+{
+	int			n;
+	const char	*value;
+
+	if (!p)
+		return;
+
+	if (!(*p))
+		return;
+
+	if (!((*p)[0]))
+		return;
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return;
+	}
+
+	while (1)
+	{
+		if (COM_ParseInt(p, &n))
+		{
+			break;
+		}
+
+		if (COM_ParseString(p, &value))
+		{
+			break;
+		}
+
+		NPCG_AddType(n, value, qfalse, gen);
+	}
+
+	NPCG_RefreshTotalLuck(gen);
+}
 void maglock_link( gentity_t *self );
 gentity_t *G_FindDoorTrigger( gentity_t *ent );
+void misc_npc_generator_think(gentity_t *self)
+{
+	self->nextthink = level.time + 500;
 
+	if ((self->npcgen->lastSpawn + self->npcgen->interval) >= level.time)
+		return;
+
+	if (self->npcgen->numSpawned >= self->npcgen->max2)
+		return;
+
+	if (self->genericValue1 >= level.time)
+		return;
+
+	NPCG_CheckHeal(self->npcgen);
+
+	NPCG_Spawn(self);
+}
+
+// parse goals
+void NPCG_ParseGoals(const char **p, gnpcgen_t *gen)
+{
+	const char *token;
+	int i = 0;
+
+	if (!p)
+		return;
+
+	if (!(*p))
+		return;
+
+	if (!((*p)[0]))
+		return;
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return;
+	}
+
+	token = COM_ParseExt(p, qfalse);
+
+	if (!token || token[0] != '{')
+	{
+		Com_Printf(S_COLOR_RED"NPCG ERROR : Bad structure of goals declaration. It should start by '{'.\n");
+		return;
+	}
+
+	while (1)
+	{
+		const char *oldP = *p;
+
+		token = COM_ParseExt(p, qfalse);
+
+		if (!token || !token[0])
+		{
+			Com_Printf(S_COLOR_RED"NPCG ERROR : Bad structure of goals declaration. It should finish by '{'.\n");
+			return;
+		}
+
+		if (token[0] == '}')
+		{
+			break;
+		}
+
+		if (i == MAX_GEN_FIRSTGOALS)
+		{
+			Com_Printf(S_COLOR_YELLOW"NPCG WARNING : No more than 8 first goals allowed!\n");
+			break;
+		}
+
+		(*p) = oldP;
+
+		//aucune vérif, si on en met un non multiple de 3 par erreur c la cata
+		if (COM_ParseVec3(p, &gen->firstGoal[i]))
+		{
+			Com_Printf(S_COLOR_RED"NPCG ERROR : Error when reading first goals!\n\n");
+			return;
+		}
+
+		i++;
+	}
+
+	gen->numFirstGoals = i;
+
+#ifdef _DEBUG
+	Com_Printf("NPCG : gen->numFirstGoals = %d\n", gen->numFirstGoals);
+#endif
+
+	if (i == 0)
+	{
+		Com_Printf(S_COLOR_YELLOW"WARNING : No first goal set!\n");
+	}
+}
+// ineedblood refresh luck
+void NPCG_RefreshTotalLuck(gnpcgen_t *gen)
+{
+	int i;
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return;
+	}
+
+	gen->totalLuck = 0;
+
+	for (i = 0; i < MAX_GEN_NPCTYPES; i++)
+	{
+		if (!gen->npcTypes[i].type)
+			continue;
+
+		gen->totalLuck += gen->npcTypes[i].luck;
+	}
+}
+// ineedblood addtype
+void NPCG_AddType(int luck, const char *type, qboolean refresh, gnpcgen_t *gen)
+{
+	int i;
+
+	if (!type || !luck)
+	{
+		return;
+	}
+
+	if (!type[0])
+	{
+		return;
+	}
+
+	if (!gen)
+	{
+#ifdef _DEBUG
+		Com_Printf(S_COLOR_YELLOW"NPCG WARNING : gen is NULL\n");
+#endif
+		return;
+	}
+
+	for (i = 0; i <= MAX_GEN_NPCTYPES; i++)
+	{
+		if (i == MAX_GEN_NPCTYPES)
+		{
+			Com_Printf(S_COLOR_YELLOW"NPCG WARNING : too much NPC types!\n");
+			return;
+		}
+
+		if (!gen->npcTypes[i].type)
+		{
+			break;
+		}
+	}
+
+	gen->npcTypes[i].luck = luck;
+	gen->npcTypes[i].type = BG_StringAlloc(type);
+
+	if (refresh)
+	{
+		NPCG_RefreshTotalLuck(gen);
+	}
+}
+void SP_misc_npc_generator(gentity_t *self)
+{
+	//RoAR mod NOTE: Removed this because I want perminant NPC's on some maps!
+	/*if ( g_gametype.integer != GT_RPG )
+	{
+	self->nextthink = level.time + 100;
+	self->think = G_FreeEntity;
+	return;
+	}*/
+
+	G_SetOrigin(self, self->s.origin);
+
+	//il peut être initialisé avant pour overrider les valeurs par def
+	if (!self->npcgen)
+	{
+		char		*npctype;
+		char		*goals;
+		const char	*p;
+
+		self->npcgen = NPCG_New();
+
+		G_SpawnString("npctype", "100 stormtrooper", &npctype);
+		p = npctype;
+		NPCG_ParseTypes(&p, self->npcgen);
+		//free( npctype );
+
+		G_SpawnString("firstgoal", "{ 0 0 0 }", &goals);
+		p = goals;
+		NPCG_ParseGoals(&p, self->npcgen);
+
+		G_SpawnInt("maxcount", "5", &self->npcgen->max2);
+		G_SpawnInt("spawninterval", "5000", &self->npcgen->interval);
+	}
+
+#ifdef _DEBUG
+	NPCG_ListTypes(self->npcgen);
+#endif
+
+	if (self->npcgen->interval < 250)
+		self->npcgen->interval = 250;
+
+	if (self->npcgen->max2 > MAX_GEN_COUNT)
+		self->npcgen->max2 = MAX_GEN_COUNT;
+	else if (self->npcgen->max2 < 1)
+		self->npcgen->max2 = 1;
+
+	if (!self->npcgen->numFirstGoals)
+	{
+		Com_Printf(S_COLOR_RED"ERROR : No any goal set! Removing..\n");
+		self->nextthink = level.time + 100;
+		self->think = G_FreeEntity;
+		return;
+	}
+
+	if (!NPCG_TypeCount(self->npcgen) || !self->npcgen->max2)
+	{
+		self->think = G_FreeEntity;
+		self->nextthink = level.time + FRAMETIME;
+		return;
+	}
+
+	self->s.solid = 0;
+	self->r.contents &= ~CONTENTS_SOLID;
+
+	self->think = misc_npc_generator_think;
+	self->nextthink = level.time + 500;
+
+	self->genericValue1 = 0;
+
+	trap_LinkEntity(self);
+}
 void SP_misc_maglock ( gentity_t *self )
 {
 	//NOTE: May have to make these only work on doors that are either untargeted

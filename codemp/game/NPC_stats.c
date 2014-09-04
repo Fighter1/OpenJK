@@ -551,7 +551,12 @@ void NPC_PrecacheAnimationCFG( const char *NPC_type )
 	}
 #endif
 }
-
+stringID_table_t SpecialAbilityTable[] =
+{
+	//ENUM2STRING(NSP_MUTANT_BREATH),
+	//ENUM2STRING(NSP_CLOAKING),
+	"", -1
+};
 extern int NPC_WeaponsForTeam( team_t team, int spawnflags, const char *NPC_type );
 void NPC_PrecacheWeapons( team_t playerTeam, int spawnflags, char *NPCtype )
 {
@@ -878,7 +883,7 @@ void NPC_Precache ( gentity_t *spawner )
 	//rwwFIXMEFIXME: same
 	//FIXME: Look for a "sounds" directory and precache death, pain, alert sounds
 }
-
+// ineedblood
 #if 0
 void NPC_BuildRandom( gentity_t *NPC )
 {
@@ -976,7 +981,146 @@ void NPC_BuildRandom( gentity_t *NPC )
 	NPC->client->clientInfo.customBasicSoundDir = "kyle";//FIXME: generic default?
 }
 #endif
+// ineedblood 
+qboolean NPC_SeekNPCParms(char **NPC_Name, const char **p, const char **token)
+{
+	const char					*NPCName = *NPC_Name;
+	//int							len = strlen( NPCName );
+	const char					*p_orig = *p;
+	int							count = 0;
+#ifdef USE_REGEX
+	struct re_registers			regs;
+	struct re_pattern_buffer	pattern;
+	qboolean					useRegex = qtrue;
 
+	pattern.allocated = 0;
+	pattern.used = 0;
+	pattern.buffer = NULL;
+	pattern.fastmap = NULL;
+	pattern.translate = NULL;
+
+	if (re_compile_pattern(NPCName, strlen(NPCName), &pattern) != NULL)
+	{
+		useRegex = qfalse;
+	}
+#endif
+
+	while (*p)
+	{
+		*token = COM_ParseExt(p, qtrue);
+		if ((*token)[0] == 0)
+		{
+			break;
+		}
+
+#ifdef _DEBUG
+		//Com_Printf("'%s' ", (*token));
+#endif
+
+		if (Q_stricmp(NPCName, (*token)) == 0)
+		{
+#ifdef _DEBUG
+			//Com_Printf("\nStandard\n");
+#endif
+#ifdef USE_REGEX
+			regfree(&pattern);
+#endif
+			return qtrue;
+		}
+
+		if (Q_wildmat((*token), NPCName) == 0)
+		{
+#ifdef _DEBUG
+			//Com_Printf("\nWildmat | token = '%s'\n", (*token));
+#endif
+#ifdef USE_REGEX
+			if (useRegex)
+			{
+				useRegex = qfalse;
+				count = 1;
+			}
+			else
+			{
+				count++;
+			}
+#else
+			count++;
+#endif
+		}
+
+#ifdef USE_REGEX
+		if (useRegex)
+		{
+			if (re_match(&pattern, (*token), strlen((*token)), 0, &regs) >= 0)
+			{
+#ifdef _DEBUG
+				//Com_Printf("\nRegex | token = '%s'\n", (*token));
+#endif
+				count++;
+			}
+		}
+#endif
+
+		SkipBracedSection(p, 0);
+	}
+
+	if (!count)
+	{
+#ifdef USE_REGEX
+		regfree(&pattern);
+#endif
+		return qfalse;
+	}
+
+	*p = p_orig;
+	count = Q_irand(0, count - 1);
+
+	while (*p)
+	{
+		*token = COM_ParseExt(p, qtrue);
+
+#ifdef USE_REGEX
+		if (!useRegex)
+		{
+			if (Q_wildmat((*token), NPCName) == 0)
+			{
+				if (!count)
+					break;
+
+				count--;
+			}
+		}
+		else
+		{
+			if (re_match(&pattern, (*token), strlen((*token)), 0, NULL) >= 0)
+			{
+				if (!count)
+					break;
+
+				count--;
+			}
+		}
+#else
+		if (Q_wildmat((*token), NPCName) == 0)
+		{
+			if (!count)
+				break;
+
+			count--;
+		}
+#endif
+
+		SkipBracedSection(p, 0);
+	}
+
+#ifdef USE_REGEX
+	regfree(&pattern);
+#endif
+
+	*NPC_Name = BG_StringAlloc(*token);
+
+	return qtrue;
+}
 extern void SetupGameGhoul2Model(gentity_t *ent, char *modelname, char *skinName);
 qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 {
@@ -2283,6 +2427,20 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 				}
 				continue;
 			}
+			if (!Q_stricmp(token, "special")) {
+				if (COM_ParseString(&p, &value))
+				{
+					continue;
+				}
+
+				n = GetIDForString(SpecialAbilityTable, value);
+
+				if (NPC->NPC && n != -1)
+				{
+					NPC->NPC->special |= n;
+				}
+				continue;
+			}
 
 	//===MOVEMENT STATS============================================================
 
@@ -3508,7 +3666,38 @@ qboolean NPC_ParseParms( const char *NPCName, gentity_t *NPC )
 			SkipRestOfLine( &p );
 		}
 	}
+	//NPCMod FEATURE : choix de l'arme au hasard
+	{
+		int i, r = 0;
 
+		for (i = WP_NONE; i < MAX_WEAPONS; i++)
+		{
+			//if (HaveWeapon(i))
+			if (NPC->client->ps.stats[STAT_WEAPONS] & (1 << i))
+				r++;
+		}
+
+		if (r != 0)
+		{
+			r = Q_irand(1, r);
+			for (i = WP_NONE; i < MAX_WEAPONS; i++)
+			{
+				if (NPC->client->ps.stats[STAT_WEAPONS] & (1 << i))
+				{
+					r--;
+					if (r == 0)
+					{
+						NPC->client->ps.weapon = i;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	if ((NPC->client->ps.stats[STAT_WEAPONS] & (1 << WP_SABER)) &&
+		(NPC->client->ps.weapon != WP_SABER))
+		WP_DeactivateSaber(NPC, qfalse);
 /*
 Ghoul2 Insert Start
 */
@@ -3554,6 +3743,10 @@ Ghoul2 Insert Start
 	{
 		Com_Printf("MD3 MODEL NPC'S ARE NOT SUPPORTED IN MP!\n");
 		return qfalse;
+	}
+	if (stats != NULL)
+	{
+		memcpy(&NPC->NPC->rstats, stats, sizeof(gNPCstats_t));
 	}
 /*
 Ghoul2 Insert End

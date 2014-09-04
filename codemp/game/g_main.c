@@ -20,6 +20,8 @@ int killPlayerTimer = 0;
 
 gentity_t		g_entities[MAX_GENTITIES];
 gclient_t		g_clients[MAX_CLIENTS];
+// ineedblood
+qboolean COM_ParseVec3(const char **buffer, vec3_t *c); // needs COM_ParseVec3 instead of ParseVec4
 
 qboolean gDuelExit = qfalse;
 

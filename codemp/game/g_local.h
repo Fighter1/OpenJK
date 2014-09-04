@@ -431,6 +431,8 @@ struct gentity_s {
 
 	// OpenJK add
 	int			useDebounceTime;	// for cultist_destroyer
+	// ineedblood 
+	gnpcgen_t	*npcgen;
 };
 
 #define DAMAGEREDIRECT_HEAD		1
@@ -538,7 +540,7 @@ typedef struct clientSession_s {
 
 	qboolean trainingSaber;
 	qboolean trainingSaberLocked;
-
+	qboolean	tzone;
 	qboolean fadeToBlack;
 	qboolean toBlackImmediately;
 
@@ -594,7 +596,7 @@ typedef struct clientPersistant_s {
 	int	amtelemark3;
 	int	amtelemarkyaw;
 	qboolean	amtelemarkset;
-
+	qboolean	tzone;
 	int			connectTime;
 
 	char		saber1[MAX_QPATH], saber2[MAX_QPATH];

@@ -2236,7 +2236,7 @@ void Cmd_CheckInventory_F(gentity_t * ent)
 		sqlite3_finalize(stmt);
 	}
 
-	if (checkInventory || G_CheckAdmin(ent, ADMIN_GUNITEM))
+	if (checkInventory || G_CheckAdmin(ent, ADMIN_ITEM))
 	{
 		rc = sqlite3_prepare_v2(db, va("SELECT Pistol FROM Items WHERE CharID='%i'", charID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)

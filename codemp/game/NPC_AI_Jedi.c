@@ -81,8 +81,28 @@ enum
 	LSTATE_NONE = 0,
 	LSTATE_UNDERFIRE,
 	LSTATE_INVESTIGATE,
-};
+};	
+qboolean IsJedi(gentity_t *ent)
+{
+	if (!ent)
+		return qfalse;
 
+	if (!ent->NPC || !ent->client)
+		return qfalse;
+
+	if (ent->client->NPC_class == CLASS_JEDI
+		|| ent->client->NPC_class == CLASS_REBORN
+		//|| ent->client->NPC_class == CLASS_ALORA
+		|| ent->client->NPC_class == CLASS_KYLE
+		|| ent->client->NPC_class == CLASS_SHADOWTROOPER
+		|| ent->client->NPC_class == CLASS_LUKE
+		|| ent->client->NPC_class == CLASS_TAVION
+		|| ent->client->NPC_class == CLASS_DESANN
+		)
+		return qtrue;
+
+	return qfalse;
+}
 void NPC_ShadowTrooper_Precache( void )
 {
 	RegisterItem( BG_FindItemForAmmo( AMMO_FORCE ) );
@@ -407,7 +427,13 @@ qboolean Boba_Flying( gentity_t *self )
 {
 	return ((qboolean)(self->client->ps.eFlags2&EF2_FLYING));//moveType==MT_FLYSWIM));
 }
-
+void Boba_SetBolts(gentity_t *ent)
+{
+	if (ent && ent->client)
+	{
+		ent->client->renderInfo.handLBolt = trap_G2API_AddBolt(ent->ghoul2, 0, "*l_hand");
+	}
+}
 void Boba_FireFlameThrower( gentity_t *self )
 {
 	int		damage	= Q_irand( 20, 30 );
