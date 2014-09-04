@@ -9,6 +9,10 @@ set(MPGameIncludeDirectories "${MPDir}")
 if(WIN32)
 	set(MPGameLibraries "winmm")
 endif(WIN32)
+# OpenRP - Fix - Thanks to ineedblood for this fix.
+if(UNIX)
+set(MPGameLibraries "pthread")
+endif(UNIX)
 set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_main.c"

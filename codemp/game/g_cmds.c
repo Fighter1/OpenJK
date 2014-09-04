@@ -1802,25 +1802,31 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 		break;
 	}
 
+	if (mode != SAY_REPORT && !ent->client->sess.loggedIn)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"^^1You are not logged in and thus can't use this chat mode.\n\"");
+		trap->SendServerCommand(ent - g_entities, "cp \"^1You are not logged in and thus can't use this chat mode.\n\"");
+		return;
+	}
+
 	if ( target ) {
 		//OpenRP
 		G_SayTo( ent, target, mode, color, name, text, locMsg, qfalse );
 		return;
 	}
 
-	// echo the text to the console
-	if ( dedicated.integer ) {
-		trap->Print( "%s%s\n", name, text);
-	}
 
 	//OpenRP
 	if ((mode == SAY_ALL || mode == SAY_YELL || mode == SAY_WHISPER || mode == SAY_ME || mode == SAY_IT || mode == SAY_LOOC) && openrp_DistanceBasedChat.integer && level.gametype == GT_FFA && (ent->client->sess.sessionTeam == TEAM_SPECTATOR || ent->client->tempSpectate >= level.time) && openrp_SpectatorsLocalChatDisable.integer)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^1You are a spectator and can't use this chat mode.\n\"");
-		trap->SendServerCommand(ent - g_entities, "cp \"^1You are a spectator and can't use this chat mode.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^1You are a spectator and thus can't use this chat mode.\n\"");
+		trap->SendServerCommand(ent - g_entities, "cp \"^1You are a spectator and thus can't use this chat mode.\n\"");
 		return;
 	}
-
+	// echo the text to the console
+	if (dedicated.integer) {
+		trap->Print("%s%s\n", name, text);
+	}
 	if ((mode == SAY_ALL || mode == SAY_YELL || mode == SAY_WHISPER || mode == SAY_ME || mode == SAY_IT || mode == SAY_LOOC) && openrp_DistanceBasedChat.integer && level.gametype == GT_FFA )
 	{
 		for (j = 0; j < level.maxclients; j++)

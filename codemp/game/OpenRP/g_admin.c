@@ -247,7 +247,7 @@ void Cmd_amWarn_F(gentity_t *ent)
 	trap->SendServerCommand(clientid, va("cp \"^1You have been warned by an admin.\nYou have ^7%i/%i ^1warnings.\n\"", g_entities[clientid].client->sess.warnings, openrp_maxWarnings.integer));
 	G_LogPrintf("Warn admin command executed by %s on %s.\n", ent->client->pers.netname, g_entities[clientid].client->pers.netname);
 
-	if (g_entities[clientid].client->sess.warnings == atoi(openrp_maxWarnings.string))
+	if (g_entities[clientid].client->sess.warnings == openrp_maxWarnings.integer)
 	{
 		trap->DropClient(clientid, "^1was ^1kicked ^1- ^1received ^1maximum ^1number ^1of ^1warnings ^1from ^1admins.\n");
 		G_LogPrintf("%s was kicked - received maximum number of warnings from admins.\n", g_entities[clientid].client->pers.netname);
