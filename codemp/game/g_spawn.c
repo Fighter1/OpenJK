@@ -428,7 +428,8 @@ void SP_team_CTF_bluespawn( gentity_t *ent );
 
 void SP_misc_turret( gentity_t *ent );
 void SP_misc_turretG2( gentity_t *base );
-
+// npc gen
+void SP_misc_npc_generator(gentity_t *self);
 void SP_item_botroam( gentity_t *ent ) { }
 
 void SP_gametype_item ( gentity_t* ent )
@@ -686,6 +687,9 @@ spawn_t	spawns[] = {
 	{ "waypoint_navgoal_4",					SP_waypoint_navgoal_4 },
 	{ "waypoint_navgoal_8",					SP_waypoint_navgoal_8 },
 	{ "waypoint_small",						SP_waypoint_small },
+	{ "misc_npc_generator", SP_misc_npc_generator },
+
+
 };
 
 static int sortspawn( const void *a, const void *b ) {

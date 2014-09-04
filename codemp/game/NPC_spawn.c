@@ -203,6 +203,7 @@ NPC_SetMiscDefaultData
 */
 
 extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, int boltNum, int weaponNum );
+extern void Boba_SetBolts(gentity_t *ent);
 void NPC_SetMiscDefaultData( gentity_t *ent )
 {
 	if ( ent->spawnflags & SFB_CINEMATIC )
@@ -248,6 +249,12 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 		ent->pain = NPC_Rancor_Pain;
 		ent->health *= 4;
 	}
+	// ineedblood
+	if (ent->client->NPC_class == CLASS_BOBAFETT)
+	{
+		Boba_SetBolts(ent);
+	}
+
 	if ( !Q_stricmp( "Yoda", ent->NPC_type ) )
 	{//FIXME: extern this into NPC.cfg?
 		ent->NPC->scriptFlags |= SCF_NO_FORCE;//force powers don't work on him
@@ -274,7 +281,8 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 	//	}
 		Jedi_ClearTimers( ent );
 	}
-	if ( ent->client->ps.fd.forcePowersKnown != 0 )
+	// ineedblood npc mod fix
+		if ( ent->client->ps.fd.forcePowersKnown != 0 )
 	{
 		WP_InitForcePowers( ent );
 		WP_SpawnInitForcePowers(ent); //rww
@@ -294,12 +302,54 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 		//ent->flags |= FL_NO_KNOCKBACK;
 		if ( ent->client->NPC_class == CLASS_JEDI || ent->client->NPC_class == CLASS_LUKE )
 		{//good jedi
-			ent->client->enemyTeam = NPCTEAM_ENEMY;
+			/* ineedblood's npc fix
+			
+			 ent->client->enemyTeam = NPCTEAM_ENEMY; */
 			if ( ent->spawnflags & JSF_AMBUSH )
 			{//ambusher
 				ent->NPC->scriptFlags |= SCF_IGNORE_ALERTS;
 				ent->client->noclip = qtrue;//hang
 			}
+		}
+		else if (ent->client->NPC_class == CLASS_STORMTROOPER || ent->client->NPC_class == CLASS_REBEL)
+		{
+			ST_ClearTimers(ent);
+		}
+		//NPCMod FIX : vieux bout de code de JO surement, mais Kyle est dans JA une classe de NPC
+		//et non le joueur
+		else if ( /*ent->client->NPC_class == CLASS_PLAYER ||*/ ent->client->NPC_class == CLASS_VEHICLE || (ent->spawnflags & SFB_CINEMATIC))
+		{
+			ent->NPC->defaultBehavior = BS_CINEMATIC;
+		}
+		//NPCMod FIX : le ShadowTrooper se camoufle seulement si un spawnflag est précisé,
+		//permet de différencier ShadowTrooper et RebornTwin
+		else if (((ent->client->NPC_class == CLASS_SHADOWTROOPER) && (ent->spawnflags & 1)) /*|| (ent->NPC->special&NSP_CLOAKING)*/)
+		{
+			Jedi_Cloak(ent);
+		}
+
+		if (ent->client->NPC_class == CLASS_REBORN ||
+			ent->client->NPC_class == CLASS_SHADOWTROOPER)
+		{
+			//NPCMod : idem des reborns y en a des tonnes chez les Goods
+			//ent->client->enemyTeam = NPCTEAM_PLAYER;
+			if (ent->spawnflags & JSF_AMBUSH)
+			{//ambusher
+				ent->NPC->scriptFlags |= SCF_IGNORE_ALERTS;
+				ent->client->noclip = qtrue;//hang
+			}
+		}
+		else if (ent->client->NPC_class == CLASS_PROBE || ent->client->NPC_class == CLASS_REMOTE ||
+			ent->client->NPC_class == CLASS_INTERROGATOR || ent->client->NPC_class == CLASS_SENTRY)
+		{
+			ent->NPC->defaultBehavior = BS_DEFAULT;
+			ent->client->ps.gravity = 0;
+			ent->NPC->aiFlags |= NPCAI_CUSTOM_GRAVITY;
+			ent->client->ps.eFlags2 |= EF2_FLYING;
+		}
+		else if (ent->client->NPC_class == CLASS_GALAKMECH)
+		{
+			NPC_GalakMech_Init(ent);
 		}
 		else
 		{
@@ -401,6 +451,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 				ent->NPC->aiFlags |= NPCAI_CUSTOM_GRAVITY;
 				ent->client->ps.eFlags2 |= EF2_FLYING;
 			}
+
 			else
 			{
 		//		G_CreateG2AttachedWeaponModel( ent, weaponData[ent->client->ps.weapon].weaponMdl, ent->handRBolt, 0 );
@@ -492,6 +543,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 	{
 		ent->flags |= (FL_SHIELDED|FL_NO_KNOCKBACK);
 	}
+	ent->r.svFlags |= SVF_PLAYER_USABLE;
 }
 
 /*

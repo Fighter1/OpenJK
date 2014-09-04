@@ -3970,7 +3970,7 @@ void ClientCommand( int clientNum ) {
 	}
 	if (!Q_stricmp(cmd, "emwait"))
 	{
-		cm_TheEmote(BOTH_STAND10, ent, qtrue);
+		cm_TheEmote(BOTH_STAND10, ent, qfalse);
 		return;
 	}
 	if (!Q_stricmp(cmd, "emhold"))
@@ -4414,7 +4414,7 @@ void ClientCommand( int clientNum ) {
 		Cmd_TrainingSaber_F(ent);
 		return;
 	}
-	if (!Q_stricmp(cmd, "setstun"))
+	if (!Q_stricmp(cmd, "setStun"))
 	{
 		Cmd_StunMode_F(ent);
 		return;

@@ -809,7 +809,7 @@ void NPCF_O_Attack(gentity_t *ent, qboolean init)
 
 	RestoreNPCGlobals();
 }
-
+// add orders npc
 void NPCF_O_StayHere(gentity_t *ent, qboolean init)
 {
 	if (init)
@@ -834,7 +834,7 @@ void NPCF_O_StayHere(gentity_t *ent, qboolean init)
 
 	NPC_RestoreStats(ent);
 }
-
+// NPCMOD Jetpack - Bobafett still has to be fixed (Ineedblood)
 void NPCF_O_JetpackGo(gentity_t *ent, qboolean init)
 {
 	if (ent->client->NPC_class != CLASS_BOBAFETT)

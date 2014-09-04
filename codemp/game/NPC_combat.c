@@ -666,8 +666,12 @@ void ChangeWeapon( gentity_t *ent, int newWeapon )
 	switch ( newWeapon )
 	{
 	case WP_BRYAR_PISTOL://prifle
-		ent->NPC->aiFlags &= ~NPCAI_BURST_WEAPON;
-		ent->NPC->burstSpacing = 1000;//attackdebounce
+		ent->NPC->scriptFlags &= ~SCF_ALT_FIRE;
+		ent->NPC->aiFlags |= NPCAI_BURST_WEAPON;
+		ent->NPC->burstMin = 2 + (2 * ent->NPC->stats.aggression);
+		ent->NPC->burstMax = 10 + (3 * ent->NPC->stats.aggression);
+		ent->NPC->burstMean = Q_irand(3, 7);
+		ent->NPC->burstSpacing = 3000 / ent->NPC->stats.aggression;
 		break;
 
 		/*
@@ -699,7 +703,10 @@ void ChangeWeapon( gentity_t *ent, int newWeapon )
 
 	case WP_SABER:
 		ent->NPC->aiFlags &= ~NPCAI_BURST_WEAPON;
-		ent->NPC->burstSpacing = 0;//attackdebounce
+		ent->NPC->burstMin = 1 + ( ent->NPC->stats.aggression * 2 );
+		//ent->NPC->burstMean = Q_irand(10,30) * ent->NPC->stats.aggression;
+		ent->NPC->burstMax = (ent->NPC->stats.aggression<=1)?8:(Q_irand(10,16)*ent->NPC->stats.aggression);
+		ent->NPC->burstSpacing = 2500 / ent->NPC->stats.aggression;//attackdebounce
 		break;
 
 	case WP_DISRUPTOR:

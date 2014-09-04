@@ -4036,7 +4036,7 @@ void Cmd_amGiveGun_F(gentity_t *ent)
 	char charName[256] = { 0 }, gunName[25] = { 0 };
 	int charID = 0, accountID = 0, clientID = 33, loggedIn = 0;
 
-	if (!G_CheckAdmin(ent, ADMIN_GUNITEM))
+	if (!G_CheckAdmin(ent, ADMIN_GUNITEMGIVE))
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"^1You are not allowed to use this command.\n\""));
 		return;
