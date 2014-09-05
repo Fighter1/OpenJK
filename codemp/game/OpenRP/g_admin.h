@@ -26,12 +26,12 @@
 #define ADMIN_RENAME				8388608 // /amrename
 #define	ADMIN_FACTION				16777216 // Faction related
 #define ADMIN_CREDITS				33554432 // Credits related
-//#define ADMIN_ALARM					67108864 // /amalarm
-#define ADMIN_ITEM					67108864 // /Item related
+//#define ADMIN_ALARM				67108864 // /amalarm
+#define ADMIN_GUNITEM				67108864 // Gun or item related	
 #define ADMIN_AUDIO					134217728 // /amaudio
 #define ADMIN_BOUNTY				268435456 // /bounty remove
 #define ADMIN_TOBLACK				536870912 // /amtoblack
-#define ADMIN_TRAININGSABER				1073741824 // Training saber related
+#define ADMIN_TRAININGSABER			1073741824 // Training saber related
 
 void AddSpawnField(char *field, char *value);
 void SP_fx_runner(gentity_t *ent);

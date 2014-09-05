@@ -595,7 +595,8 @@ Toss the weapon and powerups for the killed player
 */
 void TossClientItems( gentity_t *self ) {
 	gitem_t		*item;
-	int			weapon;
+	//OpenRP - commented this out
+	//int			weapon;
 	float		angle;
 	int			i;
 	gentity_t	*drop;
@@ -605,7 +606,8 @@ void TossClientItems( gentity_t *self ) {
 		return;
 	}
 
-	// drop the weapon if not a gauntlet or machinegun
+	//OpenRP - disabled weapon drops.
+	/*	// drop the weapon if not a gauntlet or machinegun
 	weapon = self->s.weapon;
 
 	// make a special check to see if they are changing to a new
@@ -640,6 +642,7 @@ void TossClientItems( gentity_t *self ) {
 		// spawn the item
 		Drop_Item( self, item, 0 );
 	}
+	*/
 
 	// drop all the powerups if not in teamplay
 	if ( level.gametype != GT_TEAM && level.gametype != GT_SIEGE ) {
@@ -4985,11 +4988,13 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 
 	//OpenRP-related code here
 	//Stun command created by Kannos'v Lightdust. All credit goes to him for creating it. Slight modifications made in variables/comments, and printed messages, and damage code.
-	if (attacker->client && attacker->client->sess.stunMode)
+	if (attacker->client && attacker->client->sess.stunMode &&
+		(mod == MOD_SABER || mod == MOD_BRYAR_PISTOL || mod == MOD_BRYAR_PISTOL_ALT ||
+		mod == MOD_BLASTER || mod == MOD_BOWCASTER || mod == MOD_REPEATER))
 	{
-		if (targ->health > 10)
+		if (targ->health >= 6)
 		{
-			targ->health = 10;
+			targ->health -= 5;
 		}
 		targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
 		targ->client->ps.forceDodgeAnim = 0;
@@ -5518,6 +5523,16 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 		}
 
 		if ( targ->health <= 0 ) {
+			//OpenRP - knockdown
+			/*
+			if (targ->client && targ->s.eType == ET_PLAYER && targ->s.eType != ET_NPC &&)
+			{
+			targ->client->ps.forceHandExtend = HANDEXTEND_KNOCKDOWN;
+			targ->client->ps.forceDodgeAnim = 0;
+			targ->client->ps.forceHandExtendTime = level.time + 1000000000;
+			targ->client->ps.quickerGetup = qfalse;
+			}
+			*/
 			if ( client )
 			{
 				targ->flags |= FL_NO_KNOCKBACK;
