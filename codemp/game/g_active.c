@@ -1098,18 +1098,6 @@ static const float maxJediMasterFOV = 100.0f;
 static const float maxForceSightDistance = Square( 1500.0f ) * 1500.0f; // x^2, optimisation
 static const float maxForceSightFOV = 100.0f;
 
-
-if (other == self) {
-	// we are always sent to ourselves anyway, this is purely an optimisation
-	continue;
-}
-
-<< << << < HEAD
-	//OpenRP - Invisibility - Credit to Raz0r for this code
-	//Invisible people are handled later
-	if (ent->client->sess.isInvisible)
-		continue;
-
 void G_UpdateClientBroadcasts( gentity_t *self ) {
 	int i;
 	gentity_t *other;
