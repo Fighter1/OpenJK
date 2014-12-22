@@ -3735,6 +3735,62 @@ void Cmd_AddBot_f( gentity_t *ent ) {
 	//because addbot isn't a recognized command unless you're the server, but it is in the menus regardless
 	trap->SendServerCommand( ent-g_entities, va( "print \"%s.\n\"", G_GetStringEdString( "MP_SVGAME", "ONLY_ADD_BOTS_AS_SERVER" ) ) );
 }
+/*
+==================
+Cmd_News_f
+==================
+*/
+void Cmd_News_f(gentity_t *ent) {
+	int page = 1; // zyk: page the user wants to see
+	char arg1[MAX_STRING_CHARS];
+	char file_content[MAX_STRING_CHARS];
+	char content[512];
+	int i = 0;
+	int results_per_page = 8; // zyk: number of results per page
+	FILE *news_file;
+	strcpy(file_content, "");
+	strcpy(content, "");
+
+	if (trap->Argc() < 2)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Use ^3/news <page number> ^7to see the results of this page\n\"");
+		return;
+	}
+
+	trap->Argv(1, arg1, sizeof(arg1));
+	page = atoi(arg1);
+
+	if (page == 0)
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"Invalid page number\n\"");
+		return;
+	}
+
+	news_file = fopen("news.txt", "r");
+	if (news_file != NULL)
+	{
+		while (i < (results_per_page * (page - 1)))
+		{ // zyk: reads the file until it reaches the position corresponding to the page number
+			fgets(content, sizeof(content), news_file);
+			i++;
+		}
+
+		while (i < (results_per_page * page) && fgets(content, sizeof(content), news_file) != NULL)
+		{ // zyk: fgets returns NULL at EOF
+			strcpy(file_content, va("%s%s", file_content, content));
+			i++;
+		}
+
+		fclose(news_file);
+		trap->SendServerCommand(ent - g_entities, va("print \"\n%s\n\"", file_content));
+	}
+	else
+	{
+		trap->SendServerCommand(ent - g_entities, "print \"The news file does not exist\n\"");
+		return;
+	}
+}
+
 
 /*
 =================
@@ -4108,6 +4164,11 @@ void ClientCommand( int clientNum ) {
 	if (!Q_stricmp(cmd, "listcharacters"))
 	{
 		Cmd_ListCharacters_F(ent);
+		return;
+	}
+	if (!Q_stricmp(cmd, "news"))
+	{
+		Cmd_News_f(ent);
 		return;
 	}
 	if (!Q_stricmp(cmd, "radio"))
