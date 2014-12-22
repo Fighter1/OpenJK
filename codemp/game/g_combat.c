@@ -4467,6 +4467,19 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 	if (!targ)
 		return;
 
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	//Credit to Raz0r for sleep-related code as well
+	if (targ && targ->client)
+	{
+		if (targ->client->sess.isSleeping|| targ->client->sess.isInvisible)
+			return;
+	}
+	if (attacker && attacker->client)
+	{
+		if (attacker->client->sess.isSleeping || attacker->client->sess.isInvisible)
+			return;
+	}
+
 	if (targ && targ->damageRedirect)
 	{
 		G_Damage(&g_entities[targ->damageRedirectTo], inflictor, attacker, dir, point, damage, dflags, mod);

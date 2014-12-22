@@ -2659,6 +2659,13 @@ static QINLINE qboolean G_SaberCollide(gentity_t *atk, gentity_t *def, vec3_t at
 		return qfalse;
 	}
 
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	//Credit to Raz0r for sleep-related code as well
+	//Raz: Avoid saber collisions for ghosts and frozen players
+	if (atk->client->sess.isSleeping || atk->client->sess.isInvisible ||
+		def->client->sess.isSleeping || def->client->sess.isInvisible)
+		return qfalse;
+
 	i = 0;
 	while (i < MAX_SABERS)
 	{
@@ -4517,6 +4524,16 @@ static QINLINE qboolean CheckSaberDamage(gentity_t *self, int rSaberNum, int rBl
 		if (g_entities[tr.entityNum].client &&
 			g_entities[tr.entityNum].client->ps.duelInProgress &&
 			g_entities[tr.entityNum].client->ps.duelIndex != self->s.number)
+		{
+			return qfalse;
+		}
+
+		//OpenRP - Invisibility - Credit to Raz0r for this code
+		//Credit to Raz0r for sleep-related code as well
+		//Raz: Ghosts and frozen clients can't be damaged
+		if (g_entities[tr.entityNum].client && (g_entities[tr.entityNum].client->sess.isSleeping
+			|| g_entities[tr.entityNum].client->sess.isInvisible || self->client->sess.isSleeping
+			|| self->client->sess.isInvisible))
 		{
 			return qfalse;
 		}
@@ -8779,6 +8796,12 @@ nextStep:
 		WP_SaberClearDamage();
 		saberDoClashEffect = qfalse;
 
+		//OpenRP - Invisibility - Credit to Raz0r for this code
+		//Credit to Raz0r for sleep-related code as well
+		//Raz: Avoid saber collisions for ghosts and frozen players
+		if (self->client->sess.isSleeping || self->client->sess.isInvisible)
+			return;
+
 		//Now cycle through each saber and each blade on the saber and do damage traces.
 		while (rSaberNum < MAX_SABERS)
 		{
@@ -9274,7 +9297,9 @@ int WP_SaberCanBlock(gentity_t *self, vec3_t point, int dflags, int mod, qboolea
 		thrownSaber = qtrue;
 	}
 
-	if (BG_SaberInAttack(self->client->ps.saberMove))
+	//OpenRP - Invisibility - Credit to Raz0r for this code
+	//Credit to Raz0r for sleep-related code as well
+	if (self->client->sess.isSleeping || self->client->sess.isInvisible || BG_SaberInAttack(self->client->ps.saberMove))
 	{
 		return 0;
 	}

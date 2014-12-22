@@ -761,8 +761,6 @@ void Cmd_amSleep_F(gentity_t *ent)
 
 	G_SetAnim(&g_entities[clientid], NULL, SETANIM_BOTH, BOTH_STUMBLEDEATH1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
 
-	g_entities[clientid].flags |= FL_GODMODE;
-
 	trap->SendServerCommand(ent - g_entities, va("print \"^2%s is now sleeping.\n\"", g_entities[clientid].client->pers.netname));
 	trap->SendServerCommand(clientid, "cp \"^2You are now sleeping.\n\"");
 
@@ -835,8 +833,6 @@ void Cmd_amUnsleep_F(gentity_t *ent)
 	g_entities[clientid].client->ps.forceDodgeAnim = 0;
 	g_entities[clientid].client->ps.forceHandExtendTime = 0;
 	g_entities[clientid].client->ps.quickerGetup = qfalse;
-
-	g_entities[clientid].flags &= ~FL_GODMODE;
 
 	trap->SendServerCommand(ent - g_entities, va("print \"^2%s has been unslept.\n\"", g_entities[clientid].client->pers.netname));
 
