@@ -241,18 +241,12 @@ void Cmd_amWarn_F(gentity_t *ent)
 
 	g_entities[clientid].client->sess.warnings++;
 
-	trap->SendServerCommand(ent - g_entities, va("print \"^2Player %s ^2was warned.\nThey have ^7%i/%i ^1warnings.\n\"", g_entities[clientid].client->pers.netname, g_entities[clientid].client->sess.warnings, openrp_maxWarnings.integer));
+	trap->SendServerCommand(ent - g_entities, va("print \"^2Player ^7%s ^2was warned.\nThey have ^7%i ^2warnings this session.\n\"", g_entities[clientid].client->pers.netname, g_entities[clientid].client->sess.warnings));
 
-	trap->SendServerCommand(clientid, va("print \"^1You have been warned by an admin.\nYou have ^7%i/%i ^1warnings.\n\"", g_entities[clientid].client->sess.warnings, openrp_maxWarnings.integer));
-	trap->SendServerCommand(clientid, va("cp \"^1You have been warned by an admin.\nYou have ^7%i/%i ^1warnings.\n\"", g_entities[clientid].client->sess.warnings, openrp_maxWarnings.integer));
+	trap->SendServerCommand(clientid, va("print \"^1You have been warned by an admin.\nYou have ^7%i ^1warnings.\n\"", g_entities[clientid].client->sess.warnings));
+	trap->SendServerCommand(clientid, va("cp \"^1You have been warned by an admin.\nYou have ^7%i ^1warnings.\n\"", g_entities[clientid].client->sess.warnings));
 	G_LogPrintf("Warn admin command executed by %s on %s.\n", ent->client->pers.netname, g_entities[clientid].client->pers.netname);
 
-	if (g_entities[clientid].client->sess.warnings == openrp_maxWarnings.integer)
-	{
-		trap->DropClient(clientid, "^1was ^1kicked ^1- ^1received ^1maximum ^1number ^1of ^1warnings ^1from ^1admins.\n");
-		G_LogPrintf("%s was kicked - received maximum number of warnings from admins.\n", g_entities[clientid].client->pers.netname);
-		return;
-	}
 	return;
 }
 
@@ -2954,7 +2948,7 @@ void Cmd_amWarningList_F(gentity_t *ent)
 		client = g_entities + i;
 		if (client->inuse && client->client && level.clients[i].pers.connected == CON_CONNECTED)
 		{
-			trap->SendServerCommand(ent - g_entities, va("print \"^7%s %i^2/^7%i\n\"", level.clients[i].pers.netname, level.clients[i].sess.warnings, openrp_maxWarnings.integer));
+			trap->SendServerCommand(ent - g_entities, va("print \"^2Name: ^7%s ^2Warnings: ^7%i\n\"", level.clients[i].pers.netname, level.clients[i].sess.warnings));
 		}
 	}
 	return;

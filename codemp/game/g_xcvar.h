@@ -14,7 +14,6 @@
 //Begin OpenRP cvars
 
 //OpenRP Stuff
-XCVAR_DEF(openrp_maxWarnings, "3", NULL, CVAR_ARCHIVE, qfalse)
 XCVAR_DEF(openrp_admin1Bitvalues, "4294967295", NULL, CVAR_ARCHIVE, qfalse)
 XCVAR_DEF(openrp_admin2Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
 XCVAR_DEF(openrp_admin3Bitvalues, "1", NULL, CVAR_ARCHIVE, qfalse)
