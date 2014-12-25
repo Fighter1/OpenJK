@@ -3536,7 +3536,59 @@ void Cmd_Alarm_F(gentity_t *ent)
 }
 
 /*
-void Cmd_AddFlag_F( gentity_t * ent )
+void Cmd_CreateFlag_F(gentity_t * ent)
+{
+    sqlite3 *db;
+    char *zErrMsg = 0;
+    sqlite3_stmt *stmt;
+    int rc;
+    char flagName[64] = { 0 }, flagDescriptionReal[256] = { 0 };
+    char *flagDescriptionTemp = ConcatArgs(2);
+    int pos = 0;
+    
+    if (!G_CheckAdmin(ent, ADMIN_FLAGS))
+    {
+        trap->SendServerCommand(ent-g_entities, va("print \"^1You are not allowed to use this command.\n\""));
+        sqlite3_close(db);
+        return;
+    }
+    
+    rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
+    if(rc)
+    {
+        trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return;
+    }
+    
+    while (*flagDescriptionTemp)
+    {
+        if (flagDescriptionTemp[0] == '\\' && flagDescriptionTemp[1] == 'n')
+        {
+            flagDescriptionTemp++;
+            flagDescriptionReal[pos++] = '\n';
+        }
+        else
+        {
+            flagDescriptionReal[pos++] = *flagDescriptionTemp;
+        }
+        flagDescriptionTemp++;
+    }
+    
+    flagDescriptionReal[pos] = 0;
+    
+    if (trap->Argc() < 2)
+    {
+        trap->SendServerCommand(ent-g_entities, "print \"^2Command Usage: /amcreateflag <flag> <flag description>\n\"");
+        sqlite3_close(db);
+        return;
+    }
+    
+    
+    
+}
+
+void Cmd_AddFlag_F(gentity_t * ent)
 {
 	sqlite3 *db;
 	char *zErrMsg = 0;
@@ -3545,29 +3597,29 @@ void Cmd_AddFlag_F( gentity_t * ent )
 	char charName[256] = { 0 }, flag[64] = { 0 };
 	int charID = 0, accountID = 0, clientID = 33, loggedIn = 0, i = 0;
 
-	rc = sqlite3_open( (const char*)openrp_databasePath.string, &db );
+	rc = sqlite3_open((const char*)openrp_databasePath.string, &db);
 	if(rc)
 	{
-		trap->Print( "Can't open database: %s\n", sqlite3_errmsg( db ) );
-		sqlite3_close( db );
+		trap->Print("Can't open database: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
 		return;
 	}
 
-	if ( !G_CheckAdmin( ent, ADMIN_FLAGS ) )
+	if (!G_CheckAdmin(ent, ADMIN_FLAGS))
 	{
 		trap->SendServerCommand(ent-g_entities, va("print \"^1You are not allowed to use this command.\n\""));
-		sqlite3_close( db );
+		sqlite3_close(db);
 		return;
 	}
 
-	if ( trap->Argc() < 2 )
+	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand( ent-g_entities, "print \"^2Command Usage: /amaddflag <characterName> <flag>\n\"" );
-		sqlite3_close( db );
+		trap->SendServerCommand(ent-g_entities, "print \"^2Command Usage: /amaddflag <characterName> <flag>\n\"");
+		sqlite3_close(db);
 		return;
 	}
 
-	trap->Argv( 1, charName, sizeof( charName ) );
+	trap->Argv(1, charName, sizeof(charName));
 
 	Q_StripColor(charName);
 	Q_strlwr(charName);
@@ -3596,9 +3648,9 @@ void Cmd_AddFlag_F( gentity_t * ent )
 
 	if( !charID )
 	{
-		trap->SendServerCommand( ent-g_entities, va( "print \"^1Character %s does not exist.\n\"", charName ) );
-		trap->SendServerCommand( ent-g_entities, va( "cp \"^1Character %s does not exist.\n\"", charName ) );
-		sqlite3_close( db );
+		trap->SendServerCommand( ent-g_entities, va("print \"^1Character %s does not exist.\n\"", charName));
+		trap->SendServerCommand( ent-g_entities, va("cp \"^1Character %s does not exist.\n\"", charName));
+		sqlite3_close(db);
 		return;
 	}
 
@@ -3669,9 +3721,11 @@ void Cmd_AddFlag_F( gentity_t * ent )
 		sqlite3_finalize(stmt);
 	}
 
-	trap->Argv( 2, flag, sizeof( flag ) );
+	trap->Argv(2, flag, sizeof(flag));
+    
+    //openrptodo
 
-	sqlite3_close( db );
+	sqlite3_close(db);
 	return;
 }
 */
