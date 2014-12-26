@@ -3224,8 +3224,8 @@ void Cmd_CheckStats_F(gentity_t *ent)
 
 void Cmd_ToBlack_F(gentity_t *ent)
 {
-	qboolean fadeToBlack, toBlackImmediately;
-	char parameter[7];
+	qboolean fadeToBlack = qfalse, toBlackImmediately = qfalse;
+	char parameter[7] = { 0 };
 
 	if (!G_CheckAdmin(ent, ADMIN_TOBLACK))
 	{
@@ -3234,7 +3234,7 @@ void Cmd_ToBlack_F(gentity_t *ent)
 	}
 	if (trap->Argc() < 2)
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^2Command Usage: /amToBlack <fade/nofade> Fading takes 10 seconds.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^2Command Usage: /amToBlack <fade/nofade>\n^3Note: Fading takes 5 seconds.\n\"");
 		return;
 	}
 
@@ -3275,7 +3275,7 @@ void Cmd_ToBlack_F(gentity_t *ent)
 	}
 	else
 	{
-		trap->SendServerCommand(ent - g_entities, "print \"^2Command Usage: /amToBlack <fade/nofade> Fading takes 10 seconds.\n\"");
+		trap->SendServerCommand(ent - g_entities, "print \"^2Command Usage: /amToBlack <fade/nofade>\n^3Note: Fading takes 5 seconds.\n\"");
 		return;
 	}
 
