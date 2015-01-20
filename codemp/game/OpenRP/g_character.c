@@ -309,7 +309,7 @@ void Cmd_ListCharacters_F(gentity_t * ent)
 	if (!ent->client->sess.loggedIn)
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You must be logged in to see your characters.\n\"");
-		trap->SendServerCommand(ent - g_entities, "cp \"^1You must be logged in to see your characters.\n\"");
+		//trap->SendServerCommand(ent - g_entities, "cp \"^1You must be logged in to see your characters.\n\"");
 		sqlite3_close(db);
 		return;
 	}
@@ -878,8 +878,8 @@ void Cmd_GiveCredits_F(gentity_t * ent)
 
 	trap->SendServerCommand(ent - g_entities,
 		va("print \"^2^7%i ^2of your credits have been given to character ^7%s^2. You now have ^7%i ^2credits.\n\"", changedCredits, recipientCharName, newSenderCreditsTotal));
-	trap->SendServerCommand(ent - g_entities,
-		va("cp \"^2^7%i ^2of your credits have been given to character ^7%s^2. You now have ^7%i ^2credits.\n\"", changedCredits, recipientCharName, newSenderCreditsTotal));
+	//trap->SendServerCommand(ent - g_entities,
+		//va("cp \"^2^7%i ^2of your credits have been given to character ^7%s^2. You now have ^7%i ^2credits.\n\"", changedCredits, recipientCharName, newSenderCreditsTotal));
 
 	sqlite3_close(db);
 	return;
@@ -896,7 +896,7 @@ void Cmd_CharacterInfo_F(gentity_t * ent)
 	if ((!ent->client->sess.loggedIn) || (!ent->client->sess.characterSelected))
 	{
 		trap->SendServerCommand(ent - g_entities, "print \"^1You must be logged in and have a character selected in order to view your character's info.\n\"");
-		trap->SendServerCommand(ent - g_entities, "cp \"^1You must be logged in and have a character selected in order to view your character's info.\n\"");
+		//trap->SendServerCommand(ent - g_entities, "cp \"^1You must be logged in and have a character selected in order to view your character's info.\n\"");
 		return;
 	}
 
@@ -1169,7 +1169,7 @@ void Cmd_CharacterInfo_F(gentity_t * ent)
 	if (!charID)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"^1Character ^7%s ^1does not exist.\n\"", charName));
-		trap->SendServerCommand(ent - g_entities, va("cp \"^1Character ^7%s does not exist.\n\"", charName));
+		//trap->SendServerCommand(ent - g_entities, va("cp \"^1Character ^7%s does not exist.\n\"", charName));
 		sqlite3_close(db);
 		return;
 	}
@@ -2209,7 +2209,7 @@ void Cmd_CheckInventory_F(gentity_t * ent)
 	if (!charID)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"^1Character %s does not exist.\n\"", charName));
-		trap->SendServerCommand(ent - g_entities, va("cp \"^1Character %s does not exist.\n\"", charName));
+		//trap->SendServerCommand(ent - g_entities, va("cp \"^1Character %s does not exist.\n\"", charName));
 		sqlite3_close(db);
 		return;
 	}
@@ -3368,7 +3368,7 @@ void Cmd_Bounty_F(gentity_t * ent)
 		if (!charID)
 		{
 			trap->SendServerCommand(ent - g_entities, va("print \"^1Character %s does not exist.\n\"", bountyName));
-			trap->SendServerCommand(ent - g_entities, va("cp \"^1Character %s does not exist.\n\"", bountyName));
+			//trap->SendServerCommand(ent - g_entities, va("cp \"^1Character %s does not exist.\n\"", bountyName));
 			sqlite3_close(db);
 			return;
 		}
@@ -4586,7 +4586,7 @@ void Cmd_FactionInvite_F(gentity_t *ent)
 	if (!charID)
 	{
 		trap->SendServerCommand(ent - g_entities, va("print \"^1Character ^7%s ^1does not exist.\n\"", charName));
-		trap->SendServerCommand(ent - g_entities, va("cp \"^1Character ^7%s does not exist.\n\"", charName));
+		//trap->SendServerCommand(ent - g_entities, va("cp \"^1Character ^7%s does not exist.\n\"", charName));
 		sqlite3_close(db);
 		return;
 	}
@@ -5058,7 +5058,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 		if (loggedIn)
 		{
 			trap->SendServerCommand(clientID, va("print \"^2You are now the %s rank in the %s faction!\n\"", factionRank, factionName));
-			trap->SendServerCommand(clientID, va("cp \"^2You are now the %s rank in the %s faction!\n\"", factionRank, factionName));
+			//trap->SendServerCommand(clientID, va("cp \"^2You are now the %s rank in the %s faction!\n\"", factionRank, factionName));
 		}
 
 		trap->SendServerCommand(ent - g_entities, va("print \"^2Character %s is now the %s rank in the %s faction.\n\"", charName, factionRank, factionName));
@@ -5272,7 +5272,7 @@ void Cmd_SetFactionRank_F(gentity_t * ent)
 		if (loggedIn)
 		{
 			trap->SendServerCommand(clientID, va("print \"^2You are now the %s rank in the %s faction!\n\"", factionRank, factionName));
-			trap->SendServerCommand(clientID, va("cp \"^2You are now the %s rank in the %s faction!\n\"", factionRank, factionName));
+			//trap->SendServerCommand(clientID, va("cp \"^2You are now the %s rank in the %s faction!\n\"", factionRank, factionName));
 		}
 
 		trap->SendServerCommand(ent - g_entities, va("print \"^2Character %s is now the %s rank in the %s faction.\n\"", charName, factionRank, factionName));

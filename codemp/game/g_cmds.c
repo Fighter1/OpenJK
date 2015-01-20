@@ -3740,6 +3740,7 @@ void Cmd_AddBot_f( gentity_t *ent ) {
 Cmd_News_f
 ==================
 */
+//credit to Zyk and his OpenJK mod
 void Cmd_News_f(gentity_t *ent) {
 	int page = 1; // zyk: page the user wants to see
 	char arg1[MAX_STRING_CHARS];
@@ -4166,6 +4167,7 @@ void ClientCommand( int clientNum ) {
 		Cmd_ListCharacters_F(ent);
 		return;
 	}
+	//credit to Zyk and his OpenJK mod
 	if (!Q_stricmp(cmd, "news"))
 	{
 		Cmd_News_f(ent);

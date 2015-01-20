@@ -2309,7 +2309,7 @@ void Cmd_CreateFaction_F(gentity_t * ent)
 		sqlite3_close(db);
 		return;
 	}
-	trap->SendServerCommand(ent - g_entities, va("print \"^2The %s faction has been created. To add people to it, use /amSetFaction %i <characterName>\n\"", factionName, factionID));
+	trap->SendServerCommand(ent - g_entities, va("print \"^2The %s faction has been created. To add people to it, use /amSetFaction <characterName> %i\n\"", factionName, factionID));
 	sqlite3_close(db);
 	return;
 }
@@ -2495,6 +2495,15 @@ void Cmd_SetFaction_F(gentity_t * ent)
 			return;
 		}
 
+		rc = sqlite3_exec(db, va("UPDATE Characters set FactionLeader='0' WHERE CharID='%i'", charID), 0, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			trap->Print("SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return;
+		}
+
 		if (loggedIn)
 		{
 			trap->SendServerCommand(clientID, "print \"^2You have been removed from your faction.\n\"");
@@ -2511,7 +2520,7 @@ void Cmd_SetFaction_F(gentity_t * ent)
 			return;
 		}
 
-		rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Factions WHERE ID='%i'", factionID), -1, &stmt, NULL);
+		rc = sqlite3_prepare_v2(db, va("SELECT Name FROM Factions WHERE FactionID='%i'", factionID), -1, &stmt, NULL);
 		if (rc != SQLITE_OK)
 		{
 			trap->Print("SQL error: %s\n", sqlite3_errmsg(db));
@@ -2540,6 +2549,7 @@ void Cmd_SetFaction_F(gentity_t * ent)
 			sqlite3_close(db);
 			return;
 		}
+
 		rc = sqlite3_exec(db, va("UPDATE Characters set FactionID='%i' WHERE CharID='%i'", factionID, charID), 0, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
