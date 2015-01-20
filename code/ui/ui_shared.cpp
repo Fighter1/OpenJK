@@ -2,9 +2,8 @@
 This file is part of Jedi Academy.
 
     Jedi Academy is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    it under the terms of the GNU General Public License version 2
+    as published by the Free Software Foundation.
 
     Jedi Academy is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -92,7 +91,8 @@ static void *captureData = NULL;
 #ifdef CGAME
 #define MEM_POOL_SIZE  128 * 1024
 #else
-#define MEM_POOL_SIZE  1024 * 1024
+//#define MEM_POOL_SIZE  1024 * 1024
+#define MEM_POOL_SIZE  2048 * 1024
 #endif
 
 #define SCROLL_TIME_START				500
@@ -1164,10 +1164,10 @@ hashForString
 return a hash value for the string
 ================
 */
-static long hashForString(const char *str)
+static unsigned hashForString(const char *str)
 {
 	int		i;
-	long	hash;
+	unsigned	hash;
 	char	letter;
 
 	hash = 0;
@@ -1175,7 +1175,7 @@ static long hashForString(const char *str)
 	while (str[i] != '\0')
 	{
 		letter = tolower((unsigned char)str[i]);
-		hash+=(long)(letter)*(i+119);
+		hash += (unsigned)(letter)*(i + 119);
 		i++;
 	}
 	hash &= (HASH_TABLE_SIZE-1);
@@ -1190,7 +1190,7 @@ String_Alloc
 const char *String_Alloc(const char *p)
 {
 	int len;
-	long hash;
+	unsigned hash;
 	stringDef_t *str, *last;
 	static const char *staticNULL = "";
 
