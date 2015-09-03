@@ -1,3 +1,26 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 // tr_shader.c -- this file deals with the parsing and definition of shaders
 
 #include "tr_local.h"
@@ -9,6 +32,10 @@ static char *s_shaderText;
 static	shaderStage_t	stages[MAX_SHADER_STAGES];
 static	shader_t		shader;
 static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS];
+
+// Hash value (generated using the generateHashValueForText function) for the original
+// retail JKA shader for gfx/2d/wedge.
+#define RETAIL_ROCKET_WEDGE_SHADER_HASH (1217042)
 
 #define FILE_HASH_SIZE		1024
 static	shader_t*		hashTable[FILE_HASH_SIZE];
@@ -82,6 +109,20 @@ static void ClearGlobalShader(void)
 	}
 
 	shader.contentFlags = CONTENTS_SOLID | CONTENTS_OPAQUE;
+}
+
+static uint32_t generateHashValueForText( const char *string, size_t length )
+{
+	int i = 0;
+	uint32_t hash = 0;
+
+	while ( length-- )
+	{
+		hash += string[i] * (i + 119);
+		i++;
+	}
+
+	return (hash ^ (hash >> 10) ^ (hash >> 20));
 }
 
 /*
@@ -2054,6 +2095,7 @@ will optimize it.
 static qboolean ParseShader( const char **text )
 {
 	char *token;
+	const char *begin = *text;
 	int s;
 
 	s = 0;
@@ -2083,7 +2125,7 @@ static qboolean ParseShader( const char **text )
 		else if ( token[0] == '{' )
 		{
 			if ( s >= MAX_SHADER_STAGES ) {
-				ri->Printf( PRINT_WARNING, "WARNING: too many stages in shader %s\n", shader.name );
+				ri->Printf( PRINT_WARNING, "WARNING: too many stages in shader %s (max is %i)\n", shader.name, MAX_SHADER_STAGES );
 				return qfalse;
 			}
 
@@ -2304,6 +2346,22 @@ static qboolean ParseShader( const char **text )
 	}
 
 	shader.explicitlyDefined = true;
+
+	// The basejka rocket lock wedge shader uses the incorrect blending mode.
+	// It only worked because the shader state was not being set, and relied
+	// on previous state to be multiplied by alpha. Since fixing RB_RotatePic,
+	// the shader needs to be fixed here to render correctly.
+	//
+	// We match against the retail version of gfx/2d/wedge by calculating the
+	// hash value of the shader text, and comparing it against a precalculated
+	// value.
+	uint32_t shaderHash = generateHashValueForText( begin, *text - begin );
+	if ( shaderHash == RETAIL_ROCKET_WEDGE_SHADER_HASH &&
+		Q_stricmp( shader.name, "gfx/2d/wedge" ) == 0 )
+	{
+		stages[0].stateBits &= ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS);
+		stages[0].stateBits |= GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+	}
 
 	return qtrue;
 }
@@ -4092,7 +4150,7 @@ static void CreateInternalShaders( void ) {
 	tr.distortionShader = FinishShader();
 	shader.defaultShader = qtrue;
 
-	ARB_InitGlowShaders();
+	ARB_InitGPUShaders();
 }
 
 static void CreateExternalShaders( void ) {

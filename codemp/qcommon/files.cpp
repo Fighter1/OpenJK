@@ -1,4 +1,29 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 /*****************************************************************************
+
  * name:		files.cpp
  *
  * desc:		file code
@@ -13,6 +38,10 @@
 #endif
 #endif
 #include "minizip/unzip.h"
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
 // for rmdir
 #if defined (_MSC_VER)
@@ -259,6 +288,13 @@ static char		*fs_serverPakNames[MAX_SEARCH_PATHS];			// pk3 names
 static int		fs_numServerReferencedPaks;
 static int		fs_serverReferencedPaks[MAX_SEARCH_PATHS];			// checksums
 static char	*fs_serverReferencedPakNames[MAX_SEARCH_PATHS];		// pk3 names
+
+#if defined(_WIN32)
+// temporary files - store them in a circular buffer. We're pretty
+// much guaranteed to not need more than 8 temp files at a time.
+static int		fs_temporaryFileWriteIdx = 0;
+static char		fs_temporaryFileNames[8][MAX_OSPATH];
+#endif
 
 // last valid game folder used
 char lastValidBase[MAX_OSPATH];
@@ -942,14 +978,23 @@ void FS_Rename( const char *from, const char *to ) {
 }
 
 /*
-==============
+===========
 FS_FCloseFile
 
-If the FILE pointer is an open pak file, leave it open.
+Close a file.
 
-For some reason, other dll's can't just cal fclose()
-on files returned by FS_FOpenFile...
-==============
+There are three cases handled:
+
+  * normal file: closed with fclose.
+
+  * file in pak3 archive: subfile is closed with unzCloseCurrentFile, but the
+    minizip handle to the pak3 remains open.
+
+  * file in pak3 archive, opened with "unique" flag: This file did not use
+    the system minizip handle to the pak3 file, but its own dedicated one.
+    The dedicated handle is closed with unzClose.
+
+===========
 */
 void FS_FCloseFile( fileHandle_t f ) {
 	if ( !fs_searchpaths ) {
@@ -1185,7 +1230,7 @@ bool Sys_FileOutOfDate( LPCSTR psFinalFileName /* dest */, LPCSTR psDataFileName
 		// timer res only accurate to within 2 seconds on FAT, so can't do exact compare...
 		//
 		//LONG l = CompareFileTime( &ftFinalFile, &ftDataFile );
-		if (  (abs((double)(ftFinalFile.dwLowDateTime - ftDataFile.dwLowDateTime)) <= 20000000 ) &&
+		if (  (fabs((double)(ftFinalFile.dwLowDateTime - ftDataFile.dwLowDateTime)) <= 20000000 ) &&
 				  ftFinalFile.dwHighDateTime == ftDataFile.dwHighDateTime
 			)
 		{
@@ -1561,6 +1606,9 @@ qboolean FS_FindPureDLL(const char *name)
 	if(!fs_searchpaths)
 		Com_Error(ERR_FATAL, "Filesystem call made without initialization");
 
+	if ( !Cvar_VariableValue( "sv_pure" ) )
+		return qtrue;
+
 	Com_sprintf(dllName, sizeof(dllName), "%sx86.dll", name);
 
 	if(FS_FOpenFileRead(dllName, &h, qtrue) > 0)
@@ -1677,7 +1725,6 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 	return len;
 }
 
-#define	MAXPRINTMSG	4096
 void QDECL FS_Printf( fileHandle_t h, const char *fmt, ... ) {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
@@ -3213,6 +3260,27 @@ void FS_Shutdown( qboolean closemfp ) {
 	searchpath_t	*p, *next;
 	int	i;
 
+#if defined(_WIN32)
+	// Delete temporary files
+	fs_temporaryFileWriteIdx = 0;
+	for ( size_t i = 0; i < ARRAY_LEN(fs_temporaryFileNames); i++ )
+	{
+		if (fs_temporaryFileNames[i][0] != '\0')
+		{
+			if ( !DeleteFile(fs_temporaryFileNames[i]) )
+			{
+				DWORD error = GetLastError();
+				Com_DPrintf("FS_Shutdown: failed to delete '%s'. "
+							"Win32 error code: 0x08x",
+							fs_temporaryFileNames[i],
+							error);
+			}
+
+			fs_temporaryFileNames[i][0] = '\0';
+		}
+	}
+#endif
+
 	for(i = 0; i < MAX_FILE_HANDLES; i++) {
 		if (fsh[i].fileSize) {
 			FS_FCloseFile(i);
@@ -3775,6 +3843,10 @@ void FS_InitFilesystem( void ) {
 	Q_strncpyz(lastValidBase, fs_basepath->string, sizeof(lastValidBase));
 	Q_strncpyz(lastValidGame, fs_gamedirvar->string, sizeof(lastValidGame));
 
+#if defined(_WIN32)
+	Com_Memset(fs_temporaryFileNames, 0, sizeof(fs_temporaryFileNames));
+#endif
+
   // bk001208 - SafeMode see below, FIXME?
 }
 
@@ -3816,7 +3888,6 @@ void FS_Restart( int checksumFeed ) {
 		Com_Error( ERR_FATAL, "Couldn't load mpdefault.cfg" );
 	}
 
-	// bk010116 - new check before safeMode
 	if ( Q_stricmp(fs_gamedirvar->string, lastValidGame) ) {
 		// skip the jampconfig.cfg if "safe" is on the command line
 		if ( !Com_SafeMode() ) {
@@ -4061,3 +4132,102 @@ bool FS_LoadMachOBundle( const char *name )
 	return true;
 }
 #endif
+
+qboolean FS_WriteToTemporaryFile( const void *data, size_t dataLength, char **tempFilePath )
+{
+#if defined(_WIN32)
+	DWORD error;
+	TCHAR tempPath[MAX_PATH];
+	DWORD tempPathResult = GetTempPath(MAX_PATH, tempPath);
+	if ( tempPathResult )
+	{
+		TCHAR tempFileName[MAX_PATH];
+		UINT tempFileNameResult = GetTempFileName(tempPath, "OJK", 0, tempFileName);
+		if ( tempFileNameResult )
+		{
+			HANDLE file = CreateFile(
+				tempFileName, GENERIC_WRITE, 0, NULL,
+				CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+			if ( file != INVALID_HANDLE_VALUE )
+			{
+				DWORD bytesWritten = 0;
+				if (WriteFile(file, data, dataLength, &bytesWritten, NULL))
+				{
+					int deletesRemaining = ARRAY_LEN(fs_temporaryFileNames);
+
+					CloseHandle(file);
+
+					while ( deletesRemaining > 0 &&
+							fs_temporaryFileNames[fs_temporaryFileWriteIdx][0] != '\0' )
+					{
+						// Delete old temporary file as we need to
+						if ( DeleteFile(fs_temporaryFileNames[fs_temporaryFileWriteIdx]) )
+						{
+							break;
+						}
+
+						error = GetLastError();
+						Com_DPrintf("FS_WriteToTemporaryFile failed for '%s'. "
+									"Win32 error code: 0x%08x\n",
+									fs_temporaryFileNames[fs_temporaryFileWriteIdx],
+									error);
+
+						// Failed to delete, possibly because DLL was still in use. This can
+						// happen when running a listen server and you continually restart
+						// the map. The game DLL is reloaded, but cgame and ui DLLs are not.
+						fs_temporaryFileWriteIdx =
+							(fs_temporaryFileWriteIdx + 1) % ARRAY_LEN(fs_temporaryFileNames);
+						deletesRemaining--;
+					}
+
+					// If this happened, then all slots are used and we some how have 8 DLLs
+					// loaded at once?!
+					assert(deletesRemaining > 0);
+
+					Q_strncpyz(fs_temporaryFileNames[fs_temporaryFileWriteIdx],
+								tempFileName, sizeof(fs_temporaryFileNames[0]));
+					fs_temporaryFileWriteIdx =
+						(fs_temporaryFileWriteIdx + 1) % ARRAY_LEN(fs_temporaryFileNames);
+
+					if ( tempFilePath )
+					{
+						size_t fileNameLen = strlen(tempFileName);
+						*tempFilePath = (char *)Z_Malloc(fileNameLen + 1, TAG_FILESYS);
+						Q_strncpyz(*tempFilePath, tempFileName, fileNameLen + 1);
+					}
+					
+					return qtrue;
+				}
+				else
+				{
+					error = GetLastError();
+					Com_DPrintf("FS_WriteToTemporaryFile failed to write '%s'. "
+								"Win32 error code: 0x%08x\n",
+								tempFileName, error);
+				}
+			}
+			else
+			{
+				error = GetLastError();
+				Com_DPrintf("FS_WriteToTemporaryFile failed to create '%s'. "
+							"Win32 error code: 0x%08x\n",
+							tempFileName, error);
+			}
+		}
+		else
+		{
+			error = GetLastError();
+			Com_DPrintf("FS_WriteToTemporaryFile failed to generate temporary file name. "
+						"Win32 error code: 0x%08x\n", error);
+		}
+	}
+	else
+	{
+		error = GetLastError();
+		Com_DPrintf("FS_WriteToTemporaryFile failed to get temporary file folder. "
+						"Win32 error code: 0x%08x\n", error);
+	}
+#endif
+
+	return qfalse;
+}

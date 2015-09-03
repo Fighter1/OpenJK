@@ -1,19 +1,25 @@
 /*
-This file is part of Jedi Academy.
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
-    Jedi Academy is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
+This file is part of the OpenJK source code.
 
-    Jedi Academy is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
-    You should have received a copy of the GNU General Public License
-    along with Jedi Academy.  If not, see <http://www.gnu.org/licenses/>.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
 */
-// Copyright 2001-2013 Raven Software
 
 #include "../icarus/IcarusInterface.h"
 #include "../cgame/cg_local.h"
@@ -1749,7 +1755,6 @@ void G_SetG2PlayerModel( gentity_t * const ent, const char *modelName, const cha
 		}
 	}
 	int skin = gi.RE_RegisterSkin( skinName );
-	assert(skin);
 	//now generate the ghoul2 model this client should be.
 	if ( ent->client->NPC_class == CLASS_VEHICLE )
 	{//vehicles actually grab their model from the appropriate vehicle data entry
@@ -1770,7 +1775,6 @@ void G_SetG2PlayerModel( gentity_t * const ent, const char *modelName, const cha
 		modelName = "stormtrooper";
 		Com_sprintf( skinName, sizeof( skinName ), "models/players/%s/model_default.skin", modelName );
 		skin = gi.RE_RegisterSkin( skinName );
-		assert(skin);
 		ent->playerModel = gi.G2API_InitGhoul2Model( ent->ghoul2, va("models/players/%s/model.glm", modelName), G_ModelIndex( va("models/players/%s/model.glm", modelName) ), NULL_HANDLE, NULL_HANDLE, 0, 0 );
 	}
 	if (ent->playerModel == -1)

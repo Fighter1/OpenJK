@@ -1,3 +1,27 @@
+/*
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2005 - 2015, ioquake3 contributors
+Copyright (C) 2013 - 2015, OpenJK contributors
+
+This file is part of the OpenJK source code.
+
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
+*/
+
 //
 // string allocation/managment
 
@@ -287,6 +311,7 @@ void String_Init() {
 	}
 }
 
+#if 0
 /*
 =================
 PC_SourceWarning
@@ -308,6 +333,7 @@ void PC_SourceWarning(int handle, char *format, ...) {
 
 	Com_Printf(S_COLOR_YELLOW "WARNING: %s, line %d: %s\n", filename, line, string);
 }
+#endif
 
 /*
 =================
@@ -656,12 +682,15 @@ void Window_Paint(windowDef_t *w, float fadeAmount, float fadeClamp, float fadeC
 	vec4_t color;
 	rectDef_t fillRect;
 
+	if ( w == NULL )
+		return;
+
 	if ( debugMode ) {
 		color[0] = color[1] = color[2] = color[3] = 1;
 		DC->drawRect(w->rect.x, w->rect.y, w->rect.w, w->rect.h, 1, color);
 	}
 
-	if ( w == NULL || ( w->style == 0 && w->border == 0 ) )
+	if ( w->style == 0 && w->border == 0 )
 		return;
 
 	fillRect = w->rect;
@@ -5134,6 +5163,12 @@ qboolean Item_Bind_HandleKey(itemDef_t *item, int key, qboolean down) {
 				id = BindingIDFromName(item->cvar);
 				if (id != -1)
 				{
+					if ( g_bindKeys[id][0] != -1 )
+						DC->setBinding(g_bindKeys[id][0], "");
+					
+					if ( g_bindKeys[id][1] != -1 )
+						DC->setBinding(g_bindKeys[id][1], "");
+
 					g_bindKeys[id][0] = -1;
 					g_bindKeys[id][1] = -1;
 				}
@@ -8031,8 +8066,10 @@ qboolean ItemParse_cvarFloat( itemDef_t *item, int handle ) {
 	return qfalse;
 }
 
+#ifdef _UI
 char currLanguage[32][128];
 static const char languageString[32] = "@MENUS_MYLANGUAGE";
+#endif
 
 qboolean ItemParse_cvarStrList( itemDef_t *item, int handle ) {
 	pc_token_t token;

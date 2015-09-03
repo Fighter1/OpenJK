@@ -1,19 +1,25 @@
 /*
-This file is part of Jedi Academy.
+===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
-    Jedi Academy is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
+This file is part of the OpenJK source code.
 
-    Jedi Academy is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
-    You should have received a copy of the GNU General Public License
-    along with Jedi Academy.  If not, see <http://www.gnu.org/licenses/>.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+===========================================================================
 */
-// Copyright 2001-2013 Raven Software
 
 //
 // string allocation/managment
@@ -33,9 +39,7 @@ This file is part of Jedi Academy.
 #include "ui_shared.h"
 #include "menudef.h"
 
-#ifndef _WIN32
-#include <cmath>
-#endif
+#include "qcommon/stringed_ingame.h"
 
 void		UI_LoadMenus(const char *menuFile, qboolean reset);
 
@@ -2558,7 +2562,7 @@ int GetCurrentFeederIndex(itemDef_t * item)
 		max = uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadCount;
 		for ( i = 0; i < max ; i++)
 		{
-			if (!Q_stricmp(name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHeadNames[i]))
+			if (!Q_stricmp(name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinHead[i].name))
 			{
 				return i;
 			}
@@ -2573,7 +2577,7 @@ int GetCurrentFeederIndex(itemDef_t * item)
 		max = uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoCount;
 		for ( i = 0; i < max ; i++)
 		{
-			if (!Q_stricmp(name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorsoNames[i]))
+			if (!Q_stricmp(name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinTorso[i].name))
 			{
 				return i;
 			}
@@ -2588,7 +2592,7 @@ int GetCurrentFeederIndex(itemDef_t * item)
 		max = uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegCount;
 		for ( i = 0; i < max ; i++)
 		{
-			if (!Q_stricmp(name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLegNames[i]))
+			if (!Q_stricmp(name, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].SkinLeg[i].name))
 			{
 				return i;
 			}
@@ -2615,7 +2619,7 @@ int GetCurrentFeederIndex(itemDef_t * item)
 		max = uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount;
 		for ( i = 0; i < max ; i++)
 		{
-			Item_RunScript(item, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorActionText[i]);
+			Item_RunScript(item, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].Color[i].actionText);
 			newR = Cvar_VariableIntegerValue( "ui_char_color_red");
 			newG = Cvar_VariableIntegerValue( "ui_char_color_green");
 			newB = Cvar_VariableIntegerValue( "ui_char_color_blue");
@@ -7230,7 +7234,7 @@ void Item_Model_Paint(itemDef_t *item)
 
 	// Set up lighting
 	//VectorCopy( refdef.vieworg, ent.lightingOrigin );
-	ent.renderfx = RF_LIGHTING_ORIGIN | RF_NOSHADOW;
+	ent.renderfx = RF_NOSHADOW;
 
 	ui.R_AddLightToScene(refdef.vieworg, 500, 1, 1, 1);	//fixme: specify in menu file!
 
@@ -9456,8 +9460,14 @@ qboolean Item_Bind_HandleKey(itemDef_t *item, int key, qboolean down)
 
 			case A_BACKSPACE:
 				id = BindingIDFromName(item->cvar);
-				if (id != -1)
+				if ( id != -1 )
 				{
+					if ( g_bindKeys[id][0] != -1 )
+						DC->setBinding( g_bindKeys[id][0], "" );
+
+					if ( g_bindKeys[id][1] != -1 )
+						DC->setBinding( g_bindKeys[id][1], "" );
+
 					g_bindKeys[id][0] = -1;
 					g_bindKeys[id][1] = -1;
 				}
