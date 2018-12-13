@@ -833,15 +833,17 @@ static qboolean S_LoadSound_Actual( sfx_t *sfx )
 
 #ifdef Q3_BIG_ENDIAN
 						// the MP3 decoder returns the samples in the correct endianness, but ResampleSfx byteswaps them,
-						// so we have to swap them again... 
+						// so we have to swap them again...
 						sfx->fVolRange	= 0;
-						
+
 						for (int i = 0; i < sfx->iSoundLengthInSamples; i++)
 						{
 							sfx->pSoundData[i] = LittleShort(sfx->pSoundData[i]);
-							if (sfx->fVolRange < (abs(sfx->pSoundData[i]) >> 8))
+							// C++11 defines double abs(short) which is not what we want here,
+							// because double >> int is not defined. Force interpretation as int
+							if (sfx->fVolRange < (abs(static_cast<int>(sfx->pSoundData[i])) >> 8))
 							{
-								sfx->fVolRange = abs(sfx->pSoundData[i]) >> 8;
+								sfx->fVolRange = abs(static_cast<int>(sfx->pSoundData[i])) >> 8;
 							}
 						}
 #endif

@@ -259,17 +259,12 @@ IN_TranslateSDLToJKKey
 static fakeAscii_t IN_TranslateSDLToJKKey( SDL_Keysym *keysym, qboolean down ) {
 	fakeAscii_t key = A_NULL;
 
-	if( keysym->sym >= SDLK_SPACE && keysym->sym < SDLK_DELETE )
-	{
-		// These happen to match the ASCII chars
-		// SDL2 only passes ASCII letters as lowercase, but the UI etc expects uppercase
-		if ( keysym->sym >= SDLK_a && keysym->sym <= SDLK_z )
-		{
-			key = (fakeAscii_t)('A' + (keysym->sym - SDLK_a));
-		}
-		else
-			key = (fakeAscii_t)keysym->sym;
-	}
+	if ( keysym->sym >= A_LOW_A && keysym->sym <= A_LOW_Z )
+		key = (fakeAscii_t)(A_CAP_A + (keysym->sym - A_LOW_A));
+	else if ( keysym->sym >= A_LOW_AGRAVE && keysym->sym <= A_LOW_THORN && keysym->sym != A_DIVIDE )
+		key = (fakeAscii_t)(A_CAP_AGRAVE + (keysym->sym - A_LOW_AGRAVE));
+	else if ( keysym->sym >= SDLK_SPACE && keysym->sym < SDLK_DELETE )
+		key = (fakeAscii_t)keysym->sym;
 	else
 	{
 		IN_TranslateNumpad( keysym, &key );
@@ -377,10 +372,26 @@ static fakeAscii_t IN_TranslateSDLToJKKey( SDL_Keysym *keysym, qboolean down ) {
 	if( in_keyboardDebug->integer )
 		IN_PrintKey( keysym, key, down );
 
-	if( IN_IsConsoleKey( key, 0 ) )
+	if ( cl_consoleUseScanCode->integer )
 	{
-		// Console keys can't be bound or generate characters
-		key = A_CONSOLE;
+		if ( keysym->scancode == SDL_SCANCODE_GRAVE )
+		{
+			SDL_Keycode translated = SDL_GetKeyFromScancode( SDL_SCANCODE_GRAVE );
+
+			if ( (translated != SDLK_CARET) || (translated == SDLK_CARET && (keysym->mod & KMOD_SHIFT)) )
+			{
+				// Console keys can't be bound or generate characters
+				key = A_CONSOLE;
+			}
+		}
+	}
+	else
+	{
+		if ( IN_IsConsoleKey( key, 0 ) )
+		{
+			// Console keys can't be bound or generate characters
+			key = A_CONSOLE;
+		}
 	}
 
 	return key;
@@ -553,13 +564,13 @@ static void IN_InitJoystick( void )
 		return;
 	}
 
-	in_joystickNo = Cvar_Get( "in_joystickNo", "0", CVAR_ARCHIVE );
+	in_joystickNo = Cvar_Get( "in_joystickNo", "0", CVAR_ARCHIVE_ND );
 	if( in_joystickNo->integer < 0 || in_joystickNo->integer >= total )
 		Cvar_Set( "in_joystickNo", "0" );
 
-	in_joystickUseAnalog = Cvar_Get( "in_joystickUseAnalog", "0", CVAR_ARCHIVE );
+	in_joystickUseAnalog = Cvar_Get( "in_joystickUseAnalog", "0", CVAR_ARCHIVE_ND );
 
-	in_joystickThreshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
+	in_joystickThreshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE_ND );
 
 	stick = SDL_JoystickOpen( in_joystickNo->integer );
 
@@ -593,13 +604,13 @@ void IN_Init( void *windowData )
 	Com_DPrintf( "\n------- Input Initialization -------\n" );
 
 	// joystick variables
-	in_keyboardDebug = Cvar_Get( "in_keyboardDebug", "0", CVAR_ARCHIVE );
+	in_keyboardDebug = Cvar_Get( "in_keyboardDebug", "0", CVAR_ARCHIVE_ND );
 
-	in_joystick = Cvar_Get( "in_joystick", "0", CVAR_ARCHIVE|CVAR_LATCH );
+	in_joystick = Cvar_Get( "in_joystick", "0", CVAR_ARCHIVE_ND|CVAR_LATCH );
 
 	// mouse variables
 	in_mouse = Cvar_Get( "in_mouse", "1", CVAR_ARCHIVE );
-	in_nograb = Cvar_Get( "in_nograb", "0", CVAR_ARCHIVE );
+	in_nograb = Cvar_Get( "in_nograb", "0", CVAR_ARCHIVE_ND );
 
 	SDL_StartTextInput( );
 
@@ -798,8 +809,8 @@ static void IN_ProcessEvents( void )
 
 				if ( key == A_BACKSPACE )
 					Sys_QueEvent( 0, SE_CHAR, CTRL('h'), qfalse, 0, NULL);
-				else if ( kg.keys[A_CTRL].down && key >= 'a' && key <= 'z' )
-					Sys_QueEvent( 0, SE_CHAR, CTRL(key), qfalse, 0, NULL );
+				else if ( kg.keys[A_CTRL].down && key >= A_CAP_A && key <= A_CAP_Z )
+					Sys_QueEvent( 0, SE_CHAR, CTRL(tolower(key)), qfalse, 0, NULL );
 
 				lastKeyDown = key;
 				break;

@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "cg_local.h"
 #include "game/bg_saga.h"
+#include "ui/ui_shared.h"
 
 /*
 =================
@@ -55,7 +56,7 @@ Keybinding command
 =================
 */
 static void CG_SizeUp_f (void) {
-	trap->Cvar_Set( "cg_viewsize", va( "%i", cg_viewsize.integer + 10 ) );
+	trap->Cvar_Set( "cg_viewsize", va( "%i", Q_min( cg_viewsize.integer + 10, 100 ) ) );
 }
 
 /*
@@ -66,7 +67,7 @@ Keybinding command
 =================
 */
 static void CG_SizeDown_f (void) {
-	trap->Cvar_Set( "cg_viewsize", va( "%i", cg_viewsize.integer - 10 ) );
+	trap->Cvar_Set( "cg_viewsize", va( "%i", Q_max( cg_viewsize.integer - 10, 30 ) ) );
 }
 
 /*
@@ -166,31 +167,31 @@ void CG_ClientList_f( void )
 
 static void CG_TellTarget_f( void ) {
 	int		clientNum;
-	char	command[128];
-	char	message[128];
+	char	command[MAX_SAY_TEXT+10];
+	char	message[MAX_SAY_TEXT];
 
 	clientNum = CG_CrosshairPlayer();
 	if ( clientNum == -1 ) {
 		return;
 	}
 
-	trap->Cmd_Args( message, 128 );
-	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
+	trap->Cmd_Args( message, sizeof(message) );
+	Com_sprintf( command, sizeof(command), "tell %i %s", clientNum, message );
 	trap->SendClientCommand( command );
 }
 
 static void CG_TellAttacker_f( void ) {
 	int		clientNum;
-	char	command[128];
-	char	message[128];
+	char	command[MAX_SAY_TEXT + 10];
+	char	message[MAX_SAY_TEXT];
 
 	clientNum = CG_LastAttacker();
 	if ( clientNum == -1 ) {
 		return;
 	}
 
-	trap->Cmd_Args( message, 128 );
-	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
+	trap->Cmd_Args( message, sizeof(message) );
+	Com_sprintf( command, sizeof(command), "tell %i %s", clientNum, message );
 	trap->SendClientCommand( command );
 }
 
@@ -271,6 +272,17 @@ static void CG_SiegeCompleteCvarUpdate_f(void)
 	CG_SiegeBriefingDisplay(SIEGETEAM_TEAM2, 1);
 }
 
+static void CG_LoadHud_f( void ) {
+	const char *hudSet = cg_hudFiles.string;
+	if ( hudSet[0] == '\0' ) {
+		hudSet = "ui/jahud.txt";
+	}
+
+	String_Init();
+	Menu_Reset();
+	CG_LoadMenus( hudSet );
+}
+
 typedef struct consoleCommand_s {
 	const char	*cmd;
 	void		(*func)(void);
@@ -280,7 +292,6 @@ int cmdcmp( const void *a, const void *b ) {
 	return Q_stricmp( (const char *)a, ((consoleCommand_t*)b)->cmd );
 }
 
-/* This array MUST be sorted correctly by alphabetical name field */
 static consoleCommand_t	commands[] = {
 	{ "+scores",					CG_ScoresDown_f },
 	{ "-scores",					CG_ScoresUp_f },
@@ -291,6 +302,7 @@ static consoleCommand_t	commands[] = {
 	{ "invnext",					CG_NextInventory_f },
 	{ "invprev",					CG_PrevInventory_f },
 	{ "loaddeferred",				CG_LoadDeferredPlayers },
+	{ "loadhud",					CG_LoadHud_f },
 	{ "nextframe",					CG_TestModelNextFrame_f },
 	{ "nextskin",					CG_TestModelNextSkin_f },
 	{ "prevframe",					CG_TestModelPrevFrame_f },
@@ -325,9 +337,9 @@ Cmd_Argc() / Cmd_Argv()
 qboolean CG_ConsoleCommand( void ) {
 	consoleCommand_t	*command = NULL;
 
-	command = (consoleCommand_t *)bsearch( CG_Argv( 0 ), commands, numCommands, sizeof( commands[0] ), cmdcmp );
+	command = (consoleCommand_t *)Q_LinearSearch( CG_Argv( 0 ), commands, numCommands, sizeof( commands[0] ), cmdcmp );
 
-	if ( !command )
+	if ( !command || !command->func )
 		return qfalse;
 
 	command->func();
@@ -379,7 +391,7 @@ so it can perform tab completion
 void CG_InitConsoleCommands( void ) {
 	size_t i;
 
-	for ( i = 0 ; i < numCommands ; i++ )
+	for ( i = 0; i < numCommands; i++ )
 		trap->AddCommand( commands[i].cmd );
 
 	//

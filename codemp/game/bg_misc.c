@@ -30,7 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	#include "g_local.h"
 #elif defined(_CGAME)
 	#include "cgame/cg_local.h"
-#elif defined(_UI)
+#elif defined(UI_BUILD)
 	#include "ui/ui_local.h"
 #endif
 
@@ -322,31 +322,15 @@ int WeaponAttackAnim[WP_NUM_WEAPONS] =
 	BOTH_ATTACK1//WP_TURRET,
 };
 
-qboolean BG_FileExists(const char *fileName)
-{
-	if (fileName && fileName[0])
-	{
-		int fh = 0;
-	#ifdef _GAME
-		trap->FS_Open(fileName, &fh, FS_READ);
-	#elif _CGAME
-		trap->FS_Open(fileName, &fh, FS_READ);
-	#elif _UI
-		trap->FS_Open(fileName, &fh, FS_READ);
-	#endif
-		if (fh > 0)
-		{
-		#ifdef _GAME
-			trap->FS_Close(fh);
-		#elif _CGAME
-			trap->FS_Close(fh);
-		#elif _UI
-			trap->FS_Close(fh);
-		#endif
+qboolean BG_FileExists( const char *fileName ) {
+	if ( fileName && fileName[0] ) {
+		fileHandle_t f = NULL_FILE;
+		trap->FS_Open( fileName, &f, FS_READ );
+		if ( f > 0 ) {
+			trap->FS_Close( f );
 			return qtrue;
 		}
 	}
-
 	return qfalse;
 }
 
@@ -3097,7 +3081,7 @@ int BG_ModelCache(const char *modelName, const char *skinName)
 	#define MAX_POOL_SIZE	3000000 //1024000
 #elif defined(_CGAME) //don't need as much for cgame stuff. 2mb will be fine.
 	#define MAX_POOL_SIZE	2048000
-#elif defined(_UI) //And for the ui the only thing we'll be using this for anyway is allocating anim data for g2 menu models
+#elif defined(UI_BUILD) //And for the ui the only thing we'll be using this for anyway is allocating anim data for g2 menu models
 	#define MAX_POOL_SIZE	512000
 #endif
 

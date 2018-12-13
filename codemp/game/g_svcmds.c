@@ -483,16 +483,10 @@ int svcmdcmp( const void *a, const void *b ) {
 	return Q_stricmp( (const char *)a, ((svcmd_t*)b)->name );
 }
 
-void G_CheckFields( void );
-void G_CheckSpawns( void );
-
-/* This array MUST be sorted correctly by alphabetical name field */
 svcmd_t svcmds[] = {
 	{ "addbot",						Svcmd_AddBot_f,						qfalse },
 	{ "addip",						Svcmd_AddIP_f,						qfalse },
 	{ "botlist",					Svcmd_BotList_f,					qfalse },
-	{ "checkfields",				G_CheckFields,						qfalse },
-	{ "checkspawns",				G_CheckSpawns,						qfalse },
 	{ "entitylist",					Svcmd_EntityList_f,					qfalse },
 	{ "forceteam",					Svcmd_ForceTeam_f,					qfalse },
 	{ "game_memory",				Svcmd_GameMem_f,					qfalse },
@@ -518,9 +512,8 @@ qboolean	ConsoleCommand( void ) {
 
 	trap->Argv( 0, cmd, sizeof( cmd ) );
 
-	command = (svcmd_t *)bsearch( cmd, svcmds, numsvcmds, sizeof( svcmds[0] ), svcmdcmp );
-	if (!command)
-	{
+	command = (svcmd_t *)Q_LinearSearch( cmd, svcmds, numsvcmds, sizeof( svcmds[0] ), svcmdcmp );
+	if ( !command ) {
 		//OpenRP - Print if command is unknown
 		trap->Print( "Unknown command: %s\n", cmd );
 		return qfalse;
@@ -532,4 +525,3 @@ qboolean	ConsoleCommand( void ) {
 	command->func();
 	return qtrue;
 }
-

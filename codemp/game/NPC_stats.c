@@ -152,20 +152,6 @@ extern stringID_table_t FPTable[];
 char	*TeamNames[TEAM_NUM_TEAMS] =
 {
 	"",
-//	"starfleet",
-//	"borg",
-//	"parasite",
-//	"scavengers",
-//	"klingon",
-//	"malon",
-//	"hirogen",
-//	"imperial",
-//	"stasis",
-//	"species8472",
-//	"dreadnought",
-//	"forge",
-//	"disguise",
-//	"player (not valid)"
 	"player",
 	"enemy",
 	"neutral"
@@ -297,16 +283,6 @@ class_t TranslateClassName( const char *name )
 }
 */
 
-/*
-static race_t TranslateRaceName( const char *name )
-{
-	if ( !Q_stricmp( name, "human" ) )
-	{
-		return RACE_HUMAN;
-	}
-	return RACE_NONE;
-}
-*/
 /*
 static rank_t TranslateRankName( const char *name )
 
@@ -3821,6 +3797,7 @@ void NPC_LoadParms( void )
 		else
 		{
 			if ( totallen + len >= MAX_NPC_DATA_SIZE ) {
+				trap->FS_Close( f );
 				trap->Error( ERR_DROP, "NPC extensions (*.npc) are too large" );
 			}
 			trap->FS_Read(npcParseBuffer, len, f);

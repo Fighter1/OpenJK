@@ -32,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../ghoul2/G2.h"
 #include "qcommon/stringed_ingame.h"
 #include "sys/sys_loadlib.h"
+#include "qcommon/ojk_saved_game.h"
 
 #define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
 
@@ -76,6 +77,7 @@ cvar_t	*cl_allowAltEnter;
 cvar_t	*cl_inGameVideo;
 
 cvar_t	*cl_consoleKeys;
+cvar_t	*cl_consoleUseScanCode;
 
 clientActive_t		cl;
 clientConnection_t	clc;
@@ -266,7 +268,7 @@ void CL_Disconnect( void ) {
 		CL_WritePacket();
 		CL_WritePacket();
 	}
-	
+
 	CL_ClearState ();
 
 	CL_FreeReliableCommands();
@@ -337,7 +339,7 @@ void CL_ForwardToServer_f( void ) {
 		Com_Printf ("Not connected to a server.\n");
 		return;
 	}
-	
+
 	// don't forward the first argument
 	if ( Cmd_Argc() > 1 ) {
 		CL_AddReliableCommand( Cmd_Args() );
@@ -350,7 +352,7 @@ CL_Disconnect_f
 ==================
 */
 void CL_Disconnect_f( void ) {
-	SCR_StopCinematic();	
+	SCR_StopCinematic();
 
 	//FIXME:
 	// TA codebase added additional CA_CINEMATIC check below, presumably so they could play cinematics
@@ -380,12 +382,14 @@ void CL_Vid_Restart_f( void ) {
 	//rww - sof2mp does this here, but it seems to cause problems in this codebase.
 //	CM_ClearMap();
 
-	CL_InitRef();
-
 	cls.rendererStarted = qfalse;
 	cls.uiStarted = qfalse;
 	cls.cgameStarted = qfalse;
 	cls.soundRegistered = qfalse;
+
+	CL_InitRef();
+
+	CL_StartHunkUsers();
 
 	// unpause so the cgame definately gets a snapshot and renders a frame
 	Cvar_Set( "cl_paused", "0" );
@@ -471,7 +475,7 @@ void CL_CheckForResend( void ) {
 	int		port;
 	char	info[MAX_INFO_STRING];
 
-//	if ( cls.state == CA_CINEMATIC )  
+//	if ( cls.state == CA_CINEMATIC )
 	if ( cls.state == CA_CINEMATIC || CL_IsRunningInGameCinematic())
 	{
 		return;
@@ -561,7 +565,7 @@ Responses to broadcasts, etc
 void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	char	*s;
 	const char	*c;
-	
+
 	MSG_BeginReading( msg );
 	MSG_ReadLong( msg );	// skip the -1
 
@@ -603,7 +607,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		}
 		if ( !NET_CompareBaseAdr( from, clc.serverAddress ) ) {
 			Com_Printf( "connectResponse from a different address.  Ignored.\n" );
-			Com_Printf( "%s should have been %s\n", NET_AdrToString( from ), 
+			Com_Printf( "%s should have been %s\n", NET_AdrToString( from ),
 				NET_AdrToString( clc.serverAddress ) );
 			return;
 		}
@@ -691,7 +695,7 @@ void CL_CheckTimeout( void ) {
 	//
 	// check timeout
 	//
-	if ( ( !CL_CheckPaused() || !sv_paused->integer ) 
+	if ( ( !CL_CheckPaused() || !sv_paused->integer )
 //		&& cls.state >= CA_CONNECTED && cls.state != CA_CINEMATIC
 		&& cls.state >= CA_CONNECTED && (cls.state != CA_CINEMATIC && !CL_IsRunningInGameCinematic())
 		&& cls.realtime - clc.lastPacketTime > cl_timeout->value*1000) {
@@ -766,7 +770,7 @@ void CL_Frame ( int msec,float fractionMsec ) {
 	CL_StartHunkUsers();
 
 	if ( cls.state == CA_DISCONNECTED && !( Key_GetCatcher( ) & KEYCATCH_UI )
-		&& !com_sv_running->integer ) {		
+		&& !com_sv_running->integer ) {
 		// if disconnected, bring up the menu
 		if (!CL_CheckPendingCinematic())	// this avoid having the menu flash for one frame before pending cinematics
 		{
@@ -859,7 +863,7 @@ void CL_Frame ( int msec,float fractionMsec ) {
 
 	if (cl_skippingcin->integer && !cl_endcredits->integer && !com_developer->integer ) {
 		if (cl_skippingcin->modified){
-			S_StopSounds();		//kill em all but music	
+			S_StopSounds();		//kill em all but music
 			cl_skippingcin->modified=qfalse;
 			Com_Printf (S_COLOR_YELLOW "%s", SE_GetString("CON_TEXT_SKIPPING"));
 			SCR_UpdateScreen();
@@ -971,7 +975,7 @@ void CL_StartHunkUsers( void ) {
 	}
 
 //	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && cls.state != CA_CINEMATIC ) {
-	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && (cls.state != CA_CINEMATIC && !CL_IsRunningInGameCinematic()) ) 
+	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && (cls.state != CA_CINEMATIC && !CL_IsRunningInGameCinematic()) )
 	{
 		cls.cgameStarted = qtrue;
 		CL_InitCGame();
@@ -988,7 +992,7 @@ DLL glue
 void QDECL CL_RefPrintf( int print_level, const char *fmt, ...) {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-	
+
 	va_start (argptr,fmt);
 	Q_vsnprintf(msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
@@ -1049,6 +1053,11 @@ int get_com_frameTime( void )
 	return com_frameTime;
 }
 
+void *CL_Malloc(int iSize, memtag_t eTag, qboolean bZeroit, int iAlign)
+{
+    return Z_Malloc(iSize, eTag, bZeroit);
+}
+
 /*
 ============
 CL_InitRef
@@ -1065,9 +1074,9 @@ static CMiniHeap *GetG2VertSpaceServer( void ) {
 
 // NOTENOTE: If you change the output name of rd-vanilla, change this define too!
 #ifdef JK2_MODE
-#define DEFAULT_RENDER_LIBRARY	"rdjosp-vanilla"	
+#define DEFAULT_RENDER_LIBRARY	"rdjosp-vanilla"
 #else
-#define DEFAULT_RENDER_LIBRARY	"rdsp-vanilla"	
+#define DEFAULT_RENDER_LIBRARY	"rdsp-vanilla"
 #endif
 
 void CL_InitRef( void ) {
@@ -1077,7 +1086,7 @@ void CL_InitRef( void ) {
 	GetRefAPI_t	GetRefAPI;
 
 	Com_Printf( "----- Initializing Renderer ----\n" );
-    cl_renderer = Cvar_Get( "cl_renderer", DEFAULT_RENDER_LIBRARY, CVAR_ARCHIVE|CVAR_LATCH );
+    cl_renderer = Cvar_Get( "cl_renderer", DEFAULT_RENDER_LIBRARY, CVAR_ARCHIVE|CVAR_LATCH|CVAR_PROTECTED );
 
 	Com_sprintf( dllName, sizeof( dllName ), "%s_" ARCH_STRING DLL_EXT, cl_renderer->string );
 
@@ -1091,7 +1100,7 @@ void CL_InitRef( void ) {
 	}
 
 	if ( !rendererLib ) {
-		Com_Error( ERR_FATAL, "Failed to load renderer" );
+		Com_Error( ERR_FATAL, "Failed to load renderer\n" );
 	}
 
 	memset( &rit, 0, sizeof( rit ) );
@@ -1137,13 +1146,12 @@ void CL_InitRef( void ) {
 	RIT(FS_Write);
 	RIT(FS_WriteFile);
 	RIT(Hunk_ClearToMark);
-	RIT(SG_Append);
 	RIT(SND_RegisterAudio_LevelLoadEnd);
 	//RIT(SV_PointContents);
 	RIT(SV_Trace);
 	RIT(S_RestartMusic);
 	RIT(Z_Free);
-	RIT(Z_Malloc);
+	rit.Malloc=CL_Malloc;
 	RIT(Z_MemSize);
 	RIT(Z_MorphMallocTag);
 
@@ -1154,6 +1162,7 @@ void CL_InitRef( void ) {
     rit.WIN_Shutdown = WIN_Shutdown;
     rit.WIN_Present = WIN_Present;
 	rit.GL_GetProcAddress = WIN_GL_GetProcAddress;
+	rit.GL_ExtensionSupported = WIN_GL_ExtensionSupported;
 
 	rit.PD_Load = PD_Load;
 	rit.PD_Store = PD_Store;
@@ -1175,6 +1184,8 @@ void CL_InitRef( void ) {
 	rit.com_frameTime = get_com_frameTime;
 
 	rit.SV_PointContents = SV_PointContents;
+
+	rit.saved_game = &ojk::SavedGame::get_instance();
 
 	ret = GetRefAPI( REF_API_VERSION, &rit );
 
@@ -1207,7 +1218,7 @@ void CL_Init( void ) {
 	JK2SP_Register("con_text", SP_REGISTER_REQUIRED);	//reference is CON_TEXT
 	JK2SP_Register("keynames", SP_REGISTER_REQUIRED);	// reference is KEYNAMES
 #endif
-	
+
 	Con_Init ();
 
 	CL_ClearState ();
@@ -1231,48 +1242,49 @@ void CL_Init( void ) {
 	cl_showTimeDelta = Cvar_Get ("cl_showTimeDelta", "0", CVAR_TEMP );
 	cl_newClock = Cvar_Get ("cl_newClock", "1", 0);
 	cl_activeAction = Cvar_Get( "activeAction", "", CVAR_TEMP );
-	
+
 	cl_avidemo = Cvar_Get ("cl_avidemo", "0", 0);
 	cl_pano = Cvar_Get ("pano", "0", 0);
-	cl_panoNumShots= Cvar_Get ("panoNumShots", "10", CVAR_ARCHIVE);
+	cl_panoNumShots= Cvar_Get ("panoNumShots", "10", CVAR_ARCHIVE_ND);
 	cl_skippingcin = Cvar_Get ("skippingCinematic", "0", CVAR_ROM);
 	cl_endcredits = Cvar_Get ("cg_endcredits", "0", 0);
 
-	cl_yawspeed = Cvar_Get ("cl_yawspeed", "140", CVAR_ARCHIVE);
-	cl_pitchspeed = Cvar_Get ("cl_pitchspeed", "140", CVAR_ARCHIVE);
-	cl_anglespeedkey = Cvar_Get ("cl_anglespeedkey", "1.5", CVAR_ARCHIVE);
+	cl_yawspeed = Cvar_Get ("cl_yawspeed", "140", CVAR_ARCHIVE_ND);
+	cl_pitchspeed = Cvar_Get ("cl_pitchspeed", "140", CVAR_ARCHIVE_ND);
+	cl_anglespeedkey = Cvar_Get ("cl_anglespeedkey", "1.5", CVAR_ARCHIVE_ND);
 
-	cl_packetdup = Cvar_Get ("cl_packetdup", "1", CVAR_ARCHIVE );
+	cl_packetdup = Cvar_Get ("cl_packetdup", "1", CVAR_ARCHIVE_ND );
 
-	cl_run = Cvar_Get ("cl_run", "1", CVAR_ARCHIVE);
+	cl_run = Cvar_Get ("cl_run", "1", CVAR_ARCHIVE_ND);
 	cl_sensitivity = Cvar_Get ("sensitivity", "5", CVAR_ARCHIVE);
-	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE);
-	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE );
+	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE_ND);
+	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE_ND );
 
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
 
-	cl_allowAltEnter = Cvar_Get ("cl_allowAltEnter", "1", CVAR_ARCHIVE);
-	cl_inGameVideo = Cvar_Get ("cl_inGameVideo", "1", CVAR_ARCHIVE);
+	cl_allowAltEnter = Cvar_Get ("cl_allowAltEnter", "1", CVAR_ARCHIVE_ND);
+	cl_inGameVideo = Cvar_Get ("cl_inGameVideo", "1", CVAR_ARCHIVE_ND);
 	cl_framerate	= Cvar_Get ("cl_framerate", "0", CVAR_TEMP);
 
 	// init autoswitch so the ui will have it correctly even
 	// if the cgame hasn't been started
 	Cvar_Get ("cg_autoswitch", "1", CVAR_ARCHIVE);
 
-	m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE);
-	m_yaw = Cvar_Get ("m_yaw", "0.022", CVAR_ARCHIVE);
-	m_forward = Cvar_Get ("m_forward", "0.25", CVAR_ARCHIVE);
-	m_side = Cvar_Get ("m_side", "0.25", CVAR_ARCHIVE);
-	m_filter = Cvar_Get ("m_filter", "0", CVAR_ARCHIVE);
-	
+	m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE_ND);
+	m_yaw = Cvar_Get ("m_yaw", "0.022", CVAR_ARCHIVE_ND);
+	m_forward = Cvar_Get ("m_forward", "0.25", CVAR_ARCHIVE_ND);
+	m_side = Cvar_Get ("m_side", "0.25", CVAR_ARCHIVE_ND);
+	m_filter = Cvar_Get ("m_filter", "0", CVAR_ARCHIVE_ND);
+
 	// ~ and `, as keys and characters
-	cl_consoleKeys = Cvar_Get( "cl_consoleKeys", "~ ` 0x7e 0x60", CVAR_ARCHIVE);
+	cl_consoleKeys = Cvar_Get( "cl_consoleKeys", "~ ` 0x7e 0x60 0xb2", CVAR_ARCHIVE);
+	cl_consoleUseScanCode = Cvar_Get( "cl_consoleUseScanCode", "1", CVAR_ARCHIVE );
 
 	// userinfo
 #ifdef JK2_MODE
-	Cvar_Get ("name", "Kyle", CVAR_USERINFO | CVAR_ARCHIVE );
+	Cvar_Get ("name", "Kyle", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 #else
-	Cvar_Get ("name", "Jaden", CVAR_USERINFO | CVAR_ARCHIVE );
+	Cvar_Get ("name", "Jaden", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 #endif
 
 #ifdef JK2_MODE
@@ -1309,7 +1321,7 @@ void CL_Init( void ) {
 	SCR_Init ();
 
 	Cbuf_Execute ();
-	
+
 	Cvar_Set( "cl_running", "1" );
 
 	Com_Printf( "----- Client Initialization Complete -----\n" );
@@ -1324,7 +1336,7 @@ CL_Shutdown
 */
 void CL_Shutdown( void ) {
 	static qboolean recursive = qfalse;
-	
+
 	if ( !com_cl_running || !com_cl_running->integer ) {
 		return;
 	}
@@ -1332,7 +1344,7 @@ void CL_Shutdown( void ) {
 	Com_Printf( "----- CL_Shutdown -----\n" );
 
 	if ( recursive ) {
-		Com_Printf( "WARNING: Recursive shutdown\n" );
+		Com_Printf( "WARNING: Recursive CL_Shutdown called!\n" );
 		return;
 	}
 	recursive = qtrue;
@@ -1349,7 +1361,7 @@ void CL_Shutdown( void ) {
 	Cmd_RemoveCommand ("snd_restart");
 	Cmd_RemoveCommand ("vid_restart");
 	Cmd_RemoveCommand ("disconnect");
-	Cmd_RemoveCommand ("cinematic");	
+	Cmd_RemoveCommand ("cinematic");
 	Cmd_RemoveCommand ("ingamecinematic");
 	Cmd_RemoveCommand ("uimenu");
 	Cmd_RemoveCommand ("datapad");

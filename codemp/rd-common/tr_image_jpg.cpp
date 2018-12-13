@@ -31,12 +31,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
  * (stdio.h is sufficient on ANSI-conforming systems.)
  * You may also wish to include "jerror.h".
  */
-#ifdef USE_INTERNAL_JPEG
-#define JPEG_INTERNALS
-#include "jpeg-8c/jpeglib.h"
-#else
+
 #include <jpeglib.h>
-#endif
 
 static void R_JPGErrorExit(j_common_ptr cinfo)
 {
@@ -93,7 +89,7 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 	* requires it in order to read binary files.
 	*/
 
-	int len = ri->FS_ReadFile ( ( char * ) filename, &fbuffer.v);
+	int len = ri.FS_ReadFile ( ( char * ) filename, &fbuffer.v);
 	if (!fbuffer.b || len < 0) {
 		return;
 	}
@@ -154,7 +150,7 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 		)
 	{
 		// Free the memory to make sure we don't leak memory
-		ri->FS_FreeFile (fbuffer.v);
+		ri.FS_FreeFile (fbuffer.v);
 		jpeg_destroy_decompress(&cinfo);
 
 		Com_Printf("LoadJPG: %s has an invalid image format: %dx%d*4=%d, components: %d", filename,
@@ -217,7 +213,7 @@ void LoadJPG( const char *filename, unsigned char **pic, int *width, int *height
 	* so as to simplify the setjmp error logic above.  (Actually, I don't
 	* think that jpeg_destroy can do an error exit, but why assume anything...)
 	*/
-	ri->FS_FreeFile (fbuffer.v);
+	ri.FS_FreeFile (fbuffer.v);
 	/* At this point you may want to check to see whether any corrupt-data
 	* warnings occurred (test whether jerr.pub.num_warnings is nonzero).
 	*/
@@ -418,7 +414,7 @@ void RE_SaveJPG(const char * filename, int quality, int image_width, int image_h
 	out = (byte *)Hunk_AllocateTempMemory(bufSize);
 
 	bufSize = RE_SaveJPGToBuffer(out, bufSize, quality, image_width, image_height, image_buffer, padding);
-	ri->FS_WriteFile(filename, out, bufSize);
+	ri.FS_WriteFile(filename, out, bufSize);
 
 	Hunk_FreeTempMemory(out);
 }

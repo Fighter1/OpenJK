@@ -1,5 +1,5 @@
 #============================================================================
-# Copyright (C) 2013 - 2015, OpenJK contributors
+# Copyright (C) 2013 - 2018, OpenJK contributors
 # 
 # This file is part of the OpenJK source code.
 # 
@@ -16,9 +16,13 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #============================================================================
 
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.1)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
+
 # For checks in subdirectories
 set(InOpenJK TRUE)
+
+
 
 # Project name
 #OpenRP
@@ -26,6 +30,8 @@ set(ProjectName "OpenRP" CACHE STRING "Project Name")
 project(${ProjectName})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+
 
 # Customizable options
 option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
@@ -44,34 +50,48 @@ option(BuildJK2SPEngine "Whether to create projects for the jk2 SP engine (openj
 option(BuildJK2SPGame "Whether to create projects for the jk2 sp gamecode mod (jk2gamex86.dll)" OFF)
 option(BuildJK2SPRdVanilla "Whether to create projects for the jk2 sp renderer (rdjosp-vanilla_x86.dll)" OFF)
 
-# Customizable libraries
-if(WIN32)
-	option(UseInternalOpenAL "Whether to use the included OpenAL instead of a locally installed one" ON)
-	option(UseInternalZlib "Whether to use the included zlib instead of a locally installed one" ON)
-endif()
+option(BuildTests "Whether to build automatic unit tests (requires Boost)" OFF)
+
+Include(CMakeDependentOption)
+CMAKE_DEPENDENT_OPTION(BuildSymbolServer "Build WIP Windows Symbol Server (experimental and unused)" OFF "NOT WIN32 OR NOT MSVC" OFF)
+
+# Configure the use of bundled libraries.  By default, we assume the user is on
+# a platform that does not require any bundling.
+#
+# Note that we always use the bundled copy of minizip, since it is modified to
+# use Z_Malloc.
+
+set(UseInternalOpenALDefault OFF)
+set(UseInternalZlibDefault   OFF)
+set(UseInternalPNGDefault    OFF)
+set(UseInternalJPEGDefault   OFF)
+set(UseInternalSDL2Default   OFF)
 
 if(WIN32)
-	option(UseInternalPNG "Whether to use the included libpng instead of a locally installed one" ON)
-else()
-	option(UseInternalPNG "Whether to use the included libpng instead of a locally installed one" OFF)
-endif()
-
-if(WIN32 OR APPLE)
-	option(UseInternalJPEG "Whether to use the included libjpeg instead of a locally installed one" ON)
-else()
-	option(UseInternalJPEG "Whether to use the included libjpeg instead of a locally installed one" OFF)
+  set(UseInternalOpenALDefault ON)
+  set(UseInternalZlibDefault   ON)
+  set(UseInternalPNGDefault    ON)
+  set(UseInternalJPEGDefault   ON)
+  set(UseInternalSDL2Default   ON)
 endif()
 
 if(APPLE)
-	option(MakeApplicationBundles "Whether to build .app application bundles for engines built" ON)
-else()
-	set(MakeApplicationBundles OFF)
+  set(UseInternalJPEGDefault ON)
 endif()
 
-if(WIN32)
-	option(UseInternalSDL2 "Whether to use the included SDL2 library instead of a locally installed one" ON)
-else()
-	set(UseInternalSDL2 OFF)
+if(CMAKE_SYSTEM_NAME MATCHES "BSD")
+  add_definitions(-DIOAPI_NO_64)
+endif()
+
+option(UseInternalOpenAL "If set, use bundled OpenAL."  ${UseInternalOpenALDefault})
+option(UseInternalZlib   "If set, use bundled zlib."    ${UseInternalZlibDefault})
+option(UseInternalPNG    "If set, use bundled libpng."  ${UseInternalPNGDefault})
+option(UseInternalJPEG   "If set, use bundled libjpeg." ${UseInternalJPEGDefault})
+option(UseInternalSDL2   "If set, use bundled SDL2."    ${UseInternalSDL2Default})
+
+# This option won't appear on non-Apple platforms.
+if(APPLE)
+  option(MakeApplicationBundles "Whether to build .app application bundles for engines built" ON)
 endif()
 
 # Custom CMake Modules needed
@@ -79,6 +99,8 @@ list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/CMakeModules")
 
 Include(CheckTypeSize)
 check_type_size("void*" CMAKE_SIZEOF_VOID_P)
+
+
 
 # ${Architecture} must match ARCH_STRING in q_platform.h,
 # and is used in DLL names (jagamex86.dll, jagamex86.dylib, jagamei386.so).
@@ -115,12 +137,18 @@ else()
 	endif()
 endif()
 
-message("Architecture is ${Architecture}")
+message(STATUS "Architecture is ${Architecture}")
+
+if(WIN32 AND CMAKE_VERSION VERSION_LESS "3.4")
+message(WARNING "Building on Windows platform with CMake version less than 3.4 is deprecated. Manifest file will fail to be included.")
+endif()
 
 # Current Git SHA1 hash
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-message("Git revision is ${GIT_SHA1}")
+message(STATUS "Git revision is ${GIT_SHA1}")
+
+
 
 # Binary names
 set(SPEngine "openjk_sp.${Architecture}")
@@ -141,13 +169,19 @@ set(AssetsPk3 "openjk-${Architecture}.pk3")
 set(MPBotLib "botlib")
 set(SharedLib "shared")
 
+
+
 # Paths
 set(SPDir "${CMAKE_SOURCE_DIR}/code")
 set(MPDir "${CMAKE_SOURCE_DIR}/codemp")
 set(JK2SPDir "${CMAKE_SOURCE_DIR}/codeJK2")
 set(SharedDir ${CMAKE_SOURCE_DIR}/shared)
+set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/lib")
+set(GSLIncludeDirectory "${OpenJKLibDir}/gsl-lite/include")
 
 include(InstallConfig)
+
+
 
 # Operating settings
 if(WIN64)
@@ -161,6 +195,8 @@ endif()
 if (NOT WIN32 AND NOT APPLE)
 	set(SharedDefines "ARCH_STRING=\"${Architecture}\"")
 endif()
+
+
 
 # Compiler settings
 if(MSVC)
@@ -176,9 +212,19 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
-elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang"))
+	# We don't try to control symbol visibility under MSVC.
+	set(OPENJK_VISIBILITY_FLAGS "")
+
+elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
 	# I hope this doesn't come back to bite me in the butt later on.
 	# Realistically though, can the C and CXX compilers be different?
+
+	# Visibility can't be set project-wide -- it needs to be specified on a
+	# per-target basis.  This is primarily due to the bundled copy of ZLib.
+	# ZLib explicitly declares symbols hidden, rather than defaulting to hidden.
+	#
+	# Note that -fvisibility=hidden is stronger than -fvisibility-inlines-hidden.
+	set(OPENJK_VISIBILITY_FLAGS "-fvisibility=hidden")
 
 	# removes the -rdynamic flag at linking (which causes crashes for some reason)
 	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
@@ -196,10 +242,12 @@ elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" S
 	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
+	# enable somewhat modern C++
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	
 	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsigned-char")
 		if (X86)
 			# "x86 vm will crash without -mstackrealign since MMX
@@ -216,7 +264,7 @@ elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" S
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
 		endif()
-	elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+	elseif("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")
 	endif()
@@ -226,16 +274,15 @@ elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" S
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
 		if (X86)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
 		endif()
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-writable-strings")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
+		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-writable-strings")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 	endif()
@@ -244,7 +291,7 @@ else()
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
-	message("No build type selected, default to RELEASE")
+	message(STATUS "No build type selected, default to RELEASE")
 	set(CMAKE_BUILD_TYPE "RELEASE")
 endif()
 
@@ -257,20 +304,64 @@ else()
 	set(SharedDefines ${SharedDefines} "FINAL_BUILD")
 endif()
 
+
+
 # Settings
 if(BuildPortableVersion)
 	set(SharedDefines ${SharedDefines} "_PORTABLE_VERSION")
 endif()
 
+# https://reproducible-builds.org/specs/source-date-epoch/
+if (NOT ("$ENV{SOURCE_DATE_EPOCH}" STREQUAL ""))
+	execute_process(COMMAND "date"
+		"--date=@$ENV{SOURCE_DATE_EPOCH}" "+%b %_d %Y"
+		OUTPUT_VARIABLE source_date
+		ERROR_QUIET
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	set(SharedDefines ${SharedDefines} "SOURCE_DATE=\"${source_date}\"")
+endif()
+
+
+
+# Files shared across all projects
+set(SharedCommonFiles
+	"${SharedDir}/qcommon/q_color.h"
+	"${SharedDir}/qcommon/q_color.c"
+	"${SharedDir}/qcommon/q_math.h"
+	"${SharedDir}/qcommon/q_math.c"
+	"${SharedDir}/qcommon/q_string.h"
+	"${SharedDir}/qcommon/q_string.c"
+	"${SharedDir}/qcommon/q_platform.h"
+	)
+set(SharedCommonSafeFiles
+	"${SharedDir}/qcommon/safe/gsl.h"
+	"${SharedDir}/qcommon/safe/string.cpp"
+	"${SharedDir}/qcommon/safe/string.h"
+	"${SharedDir}/qcommon/safe/sscanf.h"
+	"${SharedDir}/qcommon/safe/limited_vector.h"
+	)
+
+
 if(UseInternalJPEG)
-	set(SharedDefines ${SharedDefines} "USE_INTERNAL_JPEG")
+  add_subdirectory(lib/jpeg-9a)
+else()
+  find_package(JPEG REQUIRED)
 endif()
 
 if(UseInternalZlib)
-	set(SharedDefines ${SharedDefines} "USE_INTERNAL_ZLIB")
+  add_subdirectory(lib/zlib)
+else()
+  find_package(ZLIB REQUIRED)
 endif()
 
-set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/lib")
+if(UseInternalPNG)
+  add_subdirectory(lib/libpng)
+else()
+  find_package(PNG REQUIRED)
+endif()
+
+# Always use bundled minizip (sets MINIZIP_{LIBRARIES,INCLUDE_DIR})
+add_subdirectory(lib/minizip)
 
 # Add projects
 add_subdirectory(${SPDir})
@@ -279,6 +370,10 @@ if(BuildJK2SPGame)
 endif()
 add_subdirectory(${MPDir})
 # Windows Symbol Server tools
-if(WIN32 AND MSVC)
+if(BuildSymbolServer)
 	add_subdirectory("tools/WinSymbol")
+endif()
+if(BuildTests)
+	enable_testing()
+	add_subdirectory("tests")
 endif()

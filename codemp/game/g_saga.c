@@ -171,8 +171,11 @@ void InitSiegeMode(void)
 
 	len = trap->FS_Open(levelname, &f, FS_READ);
 
-	if (!f || len >= MAX_SIEGE_INFO_SIZE)
-	{
+	if (!f) {
+		goto failure;
+	}
+	if (len >= MAX_SIEGE_INFO_SIZE) {
+		trap->FS_Close( f );
 		goto failure;
 	}
 
@@ -1949,7 +1952,7 @@ void G_SiegeClientExData(gentity_t *msgTarg)
 			trap->InPVS(msgTarg->client->ps.origin, ent->client->ps.origin))
 		{ //another client in the same pvs, send his jive
             if (count)
-			{ //append a seperating space if we are not the first in the list
+			{ //append a separating space if we are not the first in the list
 				Q_strcat(str, sizeof(str), " ");
 			}
 			else

@@ -36,13 +36,13 @@ static vec3_t muzzle;
 //OpenRP - Made velocity and damage values changeable through server.cfg
 
 // Bryar Pistol
-//--------	
+//--------
 #define BRYAR_CHARGE_UNIT			200.0f	// bryar charging gives us one more unit every 200ms--if you change this, you'll have to do the same in bg_pmove
 #define BRYAR_ALT_SIZE				1.0f
 
 // E11 Blaster
 //---------
-#define BLASTER_SPREAD				1.6f//1.2f		
+#define BLASTER_SPREAD				1.6f//1.2f
 
 // Tenloss Disruptor
 //----------
@@ -54,7 +54,7 @@ static vec3_t muzzle;
 #define DISRUPTOR_CHARGE_UNIT			50.0f	// distruptor charging gives us one more unit every 50ms--if you change this, you'll have to do the same in bg_pmove
 
 // Wookiee Bowcaster
-//----------			
+//----------
 #define BOWCASTER_SPLASH_DAMAGE		0
 #define BOWCASTER_SPLASH_RADIUS		0
 #define BOWCASTER_SIZE				2
@@ -65,14 +65,14 @@ static vec3_t muzzle;
 
 // Heavy Repeater
 //----------
-#define REPEATER_SPREAD				1.4f		
+#define REPEATER_SPREAD				1.4f
 
-#define REPEATER_ALT_SIZE				3	// half of bbox size				
+#define REPEATER_ALT_SIZE				3	// half of bbox size
 #define REPEATER_ALT_SPLASH_RADIUS		128
-#define REPEATER_ALT_SPLASH_RAD_SIEGE	80		
+#define REPEATER_ALT_SPLASH_RAD_SIEGE	80
 
 // DEMP2
-//----------			
+//----------
 #define	DEMP2_SIZE					2		// half of bbox size
 
 #define DEMP2_CHARGE_UNIT			700.0f	// demp2 charging gives us one more unit every 700ms--if you change this, you'll have to do the same in bg_weapons
@@ -88,7 +88,7 @@ static vec3_t muzzle;
 #define FLECHETTE_ALT_SPLASH_RAD	128
 
 // Personal Rocket Launcher
-//---------					
+//---------
 #define	ROCKET_SPLASH_RADIUS		160
 #define ROCKET_SIZE					3
 #define ROCKET_ALT_THINK_TIME		100
@@ -113,7 +113,7 @@ static vec3_t muzzle;
 #define STUN_BATON_RANGE			8
 
 // Melee
-//--------------	
+//--------------
 #define MELEE_RANGE					8
 
 // ATST Main Gun
@@ -502,8 +502,8 @@ static void WP_FireBlaster( gentity_t *ent, qboolean altFire )
 	if ( altFire )
 	{
 		// add some slop to the alt-fire direction
-		angs[PITCH] += crandom() * BLASTER_SPREAD;
-		angs[YAW]       += crandom() * BLASTER_SPREAD;
+		angs[PITCH] += Q_flrand(-1.0f, 1.0f) * BLASTER_SPREAD;
+		angs[YAW]       += Q_flrand(-1.0f, 1.0f) * BLASTER_SPREAD;
 	}
 
 	AngleVectors( angs, dir, NULL, NULL );
@@ -768,7 +768,7 @@ void WP_DisruptorAltFire( gentity_t *ent )
 			VectorCopy( tr.endpos, start );
 			skip = tr.entityNum;
 #ifdef _DEBUG
-			trap->Print( "BAD! Disruptor gun shot somehow traced back and hit the owner!\n" );			
+			trap->Print( "BAD! Disruptor gun shot somehow traced back and hit the owner!\n" );
 #endif
 			continue;
 		}
@@ -1056,12 +1056,12 @@ static void WP_BowcasterMainFire( gentity_t *ent )
 	for (i = 0; i < count; i++ )
 	{
 		// create a range of different velocities
-		vel = g_bowcaster_velocity.integer * (crandom() * BOWCASTER_VEL_RANGE + 1.0f);
+		vel = BOWCASTER_VELOCITY * ( Q_flrand(-1.0f, 1.0f) * BOWCASTER_VEL_RANGE + 1.0f );
 
 		vectoangles( forward, angs );
 
 		// add some slop to the alt-fire direction
-		angs[PITCH] += crandom() * BOWCASTER_ALT_SPREAD * 0.2f;
+		angs[PITCH] += Q_flrand(-1.0f, 1.0f) * BOWCASTER_ALT_SPREAD * 0.2f;
 		angs[YAW]	+= ((i+0.5f) * BOWCASTER_ALT_SPREAD - count * 0.5f * BOWCASTER_ALT_SPREAD );
 
 		AngleVectors( angs, dir, NULL, NULL );
@@ -1177,8 +1177,8 @@ static void WP_FireRepeater( gentity_t *ent, qboolean altFire )
 	else
 	{
 		// add some slop to the alt-fire direction
-		angs[PITCH] += crandom() * REPEATER_SPREAD;
-		angs[YAW]	+= crandom() * REPEATER_SPREAD;
+		angs[PITCH] += Q_flrand(-1.0f, 1.0f) * REPEATER_SPREAD;
+		angs[YAW]	+= Q_flrand(-1.0f, 1.0f) * REPEATER_SPREAD;
 
 		AngleVectors( angs, dir, NULL, NULL );
 
@@ -1496,8 +1496,8 @@ static void WP_FlechetteMainFire( gentity_t *ent )
 
 		if (i != 0)
 		{ //do nothing on the first shot, it will hit the crosshairs
-			angs[PITCH] += crandom() * FLECHETTE_SPREAD;
-			angs[YAW]	+= crandom() * FLECHETTE_SPREAD;
+			angs[PITCH] += Q_flrand(-1.0f, 1.0f) * FLECHETTE_SPREAD;
+			angs[YAW]	+= Q_flrand(-1.0f, 1.0f) * FLECHETTE_SPREAD;
 		}
 
 		AngleVectors( angs, fwd, NULL, NULL );
@@ -1616,7 +1616,7 @@ void WP_flechette_alt_blow( gentity_t *ent )
 static void WP_CreateFlechetteBouncyThing( vec3_t start, vec3_t fwd, gentity_t *self )
 //------------------------------------------------------------------------------
 {
-	gentity_t	*missile = CreateMissile( start, fwd, 700 + random() * 700, 1500 + random() * 2000, self, qtrue );
+	gentity_t	*missile = CreateMissile( start, fwd, 700 + Q_flrand(0.0f, 1.0f) * 700, 1500 + Q_flrand(0.0f, 1.0f) * 2000, self, qtrue );
 
 	missile->think = WP_flechette_alt_blow;
 
@@ -1670,8 +1670,8 @@ static void WP_FlechetteAltFire( gentity_t *self )
 	{
 		VectorCopy( angs, dir );
 
-		dir[PITCH] -= random() * 4 + 8; // make it fly upwards
-		dir[YAW] += crandom() * 2;
+		dir[PITCH] -= Q_flrand(0.0f, 1.0f) * 4 + 8; // make it fly upwards
+		dir[YAW] += Q_flrand(-1.0f, 1.0f) * 2;
 		AngleVectors( dir, fwd, NULL, NULL );
 
 		WP_CreateFlechetteBouncyThing( start, fwd, self );
@@ -1834,7 +1834,7 @@ void rocketThink( gentity_t *ent )
 		// add crazy drunkenness
 		for (i = 0; i < 3; i++ )
 		{
-			newdir[i] += crandom() * ent->random * 0.25f;
+			newdir[i] += Q_flrand(-1.0f, 1.0f) * ent->random * 0.25f;
 		}
 
 		// decay the randomness
@@ -2928,7 +2928,7 @@ void BlowDetpacks(gentity_t *ent)
 			{
 				VectorCopy( found->r.currentOrigin, found->s.origin );
 				found->think = DetPackBlow;
-				found->nextthink = level.time + 100 + random() * 200;
+				found->nextthink = level.time + 100 + Q_flrand(0.0f, 1.0f) * 200;
 				G_Sound( found, CHAN_BODY, G_SoundIndex("sound/weapons/detpack/warning.wav") );
 			}
 		}

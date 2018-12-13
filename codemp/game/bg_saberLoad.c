@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 	#include "g_local.h"
 #elif _CGAME
 	#include "cgame/cg_local.h"
-#elif _UI
+#elif UI_BUILD
 	#include "ui/ui_local.h"
 #endif
 
@@ -41,7 +41,7 @@ extern stringID_table_t animTable[MAX_ANIMATIONS+1];
 int BG_SoundIndex( const char *sound ) {
 #ifdef _GAME
 	return G_SoundIndex( sound );
-#elif defined(_CGAME) || defined(_UI)
+#elif defined(_CGAME) || defined(UI_BUILD)
 	return trap->S_RegisterSound( sound );
 #endif
 }
@@ -2281,13 +2281,14 @@ void WP_SaberLoadParms( void )
 
 		len = trap->FS_Open( va( "ext_data/sabers/%s", holdChar ), &f, FS_READ );
 
-		if ( len == -1 ) {
+		if ( !f ) {
 			Com_Printf( "WP_SaberLoadParms: error reading file: %s\n", holdChar );
 			continue;
 		}
 
 		if ( (totallen + len+1) >= MAX_SABER_DATA_SIZE ) {
-#ifdef _UI
+			trap->FS_Close( f );
+#ifdef UI_BUILD
 			Com_Error( ERR_FATAL, "WP_SaberLoadParms: Saber extensions (*.sab) are too large!\nRan out of space before reading %s", holdChar );
 #else
 			Com_Error( ERR_DROP, "WP_SaberLoadParms: Saber extensions (*.sab) are too large!\nRan out of space before reading %s", holdChar );
@@ -2312,7 +2313,7 @@ void WP_SaberLoadParms( void )
 	}
 }
 
-#ifdef _UI
+#ifdef UI_BUILD
 qboolean WP_IsSaberTwoHanded( const char *saberName )
 {
 	int twoHanded;
